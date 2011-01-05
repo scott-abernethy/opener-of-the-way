@@ -1,0 +1,66 @@
+#!/bin/bash
+
+## create options, default to NTFS non-dynamic
+
+function print_usage {
+  script_name=$(basename $0)
+  cat <<EOF
+Usage:
+ - $script_name open <location> <path> <password>
+ - $script_name close <location> <path>
+EOF
+}
+
+set -o nounset
+
+function abort_check {
+  if [ $1 != 0 ] ; then
+    echo "Aborted"
+    exit $1
+  fi
+}
+
+function do_open {
+  gate_password=$1
+  if [ ! -d $gate_mount ] ; then
+    mkdir -p $gate_mount
+    touch $gate_mount_marker ; abort_check $?
+  fi
+
+  if [ -f $gate_mount_marker ] ; then 
+    mount -t cifs //$gate_location $gate_mount --verbose -o rw,noexec,user=wmtdev,password=***REMOVED*** ; abort_check $?
+  fi
+
+  if [ ! -d $gate_crypt ] ; then
+    mkdir -p $gate_crypt
+    touch $gate_crypt_marker ; abort_check $?
+  fi
+
+  if [ -f $gate_crypt_marker ] ; then 
+    truecrypt --password=$gate_password $gate_mount/$gate_path $gate_crypt ; abort_check $?
+  fi
+}
+
+function do_close {
+  if [ -d $gate_crypt ] ; then
+    if [ ! -f $gate_crypt_marker ] ; then
+      truecrypt -d $gate_mount/$gate_path ; abort_check $?
+    fi
+  fi
+}
+
+gate_mount_root=/tmp/gates
+gate_location=$2
+gate_location_desc=$(echo $gate_location | sed 's,[ /],-,g')
+gate_path=$3
+gate_path_desc=$(echo $gate_path | sed 's,[ /],-,g')
+gate_mount=$gate_mount_root/$gate_location_desc/fs
+gate_mount_marker=$gate_mount/he-knows-the-gate
+gate_crypt=$gate_mount_root/$gate_location_desc/crypt-$gate_path_desc
+gate_crypt_marker=$gate_crypt/he-is-the-gate
+
+case "$1" in
+  open) do_open $4 ;;
+  close) do_close ;;
+  *) print_usage ; exit 1 ;;
+esac
