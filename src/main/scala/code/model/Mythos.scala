@@ -5,9 +5,9 @@ import net.liftweb.squerylrecord.RecordTypeMode._
 
 object Mythos extends Schema {
   val cultists = table[Cultist]
-  val tomes = table[Tome]
-  val spells = table[Spell]
+  val gateways = table[Gateway]
+  val artifacts = table[Artifact]
 
-  val cultistToTomes = oneToManyRelation(cultists, tomes).via((c,t) => c.id === t.cultistId)
-  val tomeToSpells = oneToManyRelation(tomes, spells).via((t,s) => t.id === s.tomeId)
+  val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
+  val gatewayToArtifacts = oneToManyRelation(gateways, artifacts).via((g,a) => g.id === a.gatewayId)
 }

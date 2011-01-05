@@ -15,7 +15,7 @@ class Cultist private () extends Record[Cultist] with KeyedRecord[Long] {
   val idField = new LongField(this, 0)
   val name = new StringField(this, "")
 
- lazy val tomes: OneToMany[Tome] = Mythos.cultistToTomes.left(this)
+  lazy val gateways: OneToMany[Gateway] = Mythos.cultistToGateways.left(this)
 }
 
 object Cultist extends Cultist with MetaRecord[Cultist]

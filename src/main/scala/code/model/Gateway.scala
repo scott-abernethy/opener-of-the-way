@@ -8,16 +8,16 @@ import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
 
-class Tome private () extends Record[Tome] with KeyedRecord[Long] {
-  def meta = Tome
+class Gateway private () extends Record[Gateway] with KeyedRecord[Long] {
+  def meta = Gateway
 
   @Column(name="id")
   val idField = new LongField(this, 0)
   val cultistId = new LongField(this, 0)
   val uri = new StringField(this, 100, "")
 
-  lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToTomes.right(this)
-  lazy val spells: OneToMany[Spell] = Mythos.tomeToSpells.left(this)
+  lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
+  lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
 }
 
-object Tome extends Tome with MetaRecord[Tome]
+object Gateway extends Gateway with MetaRecord[Gateway]
