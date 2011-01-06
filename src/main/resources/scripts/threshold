@@ -39,6 +39,8 @@ function do_open {
   if [ -f $gate_crypt_marker ] ; then 
     truecrypt --password=$gate_password $gate_mount/$gate_path $gate_crypt ; abort_check $?
   fi
+
+  echo "Gate opened on '$gate_crypt'"
 }
 
 function do_close {
@@ -47,6 +49,8 @@ function do_close {
       truecrypt -d $gate_mount/$gate_path ; abort_check $?
     fi
   fi
+
+  echo "Gate closed"
 }
 
 gate_mount_root=/tmp/gates

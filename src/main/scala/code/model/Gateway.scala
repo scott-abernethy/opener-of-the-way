@@ -1,7 +1,7 @@
 package code.model
 
 import net.liftweb.record.{MetaRecord, Record}
-import net.liftweb.record.field.{LongField, LongTypedField, OptionalDateTimeField, OptionalIntField, StringField}
+import net.liftweb.record.field.{BooleanField, LongField, LongTypedField, OptionalDateTimeField, OptionalIntField, StringField}
 import net.liftweb.squerylrecord.KeyedRecord
 import net.liftweb.squerylrecord.RecordTypeMode._
 import org.squeryl.Query
@@ -17,6 +17,7 @@ class Gateway private () extends Record[Gateway] with KeyedRecord[Long] {
   val location = new StringField(this, 100, "") // hostname/sharename
   val path = new StringField(this, 100, "") // folder/subfolder/tcfilename
   val password = new StringField(this, 100, "") // storing in cleartext as none should have access to db
+  val open = new BooleanField(this, false)
 
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
