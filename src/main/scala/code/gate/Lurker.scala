@@ -17,11 +17,14 @@ class Lurker(fileSystem: FileSystem) extends Actor {
       receive {
         case WayFound(g, lp) =>
           // how often do we check the fileSystem?
-          val files = fileSystem.list(lp)
+          val files = fileSystem.find(lp).toSet
           val now = Calendar.getInstance
           Db.use{_ =>
             updateGate(g, x => x.state(GateState.open).localPath(lp))
-            artifacts.insert(files.map(Artifact.createRecord.gatewayId(g.id).path(_).discovered(now).witnessed(now)))
+            val existingFiles = g.artifacts.toList.map(_.path.is).toSet
+            val (filesToUpdate, filesToAdd) = files partition(existingFiles contains _)
+            // todo (when) do we remove missing files?
+            artifacts.insert(filesToAdd.map(Artifact.createRecord.gatewayId(g.id).path(_).discovered(now).witnessed(now)))
           }
         case WayLost(g) =>
           Db.use{_ =>

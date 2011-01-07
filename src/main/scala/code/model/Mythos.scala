@@ -8,6 +8,11 @@ object Mythos extends Schema {
   val gateways = table[Gateway]
   val artifacts = table[Artifact]
 
+  on(artifacts)(a => declare(
+    //a.path is(indexed),
+    columns(a.gatewayId, a.path) are(unique, indexed)
+  ))
+
   val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
   val gatewayToArtifacts = oneToManyRelation(gateways, artifacts).via((g,a) => g.id === a.gatewayId)
 }

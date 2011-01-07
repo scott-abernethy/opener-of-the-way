@@ -37,6 +37,7 @@ object LurkerTestSpecs extends Specification with Mockito {
   "Lurker" should {
     def queryG(): Gateway = TestDb.use { _ => Mythos.gateways.where(x => x.path === "frog/sheep/cow") single }
     val fileSystem = mock[FileSystem]
+    fileSystem.find("/srv/f") returns(Nil)
     val x = new Lurker(fileSystem).start
     "update a gateway state" in {
       "on way found" in {
@@ -58,16 +59,18 @@ object LurkerTestSpecs extends Specification with Mockito {
     "parse artifacts on way found" in {
       "adding new artifacts" in {
         // ensure no artifacts exist?
-        fileSystem.list("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
+        fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
         var g = queryG()
         x ! WayFound(g, "/srv/g")
         Thread.sleep(500) // super lame. need to wait for Lurker to finish
-        val as = TestDb.use { _ => Mythos.artifacts.where(x => x.gatewayId === g.id) toList }
+        val as = TestDb.use { _ => g.artifacts toList }
         as must haveSize(2)
 
-        // lookup artifacts
-        // check for new
-        // add to db
+        fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: "readme.nfo" :: Nil)
+        x ! WayFound(g, "/srv/g")
+        Thread.sleep(500) // super lame. need to wait for Lurker to finish
+        val as2 = TestDb.use { _ => g.artifacts toList } 
+        as2 must haveSize(3)
       }
       "removing missing artifacts" in {}
       "cancelling bad copy jobs" in {}
