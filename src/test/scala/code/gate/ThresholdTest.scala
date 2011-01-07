@@ -16,9 +16,6 @@ import scala.actors.Actor._
 import org.specs.mock.Mockito
 import org.mockito.Matchers._
 
-import net.liftweb.squerylrecord.SquerylRecord
-import org.squeryl.adapters.H2Adapter
-
 import code.model.Gateway
 
 class ThresholdTestSpecsAsTest extends JUnit4(ThresholdTestSpecs)
