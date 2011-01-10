@@ -1,6 +1,6 @@
 package code.model
 
-import net.liftweb.record.{MetaRecord, Record}
+import net.liftweb.record.{MetaRecord, Record, LifecycleCallbacks}
 import net.liftweb.record.field.{EnumField, LongField, LongTypedField, OptionalDateTimeField, OptionalIntField, StringField}
 import net.liftweb.squerylrecord.KeyedRecord
 import net.liftweb.squerylrecord.RecordTypeMode._

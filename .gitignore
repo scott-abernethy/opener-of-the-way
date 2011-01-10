@@ -9,8 +9,11 @@ syntax: glob
 *.old
 .DS_Store
 
+# rubbish
+/pics
+
 # logs
-derby.log
+/*.log
 
 # eclipse conf file
 .settings
@@ -37,6 +40,7 @@ project/boot
 lift_proto*
 *.h2.db
 *.lock.db
+*.trace.db
 
 # other scm
 .svn

@@ -7,6 +7,7 @@ import net.liftweb.squerylrecord.RecordTypeMode._
 import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
+import code.model.Mythos._
 
 class Artifact private () extends Record[Artifact] with KeyedRecord[Long] {
   def meta = Artifact
@@ -18,7 +19,9 @@ class Artifact private () extends Record[Artifact] with KeyedRecord[Long] {
   val discovered = new DateTimeField(this)
   val witnessed = new DateTimeField(this)
 
-  lazy val gateway: ManyToOne[Gateway] = Mythos.gatewayToArtifacts.right(this)
+  lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
 }
 
-object Artifact extends Artifact with MetaRecord[Artifact]
+object Artifact extends Artifact with MetaRecord[Artifact] {
+  def all: List[Artifact] = from(artifacts)(x => select(x)) toList
+}

@@ -16,7 +16,8 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) {
     "net.liftweb" %% "lift-squeryl-record" % liftVersion % "compile->default",
     "org.mortbay.jetty" % "jetty" % "6.1.22" % "test->default",
     "junit" % "junit" % "4.5" % "test->default",
-    "ch.qos.logback" % "logback-classic" % "0.9.26",
+    "log4j" % "log4j" % "1.2.16",
+    "org.slf4j" % "slf4j-log4j12" % "1.6.1",
     "org.scala-tools.testing" %% "specs" % "1.6.6" % "test->default",
     "org.mockito" % "mockito-all" % "1.8.5" % "test->default",
     "com.h2database" % "h2" % "1.2.138"

@@ -13,9 +13,10 @@ object Processor extends Processor {
       val pb = new ProcessBuilder(processDefinition) 
       val process = pb.start
       val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
+      var messages: List[String] = Nil
       var out = reader.readLine
-      while (out != null) { println(">>> " + out) ; out = reader.readLine }
-      (process.waitFor == 0, Nil)
+      while (out != null) { messages = messages ::: out :: Nil ; out = reader.readLine }
+      (process.waitFor == 0, messages)
     } catch {
       case _ => (false, Nil)
     }

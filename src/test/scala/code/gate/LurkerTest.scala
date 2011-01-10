@@ -28,7 +28,7 @@ object LurkerTestSpecs extends Specification with Mockito {
   doBeforeSpec {
     TestDb.open
     TestDb.use { _ =>
-      val c = Cultist.createRecord.name("Bob")
+      val c = Cultist.createRecord.email("bob@bob.com")
       Mythos.cultists.insert(c)
       val g = Gateway.createRecord.cultistId(c.id).location("10.16.15.43/public").path("frog/sheep/cow").password("cowsaregreen").state(GateState.lost)
       Mythos.gateways.insert(g) 
@@ -36,9 +36,13 @@ object LurkerTestSpecs extends Specification with Mockito {
   }
   "Lurker" should {
     def queryG(): Gateway = TestDb.use { _ => Mythos.gateways.where(x => x.path === "frog/sheep/cow") single }
-    val fileSystem = mock[FileSystem]
+    object LurkerComponentTest extends LurkerComponentImpl with FileSystemComponent {
+      val fileSystem = mock[FileSystem]
+    }
+    val fileSystem = LurkerComponentTest.fileSystem
     fileSystem.find("/srv/f") returns(Nil)
-    val x = new Lurker(fileSystem).start
+    
+    val x = LurkerComponentTest.lurker.start
     "update a gateway state" in {
       "on way found" in {
         var g = queryG()
