@@ -34,11 +34,19 @@ class Boot {
 
     SquerylRecord.init(() => new H2Adapter)
 
+    //DB.use(DefaultConnectionIdentifier)(_ => code.model.Mythos.create)
+
     // where to search snippet
     LiftRules.addToPackages("code")
 
+    val cultistAttending = If(() => Cultist.attending_?, () => RedirectResponse("/cultist/approach"))
+    val cultistNotAttending = Unless(() => Cultist.attending_?, () => RedirectResponse("/"))
+
     // Build SiteMap
-    def sitemap = SiteMap(Menu.i("Home") / "index")
+    def sitemap = SiteMap(Menu.i("Home") / "index" >> cultistAttending,
+      Menu.i("Join") / "cultist" / "join" >> cultistNotAttending,
+      Menu.i("Approach") / "cultist" / "approach" >> cultistNotAttending,
+      Menu.i("Withdraw") / "cultist" / "withdraw" >> cultistAttending)
 
     // set the sitemap.  Note if you don't want access control for
     // each page, just comment this line out.
@@ -64,5 +72,8 @@ class Boot {
 
     // Make a transaction span the whole HTTP request
     S.addAround(DB.buildLoanWrapper)
+
+    import code.gate.{Lurker, FileSystem}
+    val lurker = new Lurker(FileSystem).start
   }
 }

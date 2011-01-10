@@ -1,0 +1,20 @@
+#lift__noticesContainer___notice {
+  background-color: green;
+}
+
+#lift__noticesContainer___warning {
+  background-color: yellow;
+}
+
+#lift__noticesContainer___error {
+  background-color: red;
+}
+#lift__noticesContainer__ ul {
+	margin:0;
+	padding:0;
+      }
+#lift__noticesContainer__ ul li {
+	margin:0;
+	padding:0;
+	list-style:none;
+}
