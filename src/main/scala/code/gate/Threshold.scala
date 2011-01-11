@@ -23,7 +23,7 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
       receive {
         case Open() => 
           val (success, messages) = processor.waitFor("threshold" :: "open" :: gateway.location.is :: gateway.path.is :: gateway.password.is :: Nil)
-          logger.info("Open " + success + " " + messages)
+          //logger.info("Open " + success + " " + messages)
           Threshold.localPathMessage findFirstMatchIn (messages.reverse.flatten.mkString) map (_.group(1)) match {
             case Some(localPath) if success =>
               lurker ! WayFound(gateway, localPath)
@@ -31,15 +31,15 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
               lurker ! WayLost(gateway)
           }
         case Close() =>
-          logger.info("Close")
+          //logger.info("Close")
           maintainer ! Deactivate()
           val (success, _) = processor.waitFor("threshold" :: "close" :: gateway.location.is :: gateway.path.is :: Nil)
           lurker ! WayLost(gateway)
         case Maintain() => 
-          logger.info("Maintain")
+          //logger.info("Maintain")
           maintainer ! Activate()
         case Destroy =>
-          logger.info("Destroy")
+          //logger.info("Destroy")
           maintainer ! Destroy
           exit
         case unknown =>

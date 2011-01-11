@@ -9,6 +9,17 @@ import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
 import code.model.Mythos._
 
+trait ArtifactState extends Enumeration {
+  type ArtifactState = Value
+  val mine = Value("mine")
+  val available = Value("available")
+  val waiting = Value("waiting")
+  val progressing = Value("progressing")
+  val done = Value("done")
+  val failed = Value("failed")
+}
+object ArtifactState extends ArtifactState
+
 class Artifact private () extends Record[Artifact] with KeyedRecord[Long] {
   def meta = Artifact
 
@@ -18,8 +29,24 @@ class Artifact private () extends Record[Artifact] with KeyedRecord[Long] {
   val path = new StringField(this, 200, "")
   val discovered = new DateTimeField(this)
   val witnessed = new DateTimeField(this)
+  def description = path.is
 
   lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
+  def available = true
+  def owner: Option[Cultist] = gateway.headOption.flatMap(_.cultist.headOption)
+  def stateFor(cultist: Cultist): Option[ArtifactState.Value] = {
+    owner match {
+    case Some(c) if (c == cultist) => Some(ArtifactState.mine)
+    case Some(c) => 
+      from(clones)(x => where(x.artifactId.is === id and x.forCultistId === cultist.id) select(x)).headOption.map(_.state.is) match {
+        case None => Some(ArtifactState.available)
+        case Some(CloneState.waiting) => Some(ArtifactState.waiting)
+        case Some(CloneState.progressing) => Some(ArtifactState.progressing)
+        case Some(CloneState.done) => Some(ArtifactState.done)
+        case _ => None
+      }
+    case _ => None
+  }}
 }
 
 object Artifact extends Artifact with MetaRecord[Artifact] {

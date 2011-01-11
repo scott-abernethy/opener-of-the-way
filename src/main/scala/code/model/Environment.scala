@@ -11,10 +11,8 @@ object Environment extends LurkerComponentImpl with FileSystemComponentImpl with
     logger.info("Environment start")
     lurker.start
     Db.use(_ => from(gateways)(g => select(g)).toSeq).foreach(watch(_))
-    logger.info("Environment started")
   }
   def watch(gateway: Gateway) {
-    logger.info("Watch " + gateway)
     val threshold = new Threshold(gateway, lurker, Processor)
     threshold.start
     threshold ! Maintain()

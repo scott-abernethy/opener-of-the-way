@@ -31,17 +31,18 @@ class Cultist private () extends Record[Cultist] with KeyedRecord[Long] {
 
 object Cultist extends Cultist with MetaRecord[Cultist] {
   val cultistCookie = "theyWhomAttendeth"
-  object attendingCultist extends SessionVar[Box[Cultist]](checkForCookie)
-  def attending_? = !attendingCultist.is.isEmpty
-  def approach(cultist: Cultist) = attendingCultist(Full(cultist))
-  def withdraw() = attendingCultist(Empty)
+  object attending extends SessionVar[Box[Cultist]](checkForCookie)
+  def attending_? = !attending.is.isEmpty
+  def isAttending_?(cultist: Cultist) = attending.is.map(_ == cultist) getOrElse false
+  def approach(cultist: Cultist) = attending(Full(cultist))
+  def withdraw() = attending(Empty)
   def forEmail(email: String): Box[Cultist] = cultists.where(c => c.email.is === email) toSeq match {
     case x :: Nil => Full(x)
     case x :: xs => Full(x) // but this is bad
     case Nil => Empty
   }
   def saveCookie() {
-    attendingCultist.is match {
+    attending.is match {
       case Full(c) => S.addCookie(HTTPCookie(cultistCookie, c.id.toString).setMaxAge(3600 * 24 * 365).setPath("/"))
       case _ => S.addCookie(HTTPCookie(cultistCookie, "###").setPath("/"))
     }

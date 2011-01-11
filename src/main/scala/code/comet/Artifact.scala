@@ -12,11 +12,13 @@ import scala.xml._
 case class ArtifactCreated(artifact: Artifact)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
-  def createUpdate = "update" 
+  var createUpdate: AnyRef = "ignore" 
   override def lowPriority = {
-    case ArtifactCreated(a) => logger.info("Artifact created " + a)
+    case msg @ ArtifactCreated(a) => 
+      logger.info("Artifact created " + a)
+      createUpdate = msg
+      updateListeners
     case _ => 
-      updateListeners()
   }
 }
 
@@ -36,7 +38,7 @@ class ArtifactLog extends CometActor with CometListener {
   def bindItems(in: NodeSeq): NodeSeq = items.flatMap(bindItem(in, _))
   def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq =
     ClearClearable & 
-    ".item:select" #> "foo" &
-    ".item:status" #> "bar" & 
-    ".item:description" #> "..." apply(in)
+    ".item:select" #> "" &
+    ".item:status" #> Cultist.attending.is.flatMap(artifact.stateFor(_)).map(_.toString).getOrElse("?") & 
+    ".item:description" #> artifact.description apply(in)
 }

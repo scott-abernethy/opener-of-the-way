@@ -42,7 +42,8 @@ trait LurkerComponentImpl extends LurkerComponent {
             Db.use{_ =>
               updateGate(g, x => x.state(GateState.lost))
             }
-          case LooseInterest => exit
+          case LooseInterest => 
+            exit
           case _ =>
         }
       }

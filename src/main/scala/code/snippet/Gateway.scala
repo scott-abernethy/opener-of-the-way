@@ -26,7 +26,7 @@ class Gateway {
   private def processAdd {
     import code.model.{Gateway, Cultist}
     import code.model.Mythos._
-    Cultist.attendingCultist.is match {
+    Cultist.attending.is match {
       case Full(c) =>
         val g = gateways.insert(Gateway.createRecord.cultistId(c.id).location(host.is.trim + "/" + share.is.trim).path(path.is.trim).password(password.is.trim))
         // squeryl doesn't have lifecycle callbacks at present, so we must manually trigger event

@@ -74,6 +74,7 @@ class Boot {
     // Make a transaction span the whole HTTP request
     S.addAround(DB.buildLoanWrapper)
 
+    //Db.use(_ => Mythos.create)
     Environment.start
     LiftRules.unloadHooks.append(() => Environment.dispose)
   }
