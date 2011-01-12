@@ -63,6 +63,27 @@ object ArtifactTestSpecs extends Specification with Mockito {
       clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.progressing))
       x.stateFor(c2) must beSome(ArtifactState.progressing)
     }
+    "start waiting clone requests from available state" in {
+      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
+      x.stateFor(c2) must beSome(ArtifactState.available)
+      x.clone(c2) must beEqual(true)
+      x.stateFor(c2) must beSome(ArtifactState.waiting)
+    }
+    "cancel existing clone requests" in {
+      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
+      clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.waiting))
+      x.stateFor(c2) must beSome(ArtifactState.waiting)
+
+      x.cancelClone(c2) must beEqual(true)
+      x.stateFor(c2) must beSome(ArtifactState.available)
+
+      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
+      clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.progressing))
+      x.stateFor(c2) must beSome(ArtifactState.progressing)
+
+      x.cancelClone(c2) must beEqual(true)
+      x.stateFor(c2) must beSome(ArtifactState.available)
+    }
   }
   doAfterSpec {
     TestDb.close

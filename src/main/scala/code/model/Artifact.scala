@@ -8,15 +8,16 @@ import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
 import code.model.Mythos._
+import code.gate.{Wake, Warn}
 
 trait ArtifactState extends Enumeration {
   type ArtifactState = Value
   val mine = Value("mine")
-  val available = Value("available")
-  val waiting = Value("waiting")
-  val progressing = Value("progressing")
-  val done = Value("done")
-  val failed = Value("failed")
+  val available = Value("available") // flag
+  val waiting = Value("waiting") // hourglass
+  val progressing = Value("progressing") // cog
+  val done = Value("done") // flag green
+  val failed = Value("failed") // delete | error | exclamation
 }
 object ArtifactState extends ArtifactState
 
@@ -34,8 +35,7 @@ class Artifact private () extends Record[Artifact] with KeyedRecord[Long] {
   lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
   def available = true
   def owner: Option[Cultist] = gateway.headOption.flatMap(_.cultist.headOption)
-  def stateFor(cultist: Cultist): Option[ArtifactState.Value] = {
-    owner match {
+  def stateFor(cultist: Cultist): Option[ArtifactState.Value] = owner match {
     case Some(c) if (c == cultist) => Some(ArtifactState.mine)
     case Some(c) => 
       from(clones)(x => where(x.artifactId.is === id and x.forCultistId === cultist.id) select(x)).headOption.map(_.state.is) match {
@@ -46,9 +46,33 @@ class Artifact private () extends Record[Artifact] with KeyedRecord[Long] {
         case _ => None
       }
     case _ => None
-  }}
+  }
+  def clone(cultist: Cultist): Boolean = {
+    stateFor(cultist) match {
+      case Some(ArtifactState.available) => 
+        val clone = Clone.createRecord.artifactId(id).forCultistId(cultist.id).state(CloneState.waiting)
+        clones.insert(clone)
+        Environment.manipulator ! Wake
+        true
+      case _ => false
+    }
+  }
+  def cancelClone(cultist: Cultist): Boolean = {
+    stateFor(cultist) match {
+      case Some(s) if (s == ArtifactState.waiting || s == ArtifactState.progressing) => 
+        clones.delete(clones.where(c => c.artifactId.is === id and c.forCultistId.is === cultist.id))
+        Environment.manipulator ! Warn
+        true
+      case _ => false
+    }
+  }
 }
 
 object Artifact extends Artifact with MetaRecord[Artifact] {
+  def at(id: Long): Option[Artifact] = artifacts.lookup(id)
   def all: List[Artifact] = from(artifacts)(x => select(x)) toList
+  lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
+    where(a.gatewayId.is === g.id and g.state.is === GateState.open)
+    select(a)
+  )
 }

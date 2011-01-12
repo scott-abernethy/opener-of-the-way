@@ -7,6 +7,14 @@ import net.liftweb.squerylrecord.RecordTypeMode._
 import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
+import code.model.Mythos._
+
+trait GateMode extends Enumeration {
+  type GateMode = Value
+  val ro = Value("ro")
+  val rw = Value("rw")
+}
+object GateMode extends GateMode
 
 trait GateState extends Enumeration {
   type GateState = Value
@@ -25,10 +33,13 @@ class Gateway private () extends Record[Gateway] with KeyedRecord[Long] {
   val path = new StringField(this, 100, "") // folder/subfolder/tcfilename
   val localPath = new StringField(this, 100, "") // /folder/subfolder
   val password = new StringField(this, 100, "") // storing in cleartext as none should have access to db
+  val mode = new EnumField[Gateway,GateMode](this, GateMode)
   val state = new EnumField[Gateway,GateState](this, GateState)
 
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
 }
 
-object Gateway extends Gateway with MetaRecord[Gateway]
+object Gateway extends Gateway with MetaRecord[Gateway] {
+  lazy val viableDestinations: Query[Gateway] = gateways.where(g => g.mode.is === GateMode.rw and g.state.is === GateState.open)
+}

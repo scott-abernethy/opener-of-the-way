@@ -3,6 +3,7 @@ package code.comet
 import net.liftweb._
 import common._
 import http._
+import http.js._
 import actor._
 import util._
 import Helpers._
@@ -38,7 +39,14 @@ class ArtifactLog extends CometActor with CometListener {
   def bindItems(in: NodeSeq): NodeSeq = items.flatMap(bindItem(in, _))
   def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq =
     ClearClearable & 
-    ".item:select" #> "" &
+    ".log:item [id]" #> ("artifact" + artifact.id) &
+    ".item:select" #> SHtml.ajaxCheckbox(true, (s: Boolean) => if (s) itemSelected(artifact.id) else JsCmds.Noop) &
     ".item:status" #> Cultist.attending.is.flatMap(artifact.stateFor(_)).map(_.toString).getOrElse("?") & 
     ".item:description" #> artifact.description apply(in)
+  def itemSelected(id: Long): JsCmd = {
+    Cultist.attending.is.toOption.flatMap(c => Artifact.at(id).map(_.clone(c))) match {
+      case Some(newStatus) => JsCmds.Noop
+      case _ => JsCmds.Noop
+    }
+  }
 }

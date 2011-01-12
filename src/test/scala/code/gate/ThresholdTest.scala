@@ -24,10 +24,12 @@ object ThresholdTestSpecsRunner extends ConsoleRunner(ThresholdTestSpecs)
 object ThresholdTestSpecs extends Specification with Mockito {
   "Threshold" should {
     val processor = mock[Processor]
+    val processing = mock[Processing]
     val g = Gateway.createRecord.location("10.16.15.43/public").path("frog/sheep/cow").password("cowsaregreen")
     val x = new Threshold(g, self, processor).start
     "open a gateway" in {
-      processor.waitFor("threshold" :: "open" :: "10.16.15.43/public" :: "frog/sheep/cow" :: "cowsaregreen" :: Nil) returns((true, "Gate opened '/var/cache/foo'" :: Nil))
+      processor.process("threshold" :: "open" :: "10.16.15.43/public" :: "frog/sheep/cow" :: "cowsaregreen" :: Nil) returns(processing)
+      processing.waitFor returns((true, "Gate opened '/var/cache/foo'" :: Nil))
       x ! Open()
       self.receiveWithin(1000) {
         case WayFound(g2, lp) => 
@@ -37,7 +39,8 @@ object ThresholdTestSpecs extends Specification with Mockito {
       }
     }
     "close a gateway" in {
-      processor.waitFor("threshold" :: "close" :: "10.16.15.43/public" :: "frog/sheep/cow" :: Nil) returns((true, Nil))
+      processor.process("threshold" :: "close" :: "10.16.15.43/public" :: "frog/sheep/cow" :: Nil) returns(processing)
+      processing.waitFor returns((true, Nil))
       x ! Close()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
@@ -46,7 +49,8 @@ object ThresholdTestSpecs extends Specification with Mockito {
       }
     }
     "fail to open a gateway if process errrors" in {
-      processor.waitFor(any[List[String]]) returns((false, "Gate opened '/var/cache/foo'" :: Nil))
+      processor.process(any[List[String]]) returns(processing)
+      processing.waitFor returns((false, "Gate opened '/var/cache/foo'" :: Nil))
       x ! Open()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
@@ -55,7 +59,8 @@ object ThresholdTestSpecs extends Specification with Mockito {
       }
     }
     "fail to open a gateway if local path not detected" in {
-      processor.waitFor(any[List[String]]) returns((true, "Moo cow /var/cache/foo" :: Nil))
+      processor.process(any[List[String]]) returns(processing)
+      processing.waitFor returns((true, "Moo cow /var/cache/foo" :: Nil))
       x ! Open()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
@@ -63,21 +68,5 @@ object ThresholdTestSpecs extends Specification with Mockito {
         case _ => fail
       }
     }
-
-      /*
-      import net.liftweb.squerylrecord.RecordTypeMode._
-      val vendor = new StandardDBVendor("org.h2.Driver", "jdbc:h2:mem:test", Empty, Empty)
-      try {
-        DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
-        SquerylRecord.init(() => new H2Adapter)
-
-        DB.use(DefaultConnectionIdentifier) { _ => 
-          Mythos.create  
-
-        }
-      } finally {
-        vendor.closeAllConnections_!
-      }
-      */
   }
 }

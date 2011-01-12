@@ -5,7 +5,7 @@ import code.model.Mythos._
 import net.liftweb.common._
 import net.liftweb.squerylrecord.RecordTypeMode._
 
-object Environment extends LurkerComponentImpl with FileSystemComponentImpl with Loggable {
+object Environment extends LurkerComponentImpl with FileSystemComponentImpl with ManipulatorComponentImpl with Loggable {
   var thresholds: List[Threshold] = Nil
   def start {
     logger.info("Environment start")
