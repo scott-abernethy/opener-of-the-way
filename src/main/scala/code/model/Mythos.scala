@@ -1,7 +1,11 @@
 package code.model
 
-import org.squeryl.Schema
-import net.liftweb.squerylrecord.RecordTypeMode._
+import org.squeryl._
+import org.squeryl.PrimitiveTypeMode._
+
+trait MythosObject extends KeyedEntity[Long] {
+  var id: Long = 0
+}
 
 object Mythos extends Schema {
   val cultists = table[Cultist]
@@ -10,15 +14,19 @@ object Mythos extends Schema {
   val clones = table[Clone]
 
   on(artifacts)(a => declare(
-    //a.path is(indexed),
+    a.path is(indexed),
     columns(a.gatewayId, a.path) are(unique, indexed)
   ))
   on(clones)(c => declare(
+    c.artifactId is(indexed),
+    c.forCultistId is(indexed),
     columns(c.artifactId, c.forCultistId) are(unique, indexed)
   ))
 
-  val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId.is)
-  val gatewayToArtifacts = oneToManyRelation(gateways, artifacts).via((g,a) => g.id === a.gatewayId.is)
-  val artifactToClones = oneToManyRelation(artifacts, clones).via((a,cl) => a.id === cl.artifactId.is)
-  val cultistToClones = oneToManyRelation(cultists, clones).via((c,cl) => c.id === cl.forCultistId.is)
+  val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
+  val gatewayToArtifacts = oneToManyRelation(gateways, artifacts).via((g,a) => g.id === a.gatewayId)
+  val artifactToClones = oneToManyRelation(artifacts, clones).via((a,cl) => a.id === cl.artifactId)
+  val cultistToClones = oneToManyRelation(cultists, clones).via((c,cl) => c.id === cl.forCultistId)
+
+  override def drop = super.drop
 }

@@ -36,6 +36,7 @@ lib_managed
 src_managed
 project/boot
 !project/build
+project/plugins/project/
 
 # db
 lift_proto*

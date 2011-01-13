@@ -22,7 +22,9 @@ class Cultist {
   private def processJoin {
     import code.model.Cultist
     import code.model.Mythos._
-    cultists.insert(Cultist.createRecord.email(email.is))
+    val c = new code.model.Cultist
+    c.email = email.is
+    cultists.insert(c)
     S.redirectTo("/")
   }
   def approach = {

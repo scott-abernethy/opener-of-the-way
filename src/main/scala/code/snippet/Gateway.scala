@@ -8,6 +8,7 @@ import _root_.net.liftweb.http.js._
 import _root_.java.util.Date
 import code.model._
 import Helpers._
+import org.squeryl.PrimitiveTypeMode._
 
 class Gateway {
   object host extends RequestVar("")
@@ -28,8 +29,8 @@ class Gateway {
     import code.model.Mythos._
     Cultist.attending.is match {
       case Full(c) =>
-        val g = gateways.insert(Gateway.createRecord.cultistId(c.id).location(host.is.trim + "/" + share.is.trim).path(path.is.trim).password(password.is.trim))
-        // squeryl doesn't have lifecycle callbacks at present, so we must manually trigger event
+        val g = gateways.insert(new code.model.Gateway(c.id, host.is.trim + "/" + share.is.trim, path.is.trim, "", password.is.trim, GateMode.rw, GateState.lost))
+        // TODO squeryl doesn't have lifecycle callbacks at present, so we must manually trigger event
         Environment.watch(g)
       case _ => S.error("?!")
     }

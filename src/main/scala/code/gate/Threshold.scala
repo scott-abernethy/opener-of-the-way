@@ -6,6 +6,7 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import scala.util.matching.Regex
 import net.liftweb.common._
+import org.squeryl.PrimitiveTypeMode._
 
 case class Open()
 case class Close()
@@ -22,7 +23,7 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
     while (true) {
       receive {
         case Open() => 
-          val (success, messages) = processor.process("threshold" :: "open" :: gateway.location.is :: gateway.path.is :: gateway.password.is :: Nil).waitFor
+          val (success, messages) = processor.process("threshold" :: "open" :: gateway.location :: gateway.path :: gateway.password :: Nil).waitFor
           //logger.info("Open " + success + " " + messages)
           Threshold.localPathMessage findFirstMatchIn (messages.reverse.flatten.mkString) map (_.group(1)) match {
             case Some(localPath) if success =>
@@ -33,7 +34,7 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
         case Close() =>
           //logger.info("Close")
           maintainer ! Deactivate()
-          val (success, _) = processor.process("threshold" :: "close" :: gateway.location.is :: gateway.path.is :: Nil).waitFor
+          val (success, _) = processor.process("threshold" :: "close" :: gateway.location :: gateway.path :: Nil).waitFor
           lurker ! WayLost(gateway)
         case Maintain() => 
           //logger.info("Maintain")

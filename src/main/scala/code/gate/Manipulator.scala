@@ -8,8 +8,8 @@ import scala.collection.JavaConversions._
 import scala.actors.Actor
 import scala.actors.Actor._
 import net.liftweb.common._
-import net.liftweb.squerylrecord.RecordTypeMode._
 import org.squeryl.Query
+import org.squeryl.PrimitiveTypeMode._
 
 case object Wake
 case class Warn(invalid: Clone)
@@ -24,7 +24,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
   // cloner ... idle. working on clone x. start | cancel.
   val manipulator = new Manipulator with Loggable {
     val cloner = new Cloner(this)
-    val waitings: Query[Clone] = from(clones)(c => where(c.state.is === CloneState.waiting) select(c) orderBy(c.id asc))
+    val waitings: Query[Clone] = from(clones)(c => where(c.state === CloneState.waiting) select(c) orderBy(c.id asc))
     def act() {
       while (true) {
         receive {
@@ -35,17 +35,18 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             // find cultists who have gateways online
             //Gateway.viableDestinations.toList.map(g => g.cultistId.is -> g)
             // find artifacts that are in gateways online
-            val as = Artifact.viableSources.toList
+        //    val as = Artifact.viableSources.toList
             // get random(?) waiting clone for the above
-            from(clones)(c => 
+        /*    from(clones)(c => 
               where(
-                c.state.is === CloneState.waiting and
-                c.artifactId.is in from(Artifact.viableSources)(a => select(a.id))
+                c.state === CloneState.waiting and
+                c.artifactId in from(Artifact.viableSources)(a => select(a.id))
               )
               select(c) 
               orderBy(c.id asc)
             )
-            if (cloner.currently.isEmpty) waitings.headOption.foreach(cloner.start(_)) 
+            if (cloner.currently.isEmpty) waitings.headOption.foreach(cloner.start(_))
+              */
           case Warn(invalid) => if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
           case Withdraw => 
             cloner.cancel
@@ -66,7 +67,7 @@ class Cloner(manipulator: Actor) {
   var currently: Option[Clone] = None
   def start(job: Clone) {
     currently = Some(job)
-    job.state(CloneState.progressing)
+    job.state = CloneState.progressing
     clones.update(job)
     //val src = 
     //val dest

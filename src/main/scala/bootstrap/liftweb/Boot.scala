@@ -10,10 +10,10 @@ import sitemap._
 import Loc._
 import mapper._
 
+import code.Db
 import code.model._
 
-import net.liftweb.squerylrecord.SquerylRecord
-import org.squeryl.adapters.H2Adapter
+import org.squeryl.PrimitiveTypeMode._
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -21,20 +21,8 @@ import org.squeryl.adapters.H2Adapter
  */
 class Boot {
   def boot {
-    if (!DB.jndiJdbcConnAvailable_?) {
-      val vendor = 
-	new StandardDBVendor(Props.get("db.driver") openOr "org.h2.Driver",
-			     Props.get("db.url") openOr "jdbc:h2:test",
-			     Props.get("db.user"), Props.get("db.password"))
-
-      LiftRules.unloadHooks.append(vendor.closeAllConnections_! _)
-
-      DB.defineConnectionManager(DefaultConnectionIdentifier, vendor)
-    }
-
-    SquerylRecord.init(() => new H2Adapter)
-
-    //DB.use(DefaultConnectionIdentifier)(_ => code.model.Mythos.create)
+    Db.init
+//    transaction { Mythos.create }
 
     // where to search snippet
     LiftRules.addToPackages("code")
@@ -72,7 +60,7 @@ class Boot {
       new Html5Properties(r.userAgent))    
 
     // Make a transaction span the whole HTTP request
-    S.addAround(DB.buildLoanWrapper)
+    S.addAround(new LoanWrapper(){ def apply[T](f : => T): T = transaction(f) })
 
     //Db.use(_ => Mythos.create)
     Environment.start

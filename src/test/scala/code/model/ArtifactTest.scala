@@ -20,69 +20,85 @@ import code.TestDb
 import code.model._
 import code.model.Mythos._
 
-import net.liftweb.squerylrecord.RecordTypeMode._
+import org.squeryl.PrimitiveTypeMode._
   
 class ArtifactTestSpecsAsTest extends JUnit4(ArtifactTestSpecs)
 object ArtifactTestSpecsRunner extends ConsoleRunner(ArtifactTestSpecs)
 object ArtifactTestSpecs extends Specification with Mockito {
   doBeforeSpec {
-    TestDb.open
-    TestDb.use { _ =>
-      val c = Cultist.createRecord.email("bob@bob.com")
+    TestDb.init
+    transaction {
+      val c = new Cultist("bob@bob.com", "")
       cultists.insert(c)
-      val c2 = Cultist.createRecord.email("sue@sue.com")
+      val c2 = new Cultist("sue@sue.com", "")
       cultists.insert(c2)
-      val g = Gateway.createRecord.cultistId(c.id).location("10.16.15.43/public").path("frog/sheep/cow").password("cowsaregreen").state(GateState.lost)
+      val g = new Gateway(c.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.rw, GateState.lost)
       gateways.insert(g)
-      val now = java.util.Calendar.getInstance
-      val x = Artifact.createRecord.gatewayId(g.id).path("a/b/c").discovered(now).witnessed(now)
+      val now = new java.sql.Timestamp(new java.util.Date().getTime)
+      val x = new Artifact(g.id, "a/b/c", now, now)
       artifacts.insert(x)
     }
   }
   "Artifact" should {
-    val c: Cultist = Mythos.cultists.lookup(1L) getOrElse null
-    val c2: Cultist = Mythos.cultists.lookup(2L) getOrElse null
-    val x: Artifact = Mythos.artifacts.lookup(1L) getOrElse null
+    val (c: Cultist, c2: Cultist, x: Artifact) = transaction {
+      (cultists.lookup(1L) getOrElse null,
+      cultists.lookup(2L) getOrElse null,
+      artifacts.lookup(1L) getOrElse null)
+    }
     "resolve it's owning cultist" in {
-      x.owner must beSome(c)
-      x.owner must beSome(c)
+      transaction {
+        x.owner must beSome(c)
+        x.owner must beSome(c)
+      }
     }
     "be mine if owning cultist is logged in" in {
-      x.stateFor(c) must beSome(ArtifactState.mine)
+      transaction {
+        x.stateFor(c) must beSome(ArtifactState.mine)
+      }
     }
     "be available if not mine" in {
-      x.stateFor(c2) must beSome(ArtifactState.available)
+      transaction {
+        x.stateFor(c2) must beSome(ArtifactState.available)
+      }
     }
     "be waiting if waiting clone exists" in {
-      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
-      clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.waiting))
-      x.stateFor(c2) must beSome(ArtifactState.waiting)
+      transaction {
+        clones.delete(clones.where(cl => cl.artifactId === x.id))
+        clones.insert(new Clone(x.id, c2.id, CloneState.waiting))
+        x.stateFor(c2) must beSome(ArtifactState.waiting)
+      }
     }
     "be progressing if progressing clone exists" in {
-      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
-      clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.progressing))
-      x.stateFor(c2) must beSome(ArtifactState.progressing)
+      transaction {
+        clones.delete(clones.where(cl => cl.artifactId === x.id))
+        clones.insert(new Clone(x.id, c2.id, CloneState.progressing))
+        x.stateFor(c2) must beSome(ArtifactState.progressing)
+      }
     }
     "start waiting clone requests from available state" in {
-      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
-      x.stateFor(c2) must beSome(ArtifactState.available)
-      x.clone(c2) must beEqual(true)
-      x.stateFor(c2) must beSome(ArtifactState.waiting)
+      transaction {
+        clones.delete(clones.where(cl => cl.artifactId === x.id))
+        x.stateFor(c2) must beSome(ArtifactState.available)
+        x.clone(c2) must beEqual(true)
+        x.stateFor(c2) must beSome(ArtifactState.waiting)
+      }
     }
     "cancel existing clone requests" in {
-      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
-      clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.waiting))
-      x.stateFor(c2) must beSome(ArtifactState.waiting)
+      transaction {
+        clones.delete(clones.where(cl => cl.artifactId === x.id))
+        clones.insert(new Clone(x.id, c2.id, CloneState.waiting))
+        x.stateFor(c2) must beSome(ArtifactState.waiting)
 
-      x.cancelClone(c2) must beEqual(true)
-      x.stateFor(c2) must beSome(ArtifactState.available)
+        x.cancelClone(c2) must beEqual(true)
+        x.stateFor(c2) must beSome(ArtifactState.available)
 
-      clones.delete(clones.where(cl => cl.artifactId.is === x.id))
-      clones.insert(Clone.createRecord.artifactId(x.id).forCultistId(c2.id).state(CloneState.progressing))
-      x.stateFor(c2) must beSome(ArtifactState.progressing)
+        clones.delete(clones.where(cl => cl.artifactId === x.id))
+        clones.insert(new Clone(x.id, c2.id, CloneState.progressing))
+        x.stateFor(c2) must beSome(ArtifactState.progressing)
 
-      x.cancelClone(c2) must beEqual(true)
-      x.stateFor(c2) must beSome(ArtifactState.available)
+        x.cancelClone(c2) must beEqual(true)
+        x.stateFor(c2) must beSome(ArtifactState.available)
+      }
     }
   }
   doAfterSpec {

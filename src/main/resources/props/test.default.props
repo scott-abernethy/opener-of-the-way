@@ -1,4 +1,4 @@
 db.driver=org.h2.Driver
-db.url=jdbc:h2:thegate
+db.url=jdbc:h2:test
 db.user=
 db.password=

@@ -15,8 +15,7 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import org.specs.mock.Mockito
 import org.mockito.Matchers._
-
-import code.model.Gateway
+import code.model.{GateState, GateMode, Gateway}
 
 class ThresholdTestSpecsAsTest extends JUnit4(ThresholdTestSpecs)
 object ThresholdTestSpecsRunner extends ConsoleRunner(ThresholdTestSpecs)
@@ -25,7 +24,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
   "Threshold" should {
     val processor = mock[Processor]
     val processing = mock[Processing]
-    val g = Gateway.createRecord.location("10.16.15.43/public").path("frog/sheep/cow").password("cowsaregreen")
+    val g = new Gateway(0,"10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.rw, GateState.open)
     val x = new Threshold(g, self, processor).start
     "open a gateway" in {
       processor.process("threshold" :: "open" :: "10.16.15.43/public" :: "frog/sheep/cow" :: "cowsaregreen" :: Nil) returns(processing)
@@ -33,7 +32,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
       x ! Open()
       self.receiveWithin(1000) {
         case WayFound(g2, lp) => 
-          g2.location.is must be("10.16.15.43/public")
+          g2.location must be("10.16.15.43/public")
           lp must beMatching("/var/cache/foo")
         case _ => fail
       }
@@ -44,7 +43,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
       x ! Close()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
-          g2.location.is must be("10.16.15.43/public")
+          g2.location must be("10.16.15.43/public")
         case _ => fail
       }
     }
@@ -54,7 +53,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
       x ! Open()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
-          g2.location.is must be("10.16.15.43/public")
+          g2.location must be("10.16.15.43/public")
         case _ => fail
       }
     }
@@ -64,7 +63,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
       x ! Open()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
-          g2.location.is must be("10.16.15.43/public")
+          g2.location must be("10.16.15.43/public")
         case _ => fail
       }
     }

@@ -8,7 +8,7 @@ import scala.collection.JavaConversions._
 import scala.actors.Actor
 import scala.actors.Actor._
 import net.liftweb.common._
-import net.liftweb.squerylrecord.RecordTypeMode._
+import org.squeryl.PrimitiveTypeMode._
 
 case class WayFound(gateway: Gateway, localPath: String)
 case class WayLost(gateway: Gateway)
@@ -29,18 +29,25 @@ trait LurkerComponentImpl extends LurkerComponent {
             // how often do we check the fileSystem?
             val files = fileSystem.find(lp).toSet
             logger.info("WayFound " + files)
-            val now = Calendar.getInstance
-            Db.use{_ =>
-              updateGate(g, x => x.state(GateState.open).localPath(lp))
-              val existingFiles = g.artifacts.toList.map(_.path.is).toSet
+            val now = new java.sql.Timestamp(new java.util.Date().getTime)
+            transaction{
+              updateGate(g, x => {
+                x.state = GateState.open
+                x.localPath = lp
+                x
+              })
+              val existingFiles = g.artifacts.toList.map(_.path).toSet
               val (filesToUpdate, filesToAdd) = files partition(existingFiles contains _)
               // todo (when) do we remove missing files?
-              filesToAdd.map(Artifact.createRecord.gatewayId(g.id).path(_).discovered(now).witnessed(now)).foreach( a =>  ArtifactServer ! ArtifactCreated(artifacts.insert(a)))
+              filesToAdd.map(new Artifact(g.id, _, now, now)).foreach( a =>  ArtifactServer ! ArtifactCreated(artifacts.insert(a)))
             }
           case WayLost(g) =>
             logger.info("WayLost")
-            Db.use{_ =>
-              updateGate(g, x => x.state(GateState.lost))
+            transaction{
+              updateGate(g, x => {
+                x.state = GateState.lost
+                x
+              })
             }
           case LooseInterest => 
             exit
