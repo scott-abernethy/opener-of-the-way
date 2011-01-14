@@ -37,16 +37,35 @@ class ArtifactLog extends CometActor with CometListener {
     ClearClearable &
     ".log:item" #> bindItems _
   def bindItems(in: NodeSeq): NodeSeq = items.flatMap(bindItem(in, _))
-  def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq =
+  def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq = {
+    val artifactState: Option[ArtifactState.Value] = Cultist.attending.is.flatMap(artifact.stateFor(_))
     ClearClearable & 
     ".log:item [id]" #> ("artifact" + artifact.id) &
-    ".item:select" #> SHtml.ajaxCheckbox(true, (s: Boolean) => if (s) itemSelected(artifact.id) else JsCmds.Noop) &
-    ".item:status" #> Cultist.attending.is.flatMap(artifact.stateFor(_)).map(_.toString).getOrElse("?") & 
-    ".item:description" #> artifact.description apply(in)
+    ".item:select *" #> selectOption(artifact, artifactState) &
+    ".item:status *" #> artifactState.map(_.toString).getOrElse("?") &
+    ".item:description *" #> artifact.description apply(in)
+  }
   def itemSelected(id: Long): JsCmd = {
-    Cultist.attending.is.toOption.flatMap(c => Artifact.at(id).map(_.clone(c))) match {
+    Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
       case Some(newStatus) => JsCmds.Noop
       case _ => JsCmds.Noop
     }
+  }
+  def itemDeselected(id: Long): JsCmd = {
+    Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
+      case Some(newStatus) => JsCmds.Noop
+      case _ => JsCmds.Noop
+    }
+  }
+  def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value]): NodeSeq = artifactState match {
+    case Some(state) if (state == ArtifactState.available) =>
+      selectCheckbox(artifact, false)
+    case Some(state) if (state == ArtifactState.waiting || state == ArtifactState.progressing || state == ArtifactState.failed) =>
+      selectCheckbox(artifact, true)
+    case _ =>
+      NodeSeq.Empty
+  }
+  def selectCheckbox(artifact: Artifact, defaultSelected: Boolean): NodeSeq = {
+    SHtml.ajaxCheckbox(defaultSelected, (s: Boolean) => if (s) itemSelected(artifact.id) else itemDeselected(artifact.id))
   }
 }

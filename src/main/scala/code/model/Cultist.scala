@@ -20,6 +20,7 @@ class Cultist(
 }
 
 object Cultist {
+  def find(id: Long): Option[Cultist] = cultists.lookup(id)
   val cultistCookie = "theyWhomAttendeth"
   object attending extends SessionVar[Box[Cultist]](checkForCookie)
   def attending_? = !attending.is.isEmpty

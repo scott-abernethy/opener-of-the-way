@@ -36,7 +36,6 @@ class Artifact(
       case Some(ArtifactState.available) => 
         val clone = new Clone(id, cultist.id, CloneState.waiting)
         clones.insert(clone)
-        Environment.manipulator ! Wake
         true
       case _ => false
     }
@@ -45,7 +44,6 @@ class Artifact(
     stateFor(cultist) match {
       case Some(s) if (s == ArtifactState.waiting || s == ArtifactState.progressing) => 
         clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id))
-        Environment.manipulator ! Warn
         true
       case _ => false
     }
@@ -53,7 +51,7 @@ class Artifact(
 }
 
 object Artifact {
-  def at(id: Long): Option[Artifact] = artifacts.lookup(id)
+  def find(id: Long): Option[Artifact] = artifacts.lookup(id)
   def all: List[Artifact] = from(artifacts)(x => select(x)) toList
   lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
     where(a.gatewayId === g.id and g.state === GateState.open)
@@ -63,7 +61,7 @@ object Artifact {
 
 object ArtifactState extends Enumeration {
   type ArtifactState = Value
-  val mine = Value("mine")
+  val mine = Value("mine") //
   val available = Value("available") // flag
   val waiting = Value("waiting") // hourglass
   val progressing = Value("progressing") // cog

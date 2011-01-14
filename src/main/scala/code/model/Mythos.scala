@@ -2,6 +2,7 @@ package code.model
 
 import org.squeryl._
 import org.squeryl.PrimitiveTypeMode._
+import code.gate.{Warn, Wake}
 
 trait MythosObject extends KeyedEntity[Long] {
   var id: Long = 0
@@ -29,4 +30,11 @@ object Mythos extends Schema {
   val cultistToClones = oneToManyRelation(cultists, clones).via((c,cl) => c.id === cl.forCultistId)
 
   override def drop = super.drop
+
+  def afterInsert(clone: Clone) = {
+    Environment.manipulator ! Wake
+  }
+  def afterDelete(clone: Clone) = {
+    Environment.manipulator ! new Warn(clone)
+  }
 }

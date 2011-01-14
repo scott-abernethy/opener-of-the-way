@@ -62,7 +62,6 @@ class Boot {
     // Make a transaction span the whole HTTP request
     S.addAround(new LoanWrapper(){ def apply[T](f : => T): T = transaction(f) })
 
-    //Db.use(_ => Mythos.create)
     Environment.start
     LiftRules.unloadHooks.append(() => Environment.dispose)
   }
