@@ -14,6 +14,8 @@ import org.squeryl.PrimitiveTypeMode._
 case object Wake
 case class Warn(invalid: Clone)
 case object Withdraw
+case object Ping
+case object Pong
 
 trait ManipulatorComponent {
   val manipulator: Manipulator
@@ -38,8 +40,8 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             val waitings: Query[Clone] = from(clones)(c =>
               where(
                 (c.state === CloneState.waiting) and
-                (c.forCultistId in from(Gateway.viableDestinations)(g => select(g.cultistId)))
-//                c.artifactId in from(Artifact.viableSources)(a => select(a.id))
+                (c.forCultistId in from(Gateway.viableDestinations)(g => select(g.cultistId))) and
+                (c.artifactId in from(Artifact.viableSources)(a => select(a.id)))
               )
               select(c)
               orderBy(c.id asc)
@@ -51,6 +53,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
           case Withdraw => 
             cloner.cancel
             exit
+          case Ping => reply(Pong)
           case _ =>
         }
       }

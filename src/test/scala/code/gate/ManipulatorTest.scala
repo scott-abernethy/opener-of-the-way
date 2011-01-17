@@ -49,26 +49,40 @@ object ManipulatorTestSpecs extends Specification with Mockito {
         clones.insert(new Clone(c1ga2.id, c2.id, CloneState.waiting))
       }
       transaction {
+        c1g.state = GateState.open
         c2g.mode = GateMode.ro
         c2g.state = GateState.open
-        gateways.update(c2g)
+        gateways.update(c1g :: c2g :: Nil)
       }
 
       val x = new ManipulatorComponentTestImpl
       x.manipulator.start
       x.manipulator ! Wake
-      Thread.sleep(1000)
+      x.manipulator !? (1000, Ping)
       there was no(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
 
       transaction {
+        c1g.state = GateState.open
         c2g.mode = GateMode.rw
         c2g.state = GateState.lost
-        gateways.update(c2g)
+        gateways.update(c1g :: c2g :: Nil)
       }
 
       x.manipulator ! Wake
-      Thread.sleep(1000)
+      x.manipulator !? (1000, Ping)
+      there was no(x.cloner).start(any[Clone])
+      there was no(x.cloner).cancel
+
+      transaction {
+        c1g.state = GateState.lost
+        c2g.mode = GateMode.rw
+        c2g.state = GateState.open
+        gateways.update(c1g :: c2g :: Nil)
+      }
+
+      x.manipulator ! Wake
+      x.manipulator !? (1000, Ping)
       there was no(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
     }
@@ -77,15 +91,16 @@ object ManipulatorTestSpecs extends Specification with Mockito {
         clones.delete(from(clones)(c => select(c)))
         val cloneB: Clone = clones.insert(new Clone(c1ga1.id, c2.id, CloneState.waiting))
         val cloneA: Clone = clones.insert(new Clone(c1ga2.id, c2.id, CloneState.waiting))
+        c1g.state = GateState.open
         c2g.mode = GateMode.rw
         c2g.state = GateState.open
-        gateways.update(c2g)
+        gateways.update(c1g :: c2g :: Nil)
       }
 
       val x = new ManipulatorComponentTestImpl
       x.manipulator.start
       x.manipulator ! Wake
-      Thread.sleep(1000)
+      x.manipulator !? (1000, Ping)
       there was one(x.cloner).currently
       there was one(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
@@ -104,7 +119,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       x.cloner.currently returns(Some(new Clone()))
       x.manipulator.start
       x.manipulator ! Wake
-      Thread.sleep(1000)
+      x.manipulator !? (1000, Ping)
       there was one(x.cloner).currently
       there was no(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
@@ -113,7 +128,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       val x = new ManipulatorComponentTestImpl
       x.manipulator.start
       x.manipulator ! Withdraw
-      Thread.sleep(1000)
+      x.manipulator !? (1000, Ping)
       there was no(x.cloner).start(any[Clone])
       there was one(x.cloner).cancel
     }
