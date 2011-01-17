@@ -27,15 +27,9 @@ object LurkerTestSpecsRunner extends ConsoleRunner(LurkerTestSpecs)
 object LurkerTestSpecs extends Specification with Mockito {
   doBeforeSpec {
     TestDb.init
-    transaction {
-      val c = new Cultist("bob@bob.com", "")
-      Mythos.cultists.insert(c)
-      val g = new Gateway(c.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.rw, GateState.lost)
-      Mythos.gateways.insert(g) 
-    }
   }
   "Lurker" should {
-    def queryG(): Gateway = transaction { Mythos.gateways.where(x => x.path === "frog/sheep/cow") single }
+    def queryG(): Gateway = transaction { Mythos.gateways.lookup(1L) getOrElse null }
     object LurkerComponentTest extends LurkerComponentImpl with FileSystemComponent {
       val fileSystem = mock[FileSystem]
     }
@@ -47,7 +41,7 @@ object LurkerTestSpecs extends Specification with Mockito {
       "on way found" in {
         var g = queryG()
         x ! WayFound(g, "/srv/f")
-        Thread.sleep(500) // super lame. need to wait for Lurker to finish
+        x !? (500, Ping)
         g = queryG()
         g.state must beEqual(GateState.open)
         g.localPath must beMatching("/srv/f")
@@ -55,24 +49,24 @@ object LurkerTestSpecs extends Specification with Mockito {
       "on way lost" in {
         var g = queryG()
         x ! WayLost(g)
-        Thread.sleep(500) // super lame. need to wait for Lurker to finish
+        x !? (500, Ping)
         g = queryG()
         g.state must beEqual(GateState.lost)
       }
     }
     "parse artifacts on way found" in {
       "adding new artifacts" in {
-        // ensure no artifacts exist?
+        transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
         var g = queryG()
         x ! WayFound(g, "/srv/g")
-        Thread.sleep(500) // super lame. need to wait for Lurker to finish
+        x !? (500, Ping)
         val as = transaction { g.artifacts toList }
         as must haveSize(2)
 
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: "readme.nfo" :: Nil)
         x ! WayFound(g, "/srv/g")
-        Thread.sleep(500) // super lame. need to wait for Lurker to finish
+        x !? (500, Ping)
         val as2 = transaction { g.artifacts toList }
         as2 must haveSize(3)
       }

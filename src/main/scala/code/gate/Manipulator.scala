@@ -14,8 +14,6 @@ import org.squeryl.PrimitiveTypeMode._
 case object Wake
 case class Warn(invalid: Clone)
 case object Withdraw
-case object Ping
-case object Pong
 
 trait ManipulatorComponent {
   val manipulator: Manipulator

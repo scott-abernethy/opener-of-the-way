@@ -51,6 +51,7 @@ trait LurkerComponentImpl extends LurkerComponent {
             }
           case LooseInterest => 
             exit
+          case Ping => reply(Pong)
           case _ =>
         }
       }
