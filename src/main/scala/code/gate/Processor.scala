@@ -16,8 +16,14 @@ trait Processing {
   def waitFor: (Boolean, List[String])
 }
 
-object Processor extends Processor {
-  def process(processDefinition: List[String]): Processing = new ProcessingImpl(processDefinition)
+trait ProcessorComponent {
+  val processor: Processor
+}
+
+trait ProcessorComponentImpl extends ProcessorComponent {
+  val processor = new Processor() {
+    def process(processDefinition: List[String]): Processing = new ProcessingImpl(processDefinition)
+  }
 }
     
 private class ProcessingImpl(processDefinition: List[String]) extends Processing {
@@ -40,11 +46,11 @@ private class ProcessingImpl(processDefinition: List[String]) extends Processing
       var messages: List[String] = Nil
       var out = reader.readLine
       while (out != null) { messages = messages ::: out :: Nil ; out = reader.readLine }
-      (process.waitFor == 0, messages)
+      (process.waitFor == 0, ("Return code " + process.exitValue) :: messages)
     } catch {
-      case _ => 
+      case e =>
         if (process != null) process.destroy
-        (false, Nil)
+        (false, ("Exception " + e.getMessage) :: Nil)
     }
   }
 }

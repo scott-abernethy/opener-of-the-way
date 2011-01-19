@@ -3,9 +3,10 @@ package code.model
 import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import code.model.Mythos._
-import code.gate.{Wake, Warn}
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
+import java.io.File
+import code.gate.{T, Wake, Warn}
 
 class Artifact(
   var gatewayId: Long, 
@@ -13,10 +14,10 @@ class Artifact(
   var discovered: Timestamp, 
   var witnessed: Timestamp
 ) extends MythosObject {
-  def this() = this(0, "", new Timestamp(new java.util.Date().getTime), new Timestamp(new java.util.Date().getTime))
+  def this() = this(0, "", T.now, T.now)
   def description = path
-
   lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
+  def localPath: Option[String] = gateway.headOption.map(g => new File(g.localPath, path).getPath)
   def available = true
   def owner: Option[Cultist] = gateway.headOption.flatMap(_.cultist.headOption)
   def stateFor(cultist: Cultist): Option[ArtifactState.Value] = owner match {
@@ -34,7 +35,7 @@ class Artifact(
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(ArtifactState.available) => 
-        val clone = new Clone(id, cultist.id, CloneState.waiting)
+        val clone = new Clone(id, cultist.id, CloneState.waiting, 0)
         clones.insert(clone)
         true
       case _ => false

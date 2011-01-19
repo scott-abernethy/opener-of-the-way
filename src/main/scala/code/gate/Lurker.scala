@@ -9,6 +9,7 @@ import scala.actors.Actor
 import scala.actors.Actor._
 import net.liftweb.common._
 import org.squeryl.PrimitiveTypeMode._
+import java.io.File
 
 case class WayFound(gateway: Gateway, localPath: String)
 case class WayLost(gateway: Gateway)
@@ -20,14 +21,14 @@ trait LurkerComponent {
 }
 
 trait LurkerComponentImpl extends LurkerComponent {
-  this: FileSystemComponent =>
+  this: FileSystemComponent with ManipulatorComponent =>
   val lurker = new Lurker with Loggable {
     def act() {
-      while (true) {
-        receive {
+      loop {
+        react {
           case WayFound(g, lp) =>
             // how often do we check the fileSystem?
-            val files = fileSystem.find(lp).toSet
+            val files = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
             logger.info("WayFound " + files)
             val now = new java.sql.Timestamp(new java.util.Date().getTime)
             transaction{
@@ -41,6 +42,7 @@ trait LurkerComponentImpl extends LurkerComponent {
               // todo (when) do we remove missing files?
               filesToAdd.map(new Artifact(g.id, _, now, now)).foreach( a =>  ArtifactServer ! ArtifactCreated(artifacts.insert(a)))
             }
+            manipulator ! Wake
           case WayLost(g) =>
             logger.info("WayLost")
             transaction{

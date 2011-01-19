@@ -5,6 +5,7 @@ import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
+import java.io.File
 
 class Gateway(
   var cultistId: Long,
@@ -18,6 +19,7 @@ class Gateway(
   def this() = this(0, "", "", "", "", GateMode.ro, GateState.lost)
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
+  def clonesPath: String = new File(localPath, "clones").getPath
 }
 
 object Gateway {

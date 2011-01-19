@@ -11,12 +11,17 @@ import code.model._
 import scala.xml._
 
 case class ArtifactCreated(artifact: Artifact)
+case class ArtifactUpdated(artifactId: Long)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore" 
   override def lowPriority = {
     case msg @ ArtifactCreated(a) => 
       logger.info("Artifact created " + a)
+      createUpdate = msg
+      updateListeners
+    case msg @ ArtifactUpdated(id) =>
+      logger.info("Artifact updated " + id)
       createUpdate = msg
       updateListeners
     case _ => 

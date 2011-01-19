@@ -15,6 +15,7 @@ class Cultist(
 
   def this() = this("", "")
   def description = email
+  def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.mode === GateMode.rw) select(g) orderBy(g.id asc)) headOption
 
   lazy val gateways: OneToMany[Gateway] = cultistToGateways.left(this)
 }

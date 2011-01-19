@@ -22,28 +22,22 @@ trait ManipulatorComponent {
 
 trait ManipulatorComponentImpl extends ManipulatorComponent {
   this: ClonerComponent =>
-  val manipulator = new Manipulator with Loggable {
-    def act() {
-      while (true) {
-        receive {
-          case Wake => 
-
-
-            // has the current cloner timed out?
-            // find cultists who have gateways online
-            //Gateway.viableDestinations.toList.map(g => g.cultistId.is -> g)
-            // find artifacts that are in gateways online
-        //    val as = Artifact.viableSources.toList
-            // get random(?) waiting clone for the above
-            val waitings: Query[Clone] = from(clones)(c =>
+  val waitings: Query[Clone] = from(clones)(c =>
               where(
                 (c.state === CloneState.waiting) and
                 (c.forCultistId in from(Gateway.viableDestinations)(g => select(g.cultistId))) and
                 (c.artifactId in from(Artifact.viableSources)(a => select(a.id)))
               )
               select(c)
-              orderBy(c.id asc)
+              orderBy(c.attempts asc, c.id asc)
             )
+  val manipulator = new Manipulator with Loggable {
+    def act() {
+      loop {
+        react {
+          case Wake =>
+            // has the current cloner timed out?
+            // get random(?) waiting clone
             if (cloner.currently.isEmpty) transaction{
               waitings.headOption.foreach{c => cloner.start(c)}
             }
@@ -55,39 +49,6 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
           case _ =>
         }
       }
-    }
-  }
-}
-
-trait Cloner {
-  def currently: Option[Clone]
-  def start(job: Clone)
-  def cancel
-}
-
-trait ClonerComponent {
-  val cloner: Cloner
-}
-
-    /*
-    -q quiet
-    -t preserve modification times
-    --progress
-    */
-trait ClonerComponentImpl extends ClonerComponent {
-  val cloner = new Cloner() {
-    private var c: Option[Clone] = None
-    def currently = c
-    def start(job: Clone) {
-      c = Some(job)
-      job.state = CloneState.progressing
-      clones.update(job)
-      //val src =
-      //val dest
-      //Processor.process("rsync" :: Nil).start()
-    }
-    def cancel {
-      c = None
     }
   }
 }

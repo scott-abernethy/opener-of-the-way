@@ -22,7 +22,14 @@ import org.squeryl.PrimitiveTypeMode._
 class Boot {
   def boot {
     Db.init
-//    transaction { Mythos.create }
+    transaction {
+      Mythos.drop
+      Mythos.create
+      val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
+      val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
+      Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.rw, GateState.lost))
+      Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.rw, GateState.lost))
+    }
 
     // where to search snippet
     LiftRules.addToPackages("code")

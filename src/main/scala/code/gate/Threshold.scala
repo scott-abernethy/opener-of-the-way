@@ -20,11 +20,11 @@ object Threshold {
 class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends Actor with Loggable {
   val maintainer = new Maintainer(this).start
   def act() {
-    while (true) {
-      receive {
-        case Open() => 
+    loop {
+      react {
+        case Open() =>
           val (success, messages) = processor.process("threshold" :: "open" :: gateway.location :: gateway.path :: gateway.password :: Nil).waitFor
-          //logger.info("Open " + success + " " + messages)
+          logger.info("Open " + gateway + " = " + success + " " + messages)
           Threshold.localPathMessage findFirstMatchIn (messages.reverse.flatten.mkString) map (_.group(1)) match {
             case Some(localPath) if success =>
               lurker ! WayFound(gateway, localPath)
@@ -32,15 +32,15 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
               lurker ! WayLost(gateway)
           }
         case Close() =>
-          //logger.info("Close")
+          logger.info("Close " + gateway)
           maintainer ! Deactivate()
           val (success, _) = processor.process("threshold" :: "close" :: gateway.location :: gateway.path :: Nil).waitFor
           lurker ! WayLost(gateway)
         case Maintain() => 
-          //logger.info("Maintain")
+          logger.info("Maintain " + gateway)
           maintainer ! Activate()
         case Destroy =>
-          //logger.info("Destroy")
+          logger.info("Destroy " + gateway)
           maintainer ! Destroy
           exit
         case unknown =>
@@ -58,8 +58,8 @@ class Maintainer(threshold: Threshold) extends Actor {
   val interval = 10000L
   var active = false
   def act() {
-    while (true) {
-      receive {
+    loop {
+      react {
         case Activate() => 
           if (!active) {
             active = true 

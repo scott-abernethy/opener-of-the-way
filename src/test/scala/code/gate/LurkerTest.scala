@@ -30,15 +30,16 @@ object LurkerTestSpecs extends Specification with Mockito {
   }
   "Lurker" should {
     def queryG(): Gateway = transaction { Mythos.gateways.lookup(1L) getOrElse null }
-    object LurkerComponentTest extends LurkerComponentImpl with FileSystemComponent {
+    object LurkerComponentTest extends LurkerComponentImpl with FileSystemComponent with ManipulatorComponent {
       val fileSystem = mock[FileSystem]
+      val manipulator = mock[Manipulator]
     }
     val fileSystem = LurkerComponentTest.fileSystem
     fileSystem.find("/srv/f") returns(Nil)
     
     val x = LurkerComponentTest.lurker.start
-    "update a gateway state" in {
-      "on way found" in {
+    "update a gateway state" >> {
+      "on way found" >> {
         var g = queryG()
         x ! WayFound(g, "/srv/f")
         x !? (500, Ping)
@@ -46,7 +47,7 @@ object LurkerTestSpecs extends Specification with Mockito {
         g.state must beEqual(GateState.open)
         g.localPath must beMatching("/srv/f")
       }
-      "on way lost" in {
+      "on way lost" >> {
         var g = queryG()
         x ! WayLost(g)
         x !? (500, Ping)
@@ -54,8 +55,8 @@ object LurkerTestSpecs extends Specification with Mockito {
         g.state must beEqual(GateState.lost)
       }
     }
-    "parse artifacts on way found" in {
-      "adding new artifacts" in {
+    "parse artifacts on way found" >> {
+      "adding new artifacts" >> {
         transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
         var g = queryG()
@@ -70,10 +71,10 @@ object LurkerTestSpecs extends Specification with Mockito {
         val as2 = transaction { g.artifacts toList }
         as2 must haveSize(3)
       }
-      "removing missing artifacts" in {}
-      "cancelling bad copy jobs" in {}
+      "removing missing artifacts" >> {}
+      "cancelling bad copy jobs" >> {}
     }
-    "activate outstanding copies on way found" in {}
+    "activate outstanding copies on way found" >> {}
   }
   doAfterSpec {
     TestDb.close

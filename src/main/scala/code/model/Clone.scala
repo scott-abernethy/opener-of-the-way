@@ -9,9 +9,12 @@ import org.squeryl.PrimitiveTypeMode._
 class Clone(
   var artifactId: Long,
   var forCultistId: Long,
-  var state: CloneState.Value
+  var state: CloneState.Value,
+  var attempts: Long
 ) extends MythosObject {
-  def this() = this(0, 0, CloneState.waiting)
+  def this() = this(0, 0, CloneState.waiting, 0)
+  def artifact: Option[Artifact] = artifactToClones.right(this).headOption
+  def forCultist: Option[Cultist] = cultistToClones.right(this).headOption
 }
 
 object Clone {
