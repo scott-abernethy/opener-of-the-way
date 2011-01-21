@@ -29,7 +29,7 @@ trait LurkerComponentImpl extends LurkerComponent {
           case WayFound(g, lp) =>
             // how often do we check the fileSystem?
             val files = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
-            logger.info("WayFound " + files)
+            logger.debug("WayFound " + files)
             val now = new java.sql.Timestamp(new java.util.Date().getTime)
             transaction{
               updateGate(g, x => {
@@ -44,7 +44,7 @@ trait LurkerComponentImpl extends LurkerComponent {
             }
             manipulator ! Wake
           case WayLost(g) =>
-            logger.info("WayLost")
+            logger.debug("WayLost")
             transaction{
               updateGate(g, x => {
                 x.state = GateState.lost

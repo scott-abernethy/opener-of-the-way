@@ -21,7 +21,7 @@ object Environment
     transaction(from(gateways)(g => select(g)).toSeq).foreach(watch(_))
   }
   def watch(gateway: Gateway) {
-    logger.info("Watch " + gateway)
+    logger.debug("Watch " + gateway)
     val threshold = new Threshold(gateway, lurker, processor)
     threshold.start
     threshold ! Maintain()

@@ -24,7 +24,7 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
       react {
         case Open() =>
           val (success, messages) = processor.process("threshold" :: "open" :: gateway.location :: gateway.path :: gateway.password :: Nil).waitFor
-          logger.info("Open " + gateway + " = " + success + " " + messages)
+          logger.debug("Open " + gateway + " = " + success + " " + messages)
           Threshold.localPathMessage findFirstMatchIn (messages.reverse.flatten.mkString) map (_.group(1)) match {
             case Some(localPath) if success =>
               lurker ! WayFound(gateway, localPath)
@@ -32,15 +32,15 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
               lurker ! WayLost(gateway)
           }
         case Close() =>
-          logger.info("Close " + gateway)
+          logger.debug("Close " + gateway)
           maintainer ! Deactivate()
           val (success, _) = processor.process("threshold" :: "close" :: gateway.location :: gateway.path :: Nil).waitFor
           lurker ! WayLost(gateway)
         case Maintain() => 
-          logger.info("Maintain " + gateway)
+          logger.debug("Maintain " + gateway)
           maintainer ! Activate()
         case Destroy =>
-          logger.info("Destroy " + gateway)
+          logger.debug("Destroy " + gateway)
           maintainer ! Destroy
           exit
         case unknown =>

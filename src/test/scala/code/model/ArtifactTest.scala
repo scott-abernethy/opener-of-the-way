@@ -65,6 +65,13 @@ object ArtifactTestSpecs extends Specification with Mockito {
         x.stateFor(c2) must beSome(ArtifactState.progressing)
       }
     }
+    "be done if done clone exists" >> {
+      transaction {
+        clones.delete(clones.where(cl => cl.artifactId === x.id))
+        clones.insert(new Clone(x.id, c2.id, CloneState.done, 0))
+        x.stateFor(c2) must beSome(ArtifactState.done)
+      }
+    }
     "start waiting clone requests from available state" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))

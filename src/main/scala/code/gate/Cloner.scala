@@ -36,6 +36,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       cur = Some(job)
       job.state = CloneState.progressing
       transaction { clones.update(job) }
+      ArtifactServer ! ArtifactUpdated(job.artifactId)
       transaction {
         for {
           src <- job.artifact.flatMap(_.localPath)
@@ -62,6 +63,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       c.state = CloneState.done
       transaction { clones.update(c) }
       cur = None
+      ArtifactServer ! ArtifactUpdated(c.artifactId)
       manipulator ! Wake
     }
     def failedAttempt(c: Clone) {
@@ -69,6 +71,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       c.attempts = c.attempts + 1
       transaction { clones.update(c) }
       cur = None
+      ArtifactServer ! ArtifactUpdated(c.artifactId)
       manipulator ! Wake
     }
   }
