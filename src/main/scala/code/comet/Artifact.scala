@@ -77,7 +77,7 @@ class ArtifactLog extends CometActor with CometListener {
       selectCheckbox(artifact, false)
     case Some(state) if (state == ArtifactState.waiting || state == ArtifactState.progressing || state == ArtifactState.failed) =>
       selectCheckbox(artifact, true)
-    case _ => Text("-")
+    case _ => Unparsed("&nbsp;")
   }
   def selectCheckbox(artifact: Artifact, defaultSelected: Boolean): NodeSeq = {
     SHtml.ajaxCheckbox(defaultSelected, (s: Boolean) => if (s) itemSelected(artifact.id) else itemDeselected(artifact.id))

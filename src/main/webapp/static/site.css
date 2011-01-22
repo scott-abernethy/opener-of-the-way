@@ -27,3 +27,9 @@ ol.artifacts {
 	margin:0;
 	padding:0;
 }
+.stripmenu ol {
+    list-style:none;
+}
+.stripmenu li {
+    display: inline;
+}

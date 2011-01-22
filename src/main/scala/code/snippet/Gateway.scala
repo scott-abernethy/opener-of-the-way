@@ -34,6 +34,6 @@ class Gateway {
         Environment.watch(g)
       case _ => S.error("?!")
     }
-    S.redirectTo("/")
+    S.redirectTo("/cultist/profile")
   }
 }

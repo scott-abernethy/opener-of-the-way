@@ -39,11 +39,11 @@ class Boot {
 
     // Build SiteMap
     def sitemap = SiteMap(Menu.i("Home") / "index" >> isAttending,
-      Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Approach") / "cultist" / "approach" >> notAttending,
-      Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
+      Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Profile") / "cultist" / "profile" >> isAttending,
-      Menu.i("Add Gateway") / "gateway" / "add" >> isAttending)
+      Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
+      Menu.i("Add Gateway") / "gateway" / "add" >> Hidden >> isAttending)
 
     // set the sitemap.  Note if you don't want access control for
     // each page, just comment this line out.
