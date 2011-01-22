@@ -68,7 +68,7 @@ class ArtifactLog extends CometActor with CometListener {
   }
   def itemDeselected(id: Long): JsCmd = {
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
-      case Some(newStatus) => JsCmds.Noop
+      case Some(newStatus) => renderUpdate(id)
       case _ => JsCmds.Noop
     }
   }
