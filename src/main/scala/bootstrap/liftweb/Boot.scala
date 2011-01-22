@@ -42,6 +42,7 @@ class Boot {
       Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Approach") / "cultist" / "approach" >> notAttending,
       Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
+      Menu.i("Profile") / "cultist" / "profile" >> isAttending,
       Menu.i("Add Gateway") / "gateway" / "add" >> isAttending)
 
     // set the sitemap.  Note if you don't want access control for

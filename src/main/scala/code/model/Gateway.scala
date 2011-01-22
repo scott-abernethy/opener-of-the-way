@@ -20,6 +20,7 @@ class Gateway(
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
   def clonesPath: String = new File(localPath, "clones").getPath
+  def description: String = new File(location, path).getPath
 }
 
 object Gateway {

@@ -41,7 +41,7 @@ class Cultist {
       Cultist.forEmail(submittedEmail) match {
         case Full(c) =>
           Cultist.approach(c)
-          S.notice("Proceed with care " + c.description)
+          S.notice("Proceed with care " + c.sign)
           S.redirectTo("/", () => (Cultist.saveCookie))
         case Empty =>
           S.warning("'" + submittedEmail + "' is not yet worthy")
@@ -55,4 +55,23 @@ class Cultist {
     S.notice("Never return, or else")
     S.redirectTo("/", () => (Cultist.saveCookie))
   }
+  def profile = {
+    Cultist.attending.is match {
+      case Full(c) =>
+        val gs = c.gateways.toSeq
+        ClearClearable &
+        ".about:sign *" #> c.sign &
+        ".about:email *" #> c.email &
+        ".about:gateway" #> bindGateways(gs) _
+      case _ =>
+        S.redirectTo("/")
+    }
+  }
+  def bindGateways(gs: Seq[code.model.Gateway])(in: NodeSeq): NodeSeq = gs.flatMap(bindGateway(in, _))
+  def bindGateway(in: NodeSeq, g: code.model.Gateway): NodeSeq = {
+    ClearClearable &
+    ".gateway:state" #> g.state.toString &
+    ".gateway:description" #> g.description &
+    ".gateway:mode" #> g.mode.toString
+  }.apply(in)
 }
