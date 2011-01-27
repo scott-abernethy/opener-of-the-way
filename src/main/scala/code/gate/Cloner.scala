@@ -32,7 +32,6 @@ trait ClonerComponentImpl extends ClonerComponent {
     private var cur: Option[Clone] = None
     def currently = cur
     def start(job: Clone) {
-      logger.info("Start " + job)
       cur = Some(job)
       job.state = CloneState.progressing
       transaction { clones.update(job) }
@@ -45,7 +44,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       } match {
         case Some(command) =>
           processor.process(command).start((success, messages) => {
-            logger.info("Process result " + success + " > " + messages + " >> " + command)
+            logger.debug("Process result " + success + " > " + messages + " >> " + command)
             if (success) {
               successfulAttempt(job)
             } else {
