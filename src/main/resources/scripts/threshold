@@ -56,8 +56,6 @@ function do_apply_open {
     truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt ; abort_check $?
   fi
 
-  mkdir -p "$gate_crypt/clones"
-
   echo "Gate opened on '$gate_crypt'"
 }
 
