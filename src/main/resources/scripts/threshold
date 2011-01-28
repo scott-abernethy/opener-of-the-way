@@ -8,6 +8,7 @@ function print_usage {
 Usage:
  - $script_name open <location> <path> <password>
  - $script_name close <location> <path>
+ - $script_name apply (requires root access)
 EOF
 }
 
@@ -22,9 +23,23 @@ function abort_check {
 
 function do_open {
   gate_password=$1
+
+  if [ $(grep "^\w\+ $gate_location $gate_path" $gate_list -c) == 0 ] ; then
+    echo "open $gate_location $gate_path $gate_password" >> $gate_list ; abort_check $?
+  else
+    sed -i -e "s,^\w\+ $gate_location $gate_path .\+,open $gate_location $gate_path $gate_password," $gate_list ; abort_check $?
+  fi
+
+  if [ $(truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
+    echo "Gate waiting on '$gate_crypt'"
+  else
+    echo "Gate opened on '$gate_crypt'"
+  fi
+}
+
+function do_apply_open {
   if [ ! -d $gate_mount ] ; then
     mkdir -p $gate_mount
-    touch $gate_mount_marker ; abort_check $?
   fi
 
   if [ $(mount | grep $gate_mount -c) == 0 ] ; then
@@ -36,9 +51,9 @@ function do_open {
     mkdir -p $gate_crypt
   fi
 
-  if [ $(truecrypt -t -l | grep $gate_crypt -c) == 0 ] ; then
+  if [ $(truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
     echo "Opening"
-    truecrypt --password=$gate_password $gate_mount/$gate_path $gate_crypt ; abort_check $?
+    truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt ; abort_check $?
   fi
 
   mkdir -p "$gate_crypt/clones"
@@ -47,25 +62,61 @@ function do_open {
 }
 
 function do_close {
+  if [ $(grep "^\w\+ $gate_location $gate_path" $gate_list -c) != 0 ] ; then
+    sed -i -e "s,^\w\+ $gate_location $gate_path,closed $gate_location $gate_path," $gate_list ; abort_check $?
+  fi
+  echo "Gate closed"
+}
+
+function do_apply_close {
   if [ -d $gate_crypt ] ; then
-    if [ $(truecrypt -t -l | grep $gate_crypt -c) != 0 ] ; then
-      truecrypt -d $gate_mount/$gate_path ; abort_check $?
+    if [ $(truecrypt -t -l --non-interactive | grep $gate_crypt -c) != 0 ] ; then
+      truecrypt -t --non-interactive -d $gate_mount/$gate_path ; abort_check $?
     fi
   fi
 
   echo "Gate closed"
 }
 
+function do_apply {
+  SAVEIFS=$IFS
+  IFS=$(echo -en "\n\b")
+  for line in $(cat $gate_list) ; do
+    setup_env $(echo $line | awk '{print $2}') $(echo $line | awk '{print $3}')
+    gate_password=$(echo $line | awk '{print $4}')
+    case "$(echo $line | awk '{print $1}')" in
+      open) do_apply_open ;;
+      closed) do_apply_close ;;
+    esac
+  done 
+  IFS=$SAVEIFS
+}
+
+function do_close_all {
+  sed -i -e 's,^open ,closed ,' $gate_list
+}
+
 gate_mount_root=/tmp/gates
-gate_location=$2
-gate_location_desc=$(echo $gate_location | sed 's,[ /],-,g')
-gate_path=$3
-gate_path_desc=$(echo $gate_path | sed 's,[ /],-,g')
-gate_mount=$gate_mount_root/$gate_location_desc/fs
-gate_crypt=$gate_mount_root/$gate_location_desc/crypt-$gate_path_desc
+gate_list=$gate_mount_root/list
+
+if [ ! -f $gate_list ] ; then
+  mkdir -p $gate_mount_root
+  touch $gate_list
+fi
+
+function setup_env {
+  gate_location=$1
+  gate_location_desc=$(echo $gate_location | sed 's,[ /],-,g')
+  gate_path=$2
+  gate_path_desc=$(echo $gate_path | sed 's,[ /],-,g')
+  gate_mount=$gate_mount_root/$gate_location_desc/fs
+  gate_crypt=$gate_mount_root/$gate_location_desc/crypt-$gate_path_desc
+}
 
 case "$1" in
-  open) do_open $4 ;;
-  close) do_close ;;
+  open) setup_env $2 $3 ; do_open $4 ;;
+  close) setup_env $2 $3 ; do_close ;;
+  closeall) do_close_all ;;
+  apply) do_apply ;;
   *) print_usage ; exit 1 ;;
 esac
