@@ -27,6 +27,8 @@ trait Db {
     )
   }
   def close {}
+
+  def describe { Mythos.printDdl }
 }
 
 object Db extends Db
