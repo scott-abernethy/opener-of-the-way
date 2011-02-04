@@ -20,6 +20,7 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) with IdeaPr
     "org.slf4j" % "slf4j-log4j12" % "1.6.1",
     "org.scala-tools.testing" %% "specs" % "1.6.6" % "test->default",
     "org.mockito" % "mockito-all" % "1.8.5" % "test->default",
+    "mysql" % "mysql-connector-java" % "5.1.9",
     "com.h2database" % "h2" % "1.2.138"
   ) ++ super.libraryDependencies
 }
