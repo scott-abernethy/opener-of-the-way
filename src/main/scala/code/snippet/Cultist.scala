@@ -12,32 +12,37 @@ import Helpers._
 class Cultist {
   //def howdy = "#time *" #> date.map(_.toString)
   val emailHint = "gone@insane.yet"
-  object email extends RequestVar(emailHint)
+  object email extends RequestVar[Option[String]](Some(emailHint))
   def join = {
     ClearClearable &
-    ".join:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is, t => email(t)) % ("style" -> "width: 250px")) &
+    ".join:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
     "#join:submit" #> SHtml.submit("Submit", () => processJoin) &
     "#join:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
   private def processJoin {
-    import code.model.Cultist
     import code.model.Mythos._
-    val c = new code.model.Cultist
-    c.email = email.is
-    cultists.insert(c)
-    S.redirectTo("/")
+    email.is.filter(! _.contains("aviat")) match {
+      case Some(e) =>
+        val c = new code.model.Cultist
+        c.email = e
+        cultists.insert(c)
+        S.redirectTo("approach", () => email(Some(e)))
+      case _ =>
+        S.warning("Invalid email")
+        S.redirectTo("join")
+    }
   }
   def approach = {
     ClearClearable &
-    ".approach:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is, t => email(t)) % ("style" -> "width: 250px")) &
+    ".approach:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
     "#approach:submit" #> SHtml.submit("Submit", () => processApproach)
   }
   def processApproach {
-    var submittedEmail = email.is.toLowerCase
+    var submittedEmail = email.is.map(_.toLowerCase).getOrElse("")
 
     if (submittedEmail == emailHint) {
       S.error("Please enter YOUR email address")
-    } else {
+    } else { 
       Cultist.forEmail(submittedEmail) match {
         case Full(c) =>
           Cultist.approach(c)
@@ -45,7 +50,7 @@ class Cultist {
           S.redirectTo("/", () => (Cultist.saveCookie))
         case Empty =>
           S.warning("'" + submittedEmail + "' is not yet worthy")
-          S.redirectTo("join", () => email(submittedEmail))
+          S.redirectTo("join", () => email(Some(submittedEmail)))
         case Failure(msg, _, _) => S.error(msg)
       }
     }
