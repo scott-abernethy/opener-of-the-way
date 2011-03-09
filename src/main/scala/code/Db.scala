@@ -23,7 +23,7 @@ trait Db {
   def init {
     Class.forName(driver);
     SessionFactory.concreteFactory = Some(()=>
-      Session.create(java.sql.DriverManager.getConnection(url), new H2Adapter)
+      Session.create(java.sql.DriverManager.getConnection(url, user, password), new H2Adapter)
     )
   }
   def close {}
