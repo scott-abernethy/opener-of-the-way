@@ -44,7 +44,10 @@ function do_apply_open {
 
   if [ $(mount | grep $gate_mount -c) == 0 ] ; then
     echo "Mounting"
-    mount -t cifs //$gate_location $gate_mount --verbose -o rw,noexec,user=wmtdev,password=***REMOVED*** ; abort_check $?
+    mount -t cifs //$gate_location $gate_mount --verbose -o rw,noexec,user=wmtdev,password=***REMOVED***
+    if [ $? != 0 ] ; then
+      return $?
+    fi
   fi
 
   if [ ! -d $gate_crypt ] ; then
@@ -53,7 +56,10 @@ function do_apply_open {
 
   if [ $(truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
     echo "Opening"
-    truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt ; abort_check $?
+    truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="uid=$(id -u $gate_user),gid=$(id -g $gate_user)"
+    if [ $? != 0 ] ; then
+      return $?
+    fi
   fi
 
   echo "Gate opened on '$gate_crypt'"
@@ -69,7 +75,7 @@ function do_close {
 function do_apply_close {
   if [ -d $gate_crypt ] ; then
     if [ $(truecrypt -t -l --non-interactive | grep $gate_crypt -c) != 0 ] ; then
-      truecrypt -t --non-interactive -d $gate_mount/$gate_path ; abort_check $?
+      truecrypt -t --non-interactive -d $gate_mount/$gate_path
     fi
   fi
 
@@ -96,6 +102,7 @@ function do_close_all {
 
 gate_mount_root=/tmp/gates
 gate_list=$gate_mount_root/list
+gate_user=jetty
 
 if [ ! -f $gate_list ] ; then
   mkdir -p $gate_mount_root
