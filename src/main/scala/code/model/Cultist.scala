@@ -8,13 +8,15 @@ import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
+import java.util.Properties
+import java.io.FileReader
 
 class Cultist(
-  var email: String, 
+  var email: String,
   var password: String) extends MythosObject {
 
   def this() = this("", "")
-  def sign: String = id.toString
+  def sign: String = Cultist.loadCodename(id.toString) // lame but simple
   def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.mode === GateMode.rw) select(g) orderBy(g.id asc)) headOption
 
   lazy val gateways: OneToMany[Gateway] = cultistToGateways.left(this)
@@ -23,6 +25,11 @@ class Cultist(
 object Cultist {
   def find(id: Long): Option[Cultist] = cultists.lookup(id)
   val cultistCookie = "theyWhomAttendeth"
+  lazy val codenames: Properties = {
+    val p = new Properties
+    p.load(Cultist.getClass.getClassLoader.getResourceAsStream("props/codename.props"))
+    p
+  }
   object attending extends SessionVar[Box[Cultist]](checkForCookie)
   def attending_? = !attending.is.isEmpty
   def isAttending_?(cultist: Cultist) = attending.is.map(_ == cultist) getOrElse false
@@ -45,4 +52,5 @@ object Cultist {
       case _ => None
     }
   }
+  def loadCodename(index: String): String = codenames.getProperty(index, index + "?")
 }
