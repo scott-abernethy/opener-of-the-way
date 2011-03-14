@@ -2,6 +2,8 @@
 
 ## create options, default to NTFS non-dynamic
 
+# open/close opened/waiting/failed/closed location path password
+
 function print_usage {
   script_name=$(basename $0)
   cat <<EOF
@@ -23,17 +25,17 @@ function abort_check {
 
 function do_open {
   gate_password=$1
-
-  if [ $(grep "^\w\+ $gate_location $gate_path" $gate_list -c) == 0 ] ; then
-    echo "open $gate_location $gate_path $gate_password" >> $gate_list ; abort_check $?
+  gate_list_entry=$(grep "^\w\+ \w\+ $gate_location $gate_path" $gate_list)
+  if [ "$(echo $gate_list_entry | wc -w)" == "0" ] ; then
+    echo "open waiting $gate_location $gate_path $gate_password" >> $gate_list ; abort_check $?
   else
-    sed -i -e "s,^\w\+ $gate_location $gate_path .\+,open $gate_location $gate_path $gate_password," $gate_list ; abort_check $?
+    sed -i -e "s,^\w\+ \(\w\+\) $gate_location $gate_path .\+,open \1 $gate_location $gate_path $gate_password," $gate_list ; abort_check $?
   fi
 
-  if [ $(truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
-    echo "Gate waiting on '$gate_crypt'"
-  else
+  if [ "$(echo $gate_list_entry | awk '{print $2}')" == "opened" ] ; then
     echo "Gate opened on '$gate_crypt'"
+  else
+    echo "Gate waiting on '$gate_crypt'"
   fi
 }
 
@@ -46,6 +48,7 @@ function do_apply_open {
     echo "Mounting"
     mount -t cifs //$gate_location $gate_mount --verbose -o rw,noexec,user=wmtdev,password=***REMOVED***
     if [ $? != 0 ] ; then
+      mark_status "failed"
       return $?
     fi
   fi
@@ -58,9 +61,13 @@ function do_apply_open {
     echo "Opening"
     truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="uid=$(id -u $gate_user),gid=$(id -g $gate_user)"
     if [ $? != 0 ] ; then
+      mark_status "failed"
       return $?
     fi
   fi
+
+  mark_status "opened"
+  if [ $? != 0 ] ; then return $? ; fi
 
   echo "Gate opened on '$gate_crypt'"
 }
@@ -79,15 +86,22 @@ function do_apply_close {
     fi
   fi
 
+  mark_status "closed"
+  if [ $? != 0 ] ; then return $? ; fi
+
   echo "Gate closed"
+}
+
+function mark_status {
+  sed -i -e "s,^\(\w\+\) \w\+ \($gate_location $gate_path .\+\),\1 $1 \2," $gate_list
 }
 
 function do_apply {
   SAVEIFS=$IFS
   IFS=$(echo -en "\n\b")
   for line in $(cat $gate_list) ; do
-    setup_env $(echo $line | awk '{print $2}') $(echo $line | awk '{print $3}')
-    gate_password=$(echo $line | awk '{print $4}')
+    setup_env $(echo $line | awk '{print $3}') $(echo $line | awk '{print $4}')
+    gate_password=$(echo $line | awk '{print $5}')
     case "$(echo $line | awk '{print $1}')" in
       open) do_apply_open ;;
       closed) do_apply_close ;;
@@ -97,7 +111,7 @@ function do_apply {
 }
 
 function do_close_all {
-  sed -i -e 's,^open ,closed ,' $gate_list
+  sed -i -e 's,^open ,close ,' $gate_list
 }
 
 gate_mount_root=/tmp/gates
