@@ -53,7 +53,7 @@ class Artifact(
 
 object Artifact {
   def find(id: Long): Option[Artifact] = artifacts.lookup(id)
-  def all: List[Artifact] = from(artifacts)(x => select(x)) toList
+  def all: List[Artifact] = from(artifacts)(x => select(x) orderBy(x.discovered desc, x.id desc)) toList
   lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
     where(a.gatewayId === g.id and g.state === GateState.open)
     select(a)

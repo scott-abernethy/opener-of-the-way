@@ -10,6 +10,8 @@ import Helpers._
 import code.model._
 import scala.xml._
 import org.squeryl.PrimitiveTypeMode._
+import java.text.{SimpleDateFormat}
+import java.util.{Date, TimeZone}
 
 case class ArtifactCreated(artifact: Artifact)
 case class ArtifactUpdated(artifactId: Long)
@@ -30,11 +32,17 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
 }
 
 class ArtifactLog extends CometActor with CometListener {
-  var items: List[Artifact] = Artifact.all
+  var items: List[Artifact] = Artifact.all // already sorted
+  val dateF = {
+    val f = new SimpleDateFormat("MMMM d',' EEEE")
+    f.setTimeZone(TimeZone.getDefault)
+    f
+  }
   def registerWith = ArtifactServer
   override def lowPriority = {
     case ArtifactCreated(a) =>
-      if (!items.contains(a)) items = a :: items 
+      if (!items.contains(a)) items = a :: items
+      // todo sort ?
       reRender()
     case ArtifactUpdated(a) =>
       partialUpdate(renderUpdate(a))
@@ -42,8 +50,16 @@ class ArtifactLog extends CometActor with CometListener {
   }
   def render = 
     ClearClearable &
-    ".log:item" #> bindItems _
-  def bindItems(in: NodeSeq): NodeSeq = items.flatMap(bindItem(in, _))
+    ".log:group" #> bindGroups _
+  def bindGroups(in: NodeSeq): NodeSeq = {
+    // use user timezone?
+    items.groupBy(i => dateF format new Date(i.discovered.getTime)).flatMap((i: (String, List[Artifact])) => (
+      ClearClearable &
+      ".group:name *" #> i._1 &
+      ".log:item" #> bindItems(i._2) _
+    ) apply(in)).toSeq
+  }
+  def bindItems(artifacts: List[Artifact])(in: NodeSeq): NodeSeq = artifacts.flatMap(bindItem(in, _))
   def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq = {
     val artifactState: Option[ArtifactState.Value] = Cultist.attending.is.flatMap(artifact.stateFor(_))
     ClearClearable & 
