@@ -2,7 +2,7 @@
 
 ## create options, default to NTFS non-dynamic
 
-# open/close opened/waiting/failed/closed location path password
+# open/close opened/waiting/failed/closed/flushed location path password
 
 function print_usage {
   script_name=$(basename $0)
@@ -10,7 +10,9 @@ function print_usage {
 Usage:
  - $script_name open <location> <path> <password>
  - $script_name close <location> <path>
+ - $script_name closeall
  - $script_name apply (requires root access)
+ - $script_name flush (requires root access)
 EOF
 }
 
@@ -114,6 +116,11 @@ function do_close_all {
   sed -i -e 's,^open ,close ,' $gate_list
 }
 
+function do_flush {
+  truecrypt -t --non-interactive -d --force
+  sed -i -e "s,^\(\w\+\) \w\+ \(.\+\),\1 flushed \2," $gate_list
+}
+
 gate_mount_root=/tmp/gates
 gate_list=$gate_mount_root/list
 gate_user=jetty
@@ -137,5 +144,6 @@ case "$1" in
   close) setup_env $2 $3 ; do_close ;;
   closeall) do_close_all ;;
   apply) do_apply ;;
+  flush) do_flush ;;
   *) print_usage ; exit 1 ;;
 esac
