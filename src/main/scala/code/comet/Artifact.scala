@@ -12,48 +12,62 @@ import scala.xml._
 import org.squeryl.PrimitiveTypeMode._
 import java.text.{SimpleDateFormat}
 import java.util.{Date, TimeZone}
+import collection.SortedMap
+import collection.immutable.TreeMap
+
+case object Subscribed
 
 case class ArtifactCreated(artifact: Artifact)
 case class ArtifactUpdated(artifactId: Long)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
-  var createUpdate: AnyRef = "ignore" 
+  var createUpdate: AnyRef = "ignore"
   override def lowPriority = {
-    case msg @ ArtifactCreated(a) => 
+    case msg @ ArtifactCreated(a) =>
       logger.debug("Artifact created " + a)
-      createUpdate = msg
-      updateListeners
+      updateListeners(msg)
     case msg @ ArtifactUpdated(id) =>
       logger.debug("Artifact updated " + id)
-      createUpdate = msg
-      updateListeners
+      updateListeners(msg)
     case _ => 
   }
 }
 
 class ArtifactLog extends CometActor with CometListener {
-  var items: List[Artifact] = Artifact.all // already sorted
   val dateF = {
-    val f = new SimpleDateFormat("MMMM d',' EEEE")
+    val f = new SimpleDateFormat("yyyy-MM-dd',' EEEE")
     f.setTimeZone(TimeZone.getDefault)
     f
   }
+  var items = reload
   def registerWith = ArtifactServer
   override def lowPriority = {
     case ArtifactCreated(a) =>
-      if (!items.contains(a)) items = a :: items
-      // todo sort ?
-      reRender()
+      items = insertItem(items, a)
+      reRender
     case ArtifactUpdated(a) =>
       partialUpdate(renderUpdate(a))
     case _ =>
+  }
+  def reload: TreeMap[String, List[Artifact]] = {
+    var m = new TreeMap[String, List[Artifact]]
+    Artifact.all.foreach(a => m = insertItem(m, a)) // already sorted
+    m
+  }
+  def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
+    Option(a.discovered).map(timestamp => new Date(timestamp.getTime)).map(dateF format _) match {
+      case Some(key) =>
+        val as = into.getOrElse(key, Nil)
+        if (!as.contains(a)) into + ((key, a :: as)) else into
+      case other => into
+    }
   }
   def render = 
     ClearClearable &
     ".log:group" #> bindGroups _
   def bindGroups(in: NodeSeq): NodeSeq = {
     // use user timezone?
-    items.groupBy(i => dateF format new Date(i.discovered.getTime)).flatMap((i: (String, List[Artifact])) => (
+    items.toSeq.reverse.flatMap((i: (String, List[Artifact])) => (
       ClearClearable &
       ".group:name *" #> i._1 &
       ".log:item" #> bindItems(i._2) _
