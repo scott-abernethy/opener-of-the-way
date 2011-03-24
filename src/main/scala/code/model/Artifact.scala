@@ -25,7 +25,7 @@ class Artifact(
     case Some(c) => 
       from(clones)(x => where(x.artifactId === id and x.forCultistId === cultist.id) select(x)).headOption.map(_.state) match {
         case None => Some(ArtifactState.available)
-        case Some(CloneState.waiting) => Some(ArtifactState.waiting)
+        case Some(CloneState.queued) => Some(ArtifactState.queued)
         case Some(CloneState.progressing) => Some(ArtifactState.progressing)
         case Some(CloneState.done) => Some(ArtifactState.done)
         case _ => None
@@ -35,7 +35,7 @@ class Artifact(
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(ArtifactState.available) => 
-        val clone = new Clone(id, cultist.id, CloneState.waiting, 0)
+        val clone = new Clone(id, cultist.id, CloneState.queued, 0)
         clones.insert(clone)
         true
       case _ => false
@@ -43,7 +43,7 @@ class Artifact(
   }
   def cancelClone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
-      case Some(s) if (s == ArtifactState.waiting || s == ArtifactState.progressing) => 
+      case Some(s) if (s == ArtifactState.queued || s == ArtifactState.progressing) =>
         clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id))
         true
       case _ => false
@@ -53,7 +53,7 @@ class Artifact(
 
 object Artifact {
   def find(id: Long): Option[Artifact] = artifacts.lookup(id)
-  def all: List[Artifact] = from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path asc)) toList
+  def all: List[Artifact] = from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path desc)) toList
   lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
     where(a.gatewayId === g.id and g.state === GateState.open)
     select(a)
@@ -64,7 +64,7 @@ object ArtifactState extends Enumeration {
   type ArtifactState = Value
   val mine = Value("mine") //
   val available = Value("available") // flag
-  val waiting = Value("waiting") // hourglass
+  val queued = Value("queued") // hourglass
   val progressing = Value("progressing") // cog
   val done = Value("done") // flag green
   val failed = Value("failed") // delete | error | exclamation

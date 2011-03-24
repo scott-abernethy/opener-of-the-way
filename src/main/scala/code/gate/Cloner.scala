@@ -66,7 +66,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       manipulator ! Wake
     }
     def failedAttempt(c: Clone) {
-      c.state = CloneState.waiting
+      c.state = CloneState.queued
       c.attempts = c.attempts + 1
       transaction { clones.update(c) }
       cur = None

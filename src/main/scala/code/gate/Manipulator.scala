@@ -24,7 +24,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
   this: ClonerComponent =>
   val waitings: Query[Clone] = from(clones)(c =>
               where(
-                (c.state === CloneState.waiting) and
+                (c.state === CloneState.queued) and
                 (c.forCultistId in from(Gateway.viableDestinations)(g => select(g.cultistId))) and
                 (c.artifactId in from(Artifact.viableSources)(a => select(a.id)))
               )

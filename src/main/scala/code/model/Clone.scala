@@ -12,7 +12,7 @@ class Clone(
   var state: CloneState.Value,
   var attempts: Long
 ) extends MythosObject {
-  def this() = this(0, 0, CloneState.waiting, 0)
+  def this() = this(0, 0, CloneState.queued, 0)
   def artifact: Option[Artifact] = artifactToClones.right(this).headOption
   def forCultist: Option[Cultist] = cultistToClones.right(this).headOption
 }
@@ -22,7 +22,7 @@ object Clone {
 
 object CloneState extends Enumeration {
   type CloneState = Value
-  val waiting = Value("waiting")
+  val queued = Value("queued")
   val progressing = Value("progressing")
   val done = Value("done")
 }
