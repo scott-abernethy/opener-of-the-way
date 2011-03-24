@@ -19,6 +19,7 @@ case object Subscribed
 
 case class ArtifactCreated(artifact: Artifact)
 case class ArtifactUpdated(artifactId: Long)
+case object ArtifactCloned
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore"
@@ -28,6 +29,9 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
       updateListeners(msg)
     case msg @ ArtifactUpdated(id) =>
       logger.debug("Artifact updated " + id)
+      updateListeners(msg)
+    case msg @ ArtifactCloned =>
+      logger.debug("Artifact cloned")
       updateListeners(msg)
     case _ => 
   }
@@ -92,14 +96,20 @@ class ArtifactLog extends CometActor with CometListener {
   }
   def itemSelected(id: Long): JsCmd = {
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
-      case Some(newStatus) => renderUpdate(id)
-      case _ => JsCmds.Noop
+      case Some(newStatus) =>
+        ArtifactServer ! ArtifactCloned
+        renderUpdate(id)
+      case _ =>
+        JsCmds.Noop
     }
   }
   def itemDeselected(id: Long): JsCmd = {
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
-      case Some(newStatus) => renderUpdate(id)
-      case _ => JsCmds.Noop
+      case Some(newStatus) =>
+        ArtifactServer ! ArtifactCloned
+        renderUpdate(id)
+      case _ =>
+        JsCmds.Noop
     }
   }
   def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value]): NodeSeq = artifactState match {
