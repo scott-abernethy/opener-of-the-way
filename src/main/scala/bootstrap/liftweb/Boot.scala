@@ -42,7 +42,7 @@ class Boot {
     // Build SiteMap
     def sitemap = SiteMap(Menu.i("Home") / "index" >> isAttending,
       Menu.i("Approach") / "cultist" / "approach" >> notAttending,
-      Menu.i("Join") / "cultist" / "join" >> notAttending,
+//      Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Profile") / "cultist" / "profile" >> isAttending,
       Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
       Menu.i("Add Gateway") / "gateway" / "add" >> Hidden >> isAttending)

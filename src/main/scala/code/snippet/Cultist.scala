@@ -50,7 +50,8 @@ class Cultist {
           S.redirectTo("/", () => (Cultist.saveCookie))
         case Empty =>
           S.warning("'" + submittedEmail + "' is not yet worthy")
-          S.redirectTo("join", () => email(Some(submittedEmail)))
+          //S.redirectTo("join", () => email(Some(submittedEmail)))
+          S.redirectTo("approach", () => email(Some(submittedEmail)))
         case Failure(msg, _, _) => S.error(msg)
       }
     }
