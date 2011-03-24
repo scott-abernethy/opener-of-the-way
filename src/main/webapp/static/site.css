@@ -40,3 +40,7 @@
 .stripmenu li {
     display: inline;
 }
+.stripstatus {
+    color: #666;
+    padding-right: 2em;
+}
