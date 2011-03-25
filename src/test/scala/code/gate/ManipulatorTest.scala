@@ -50,7 +50,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       }
       transaction {
         c1g.state = GateState.open
-        c2g.mode = GateMode.ro
+        c2g.mode = GateMode.source
         c2g.state = GateState.open
         gateways.update(c1g :: c2g :: Nil)
       }
@@ -64,7 +64,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
 
       transaction {
         c1g.state = GateState.open
-        c2g.mode = GateMode.rw
+        c2g.mode = GateMode.sink
         c2g.state = GateState.lost
         gateways.update(c1g :: c2g :: Nil)
       }
@@ -76,7 +76,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
 
       transaction {
         c1g.state = GateState.lost
-        c2g.mode = GateMode.rw
+        c2g.mode = GateMode.sink
         c2g.state = GateState.open
         gateways.update(c1g :: c2g :: Nil)
       }
@@ -92,7 +92,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
         val cloneB: Clone = clones.insert(new Clone(c1ga1.id, c2.id, CloneState.queued, 0))
         val cloneA: Clone = clones.insert(new Clone(c1ga2.id, c2.id, CloneState.queued, 0))
         c1g.state = GateState.open
-        c2g.mode = GateMode.rw
+        c2g.mode = GateMode.sink
         c2g.state = GateState.open
         gateways.update(c1g :: c2g :: Nil)
       }
@@ -110,7 +110,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
         clones.delete(from(clones)(c => select(c)))
         val cloneB: Clone = clones.insert(new Clone(c1ga1.id, c2.id, CloneState.queued, 0))
         val cloneA: Clone = clones.insert(new Clone(c1ga2.id, c2.id, CloneState.queued, 0))
-        c2g.mode = GateMode.rw
+        c2g.mode = GateMode.sink
         c2g.state = GateState.open
         gateways.update(c2g)
       }

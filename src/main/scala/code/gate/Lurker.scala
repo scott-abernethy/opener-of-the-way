@@ -27,6 +27,7 @@ trait LurkerComponentImpl extends LurkerComponent {
       loop {
         react {
           case WayFound(g, lp) =>
+            // todo don't scan files on sink gateways
             // how often do we check the fileSystem?
             val files = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
             logger.debug("WayFound " + files)

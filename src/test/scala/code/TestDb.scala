@@ -18,8 +18,8 @@ object TestDb extends Db {
       val bob = cultists.insert(new Cultist("bob@bob.com", "bob123"))
       val jane = cultists.insert(new Cultist("jane@jane.com", "jane123"))
 
-      val cow = gateways.insert(new Gateway(bob.id, "10.16.15.43/public", "frog/sheep/cow", "/tmp/cache/gate/cow", "cowsaregreen", GateMode.rw, GateState.lost))
-      val goat = gateways.insert(new Gateway(jane.id, "10.16.16.16/share", "goat.tc", "/tmp/cache/gate/goat", "nattyNAT", GateMode.rw, GateState.lost))
+      val cow = gateways.insert(new Gateway(bob.id, "10.16.15.43/public", "frog/sheep/cow", "/tmp/cache/gate/cow", "cowsaregreen", GateMode.sink, GateState.lost))
+      val goat = gateways.insert(new Gateway(jane.id, "10.16.16.16/share", "goat.tc", "/tmp/cache/gate/goat", "nattyNAT", GateMode.sink, GateState.lost))
 
       val now = new java.sql.Timestamp(new java.util.Date().getTime)
       val glue = artifacts.insert(new Artifact(cow.id, "glue", now, now))

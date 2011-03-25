@@ -17,7 +17,7 @@ class Cultist(
 
   def this() = this("", "")
   def sign: String = Cultist.loadCodename(id.toString) // lame but simple
-  def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.mode === GateMode.rw) select(g) orderBy(g.id asc)) headOption
+  def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.mode === GateMode.sink) select(g) orderBy(g.id asc)) headOption
 
   lazy val gateways: OneToMany[Gateway] = cultistToGateways.left(this)
   lazy val activeClones: Query[Clone] = from(clones)(c =>

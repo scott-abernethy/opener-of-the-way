@@ -16,7 +16,7 @@ class Gateway(
   var mode: GateMode.Value,
   var state: GateState.Value
 ) extends MythosObject {
-  def this() = this(0, "", "", "", "", GateMode.ro, GateState.lost)
+  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost)
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
   def clonesPath: String = new File(localPath, "clones").getPath
@@ -24,13 +24,17 @@ class Gateway(
 }
 
 object Gateway {
-  lazy val viableDestinations: Query[Gateway] = gateways.where(g => g.mode === GateMode.rw and g.state === GateState.open)
+  lazy val viableDestinations: Query[Gateway] = gateways.where(g => g.mode === GateMode.sink and g.state === GateState.open)
 }
 
 object GateMode extends Enumeration {
   type GateMode = Value
-  val ro = Value("ro")
-  val rw = Value("rw")
+  val source = Value("source (read only)")
+  val sink = Value("sink (write only)")
+  def parse(text: String): GateMode = text match {
+    case "sink (write only)" => sink
+    case _ => source
+  }  
 }
 
 object GateState extends Enumeration {
