@@ -40,7 +40,7 @@ trait ClonerComponentImpl extends ClonerComponent {
         for {
           src <- job.artifact.flatMap(_.localPath)
           dest <- job.forCultist.flatMap(_.destination).map(_.clonesPath)
-        } yield ("cloner" :: src :: dest ::  Nil)
+        } yield ("cloner" :: '"'+src+'"' :: '"'+dest+'"' ::  Nil)
       } match {
         case Some(command) =>
           processor.process(command).start((success, messages) => {
