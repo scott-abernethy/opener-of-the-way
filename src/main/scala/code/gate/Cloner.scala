@@ -40,7 +40,7 @@ trait ClonerComponentImpl extends ClonerComponent {
         for {
           src <- job.artifact.flatMap(_.localPath)
           dest <- job.forCultist.flatMap(_.destination).map(_.clonesPath)
-        } yield ("cloner" :: '"'+src+'"' :: '"'+dest+'"' ::  Nil)
+        } yield ("cloner" :: escapeString(src) :: escapeString(dest) ::  Nil)
       } match {
         case Some(command) =>
           processor.process(command).start((success, messages) => {
@@ -73,5 +73,6 @@ trait ClonerComponentImpl extends ClonerComponent {
       ArtifactServer ! ArtifactUpdated(c.artifactId)
       manipulator ! Wake
     }
+    def escapeString(in: String): String = in.replace(" ", "?")
   }
 }
