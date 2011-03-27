@@ -27,21 +27,36 @@ trait LurkerComponentImpl extends LurkerComponent {
       loop {
         react {
           case WayFound(g, lp) =>
-            // todo don't scan files on sink gateways
-            // how often do we check the fileSystem?
-            val files = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
-            logger.debug("WayFound " + files)
-            val now = new java.sql.Timestamp(new java.util.Date().getTime)
+            logger.debug("WayFound " + lp)
             transaction{
               updateGate(g, x => {
                 x.state = GateState.open
                 x.localPath = lp
                 x
               })
-              val existingFiles = g.artifacts.toList.map(_.path).toSet
-              val (filesToUpdate, filesToAdd) = files partition(existingFiles contains _)
+            }
+            // how often do we check the fileSystem?
+            val filesFound = g.mode match {
+              case GateMode.source =>
+                fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
+              case _ =>
+                Set.empty
+            }
+            val now = T.now
+            transaction{
               // todo (when) do we remove missing files?
-              filesToAdd.map(new Artifact(g.id, _, now, now)).foreach( a =>  ArtifactServer ! ArtifactCreated(artifacts.insert(a)))
+              filesFound.foreach {f =>
+                val q = from(g.artifacts)(a => where(a.path === f) select(a))
+                if (q.isEmpty) {
+                  val created = artifacts.insert(new Artifact(g.id, f, now, now))
+                  ArtifactServer ! ArtifactCreated(created)
+                } else {
+                  q.toList.foreach{a =>
+                    a.witnessed = now
+                    artifacts.update(a)
+                  }
+                }
+              }
             }
             manipulator ! Wake
           case WayLost(g) =>

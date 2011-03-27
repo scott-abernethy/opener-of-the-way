@@ -29,7 +29,7 @@ object LurkerTestSpecs extends Specification with Mockito {
     TestDb.init
   }
   "Lurker" should {
-    def queryG(): Gateway = transaction { Mythos.gateways.lookup(1L) getOrElse null }
+    def queryG(id: Long): Gateway = transaction { Mythos.gateways.lookup(id) getOrElse null }
     object LurkerComponentTest extends LurkerComponentImpl with FileSystemComponent with ManipulatorComponent {
       val fileSystem = mock[FileSystem]
       val manipulator = mock[Manipulator]
@@ -40,18 +40,18 @@ object LurkerTestSpecs extends Specification with Mockito {
     val x = LurkerComponentTest.lurker.start
     "update a gateway state" >> {
       "on way found" >> {
-        var g = queryG()
+        var g = queryG(1L)
         x ! WayFound(g, "/srv/f")
-        x !? (500, Ping)
-        g = queryG()
+        x !? (5000, Ping)
+        g = queryG(1L)
         g.state must beEqual(GateState.open)
         g.localPath must beMatching("/srv/f")
       }
       "on way lost" >> {
-        var g = queryG()
+        var g = queryG(1L)
         x ! WayLost(g)
-        x !? (500, Ping)
-        g = queryG()
+        x !? (5000, Ping)
+        g = queryG(1L)
         g.state must beEqual(GateState.lost)
       }
     }
@@ -59,20 +59,29 @@ object LurkerTestSpecs extends Specification with Mockito {
       "adding new artifacts" >> {
         transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
-        var g = queryG()
+        var g = queryG(1L)
         x ! WayFound(g, "/srv/g")
-        x !? (500, Ping)
+        x !? (5000, Ping)
         val as = transaction { g.artifacts toList }
         as must haveSize(2)
 
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: "readme.nfo" :: Nil)
         x ! WayFound(g, "/srv/g")
-        x !? (500, Ping)
+        x !? (5000, Ping)
         val as2 = transaction { g.artifacts toList }
         as2 must haveSize(3)
       }
       "removing missing artifacts" >> {}
       "cancelling bad copy jobs" >> {}
+    }
+    "ignore artifacts on sink gates" >> {
+      transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
+      fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
+      var g = queryG(2L)
+      x ! WayFound(g, "/srv/g")
+      x !? (5000, Ping)
+      val as = transaction { g.artifacts toList }
+      as must haveSize(0)
     }
     "activate outstanding copies on way found" >> {}
   }
