@@ -58,6 +58,7 @@ object LurkerTestSpecs extends Specification with Mockito {
     "parse artifacts on way found" >> {
       "adding new artifacts" >> {
         transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
+        transaction { update(Mythos.gateways)(g => set(g.scoured := T.zero)) }
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
         var g = queryG(1L)
         x ! WayFound(g, "/srv/g")
@@ -65,6 +66,7 @@ object LurkerTestSpecs extends Specification with Mockito {
         val as = transaction { g.artifacts toList }
         as must haveSize(2)
 
+        transaction { update(Mythos.gateways)(g => set(g.scoured := T.zero)) }
         fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: "readme.nfo" :: Nil)
         x ! WayFound(g, "/srv/g")
         x !? (5000, Ping)
@@ -76,6 +78,7 @@ object LurkerTestSpecs extends Specification with Mockito {
     }
     "ignore artifacts on sink gates" >> {
       transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
+      transaction { update(Mythos.gateways)(g => set(g.scoured := T.zero)) }
       fileSystem.find("/srv/g") returns("folder/file" :: "folder/sub/another-file.txt" :: Nil)
       var g = queryG(2L)
       x ! WayFound(g, "/srv/g")

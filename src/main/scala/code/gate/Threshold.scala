@@ -55,7 +55,7 @@ case class Deactivate()
 case class Pulse()
 
 class Maintainer(threshold: Threshold) extends Actor {
-  val interval = 10000L
+  val interval = 60000L // one minute
   var active = false
   def act() {
     loop {

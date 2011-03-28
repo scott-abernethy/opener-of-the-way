@@ -40,8 +40,7 @@ object ClonerTestSpecs extends Specification with Mockito {
       x.processor.process(any[List[String]]) returns(processing)
       processing.waitFor returns((true, "hlhhklhlkjhkjhlkjhlh" :: Nil))
       x.cloner.start(job)
-      there was one(x.processor).process("cloner" :: "/tmp/cache/gate/cow/stock/paper" :: "/tmp/cache/gate/goat/clones" :: Nil)
+      there was one(x.processor).process("cloner" :: "/tmp/cache/gate/cow/stock?foo/paper?part?p" :: "/tmp/cache/gate/goat/clones" :: Nil)
     }
-    "escape space characters" >> {}
   }
 }

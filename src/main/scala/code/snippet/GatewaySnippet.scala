@@ -7,6 +7,10 @@ import _root_.net.liftweb.http._
 import _root_.net.liftweb.http.js._
 import _root_.java.util.Date
 import code.model._
+import code.model.Mythos._
+import code.gate.T
+
+
 import Helpers._
 import org.squeryl.PrimitiveTypeMode._
 
@@ -28,13 +32,16 @@ class Gateway {
     "#add:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
   private def processAdd {
-    import code.model.{Gateway, Cultist}
-    import code.model.Mythos._
     Cultist.attending.is match {
       case Full(c) =>
-        val g = gateways.insert(new code.model.Gateway(c.id, host.is.trim + "/" + share.is.trim, path.is.trim, "", password.is.trim, mode.is, GateState.lost))
+        val g = new code.model.Gateway
+        g.cultistId = c.id
+        g.location = host.is.trim + "/" + share.is.trim
+        g.path = path.is.trim
+        g.password = password.is.trim
+        g.mode = mode.is
         // TODO squeryl doesn't have lifecycle callbacks at present, so we must manually trigger event
-        Environment.watch(g)
+        Environment.watch(gateways.insert(g))
       case _ => S.error("?!")
     }
     S.redirectTo("/cultist/profile")

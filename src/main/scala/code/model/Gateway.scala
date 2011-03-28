@@ -3,9 +3,11 @@ package code.model
 import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
+import code.gate.T
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
+import java.sql.Timestamp
 
 class Gateway(
   var cultistId: Long,
@@ -14,9 +16,10 @@ class Gateway(
   var localPath: String, // /folder/subfolder
   var password: String, // storing in cleartext as none should have access to db
   var mode: GateMode.Value,
-  var state: GateState.Value
+  var state: GateState.Value,
+  var scoured: Timestamp
 ) extends MythosObject {
-  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost)
+  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost, T.zero)
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
   def clonesPath: String = new File(localPath, "clones").getPath

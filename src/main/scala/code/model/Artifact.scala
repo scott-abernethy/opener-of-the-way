@@ -6,7 +6,7 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 import java.io.File
-import code.gate.{T, Wake, Warn}
+import code.gate.T
 
 class Artifact(
   var gatewayId: Long, 

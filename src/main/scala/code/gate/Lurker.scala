@@ -28,36 +28,8 @@ trait LurkerComponentImpl extends LurkerComponent {
         react {
           case WayFound(g, lp) =>
             logger.debug("WayFound " + lp)
-            transaction{
-              updateGate(g, x => {
-                x.state = GateState.open
-                x.localPath = lp
-                x
-              })
-            }
-            // how often do we check the fileSystem?
-            val filesFound = g.mode match {
-              case GateMode.source =>
-                fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
-              case _ =>
-                Set.empty
-            }
-            val now = T.now
-            transaction{
-              // todo (when) do we remove missing files?
-              filesFound.foreach {f =>
-                val q = from(g.artifacts)(a => where(a.path === f) select(a))
-                if (q.isEmpty) {
-                  val created = artifacts.insert(new Artifact(g.id, f, now, now))
-                  ArtifactServer ! ArtifactCreated(created)
-                } else {
-                  q.toList.foreach{a =>
-                    a.witnessed = now
-                    artifacts.update(a)
-                  }
-                }
-              }
-            }
+            markGatewayOpen(g, lp)
+            if (shouldScour(g)) scourGateway(g, lp)
             manipulator ! Wake
           case WayLost(g) =>
             logger.debug("WayLost")
@@ -71,6 +43,49 @@ trait LurkerComponentImpl extends LurkerComponent {
             exit
           case Ping => reply(Pong)
           case _ =>
+        }
+      }
+    }
+    private def shouldScour(g: Gateway): Boolean = {
+      transaction(gateways.lookup(g.id)) match {
+        case Some(g2) =>
+          g2.mode == GateMode.source && g2.scoured.before(T.ago(1800000L)) // thirty minutes
+        case _ =>
+          false
+      }
+    }
+    private def markGatewayOpen(g: Gateway, lp: String) {
+      transaction {
+        updateGate(g, x => {
+          x.state = GateState.open
+          x.localPath = lp
+          x
+        })
+      }
+    }
+    private def scourGateway(g: Gateway, lp: String): Unit = {
+      logger.debug("WayScoured " + lp)
+      val now = T.now
+      val filesFound = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
+      transaction {
+        updateGate(g, x => {
+          x.scoured = now
+          x
+        })
+        // todo (when) do we remove missing files?
+        filesFound.foreach {
+          f =>
+            val q = from(g.artifacts)(a => where(a.path === f) select (a))
+            if (q.isEmpty) {
+              val created = artifacts.insert(new Artifact(g.id, f, now, now))
+              ArtifactServer ! ArtifactCreated(created)
+            } else {
+              q.toList.foreach {
+                a =>
+                  a.witnessed = now
+                  artifacts.update(a)
+              }
+            }
         }
       }
     }

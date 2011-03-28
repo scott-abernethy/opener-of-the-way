@@ -2,8 +2,6 @@ package code.model
 
 import org.squeryl._
 import org.squeryl.PrimitiveTypeMode._
-import code.gate.{Warn, Wake}
-import code.comet.{ArtifactServer, ArtifactUpdated}
 
 trait MythosObject extends KeyedEntity[Long] {
   var id: Long = 0
