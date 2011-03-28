@@ -9,6 +9,7 @@ import net.liftweb.common._
 import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.util.{Helpers, ActorPing}
 import java.util.concurrent.ScheduledFuture
+import net.liftweb.actor.LiftActor
 
 case class Open()
 case class Close()
@@ -68,9 +69,10 @@ class Maintainer(threshold: Threshold) extends Actor {
           }
         case Deactivate() =>
           active = false
-        case Pulse() => 
+        case Pulse() =>
           if (active) {
-            ActorPing.schedule(() => Helpers.tryo(self ! Pulse()), 60000L) // one minute
+            val maintainer = self
+            ActorPing.schedule(() => maintainer ! Pulse(), 60000L) // one minute
             threshold ! Open()
           }
         case Destroy =>
