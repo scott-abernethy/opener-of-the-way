@@ -7,6 +7,8 @@ import scala.actors.Actor._
 import scala.util.matching.Regex
 import net.liftweb.common._
 import org.squeryl.PrimitiveTypeMode._
+import net.liftweb.util.{Helpers, ActorPing}
+import java.util.concurrent.ScheduledFuture
 
 case class Open()
 case class Close()
@@ -55,24 +57,19 @@ case class Deactivate()
 case class Pulse()
 
 class Maintainer(threshold: Threshold) extends Actor {
-  val interval = 60000L // one minute
-  var active = false
+  var pulser: ScheduledFuture[Unit] = null
   def act() {
     loop {
       react {
         case Activate() => 
-          if (!active) {
-            active = true 
-            self ! Pulse()
+          if (pulser == null) {
+            pulser = ActorPing.schedule(() => Helpers.tryo(this ! Pulse()), 60000L) // one minute
           }
-        case Deactivate() => 
-          active = false
+        case Deactivate() =>
+          if (pulser != null) pulser.cancel(false)
+          pulser = null
         case Pulse() => 
-          if (active) { 
-            threshold ! Open()
-            Thread.sleep(interval)
-            self ! Pulse()
-          } 
+          if (pulser != null) threshold ! Open()
         case Destroy =>
           exit
         case _ => 
