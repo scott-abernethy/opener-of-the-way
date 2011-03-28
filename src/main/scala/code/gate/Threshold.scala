@@ -57,19 +57,22 @@ case class Deactivate()
 case class Pulse()
 
 class Maintainer(threshold: Threshold) extends Actor {
-  var pulser: ScheduledFuture[Unit] = null
+  var active = false
   def act() {
     loop {
       react {
         case Activate() => 
-          if (pulser == null) {
-            pulser = ActorPing.schedule(() => Helpers.tryo(this ! Pulse()), 60000L) // one minute
+          if (!active) {
+            active = true
+            self ! Pulse()
           }
         case Deactivate() =>
-          if (pulser != null) pulser.cancel(false)
-          pulser = null
+          active = false
         case Pulse() => 
-          if (pulser != null) threshold ! Open()
+          if (active) {
+            ActorPing.schedule(() => Helpers.tryo(self ! Pulse()), 60000L) // one minute
+            threshold ! Open()
+          }
         case Destroy =>
           exit
         case _ => 
