@@ -35,6 +35,15 @@ object ClonerTestSpecs extends Specification with Mockito {
     val processing = mock[Processing]
     "start" >> {
       val job: Clone = transaction {
+        clones.insert(new Clone(TestDb.c1ga1.id, TestDb.c2.id, CloneState.queued, 0))
+      }
+      x.processor.process(any[List[String]]) returns(processing)
+      processing.waitFor returns((true, "hlhhklhlkjhkjhlkjhlh" :: Nil))
+      x.cloner.start(job)
+      there was one(x.processor).process("cloner" :: "/tmp/cache/gate/cow/glue" :: "/tmp/cache/gate/goat/clones" :: Nil)
+    }
+    "escape space characters" >> {
+      val job: Clone = transaction {
         clones.insert(new Clone(TestDb.c1ga2.id, TestDb.c2.id, CloneState.queued, 0))
       }
       x.processor.process(any[List[String]]) returns(processing)
