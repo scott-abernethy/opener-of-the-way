@@ -10,6 +10,7 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.util.Properties
 import java.io.FileReader
+import net.liftweb.util.Helpers
 
 class Cultist(
   var email: String,
@@ -28,7 +29,7 @@ class Cultist(
 
 object Cultist {
   def find(id: Long): Option[Cultist] = cultists.lookup(id)
-  val cultistCookie = "theyWhomAttendeth"
+  val cultistCookie = "theyWhomAttendethIt"
   lazy val codenames: Properties = {
     val p = new Properties
     p.load(Cultist.getClass.getClassLoader.getResourceAsStream("props/codename.props"))
@@ -37,7 +38,14 @@ object Cultist {
   object attending extends SessionVar[Box[Cultist]](checkForCookie)
   def attending_? = !attending.is.isEmpty
   def isAttending_?(cultist: Cultist) = attending.is.map(_ == cultist) getOrElse false
-  def approach(cultist: Cultist) = attending(Full(cultist))
+  def approach(cultist: Cultist, password: String): Option[Cultist] = {
+    if (cultist.password == password) {
+      attending(Full(cultist))
+      Some(cultist)
+    } else {
+      None
+    }
+  }
   def withdraw() = attending(Empty)
   def forEmail(email: String): Box[Cultist] = cultists.where(c => c.email === email) toSeq match {
     case x :: Nil => Full(x)
@@ -45,14 +53,12 @@ object Cultist {
     case Nil => Empty
   }
   def saveCookie() {
-    attending.is match {
-      case Full(c) => S.addCookie(HTTPCookie(cultistCookie, c.id.toString).setMaxAge(3600 * 24 * 365).setPath("/"))
-      case _ => S.addCookie(HTTPCookie(cultistCookie, "###").setPath("/"))
-    }
+    val text = attending.is.map(_.id.toString).openOr("###")
+    S.addCookie(HTTPCookie(cultistCookie, text).setMaxAge(3600 * 24 * 7).setPath("/"))
   }
   def checkForCookie: Option[Cultist] = {
     S.cookieValue(cultistCookie) match {
-      case Full(id) => cultists.lookup(id.toLong)
+      case Full(id) => try { find(id.toLong) } catch { case _ => None }
       case _ => None
     }
   }

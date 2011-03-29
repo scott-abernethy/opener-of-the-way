@@ -10,9 +10,9 @@ import code.model._
 import Helpers._
 
 class Cultist {
-  //def howdy = "#time *" #> date.map(_.toString)
   val emailHint = "gone@insane.yet"
   object email extends RequestVar[Option[String]](Some(emailHint))
+  object password extends RequestVar[Option[String]](None)
   def join = {
     ClearClearable &
     ".join:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
@@ -23,9 +23,9 @@ class Cultist {
     import code.model.Mythos._
     email.is.filter(! _.contains("aviat")) match {
       case Some(e) =>
-        val c = new code.model.Cultist
-        c.email = e
-        cultists.insert(c)
+        //val c = new code.model.Cultist
+        //c.email = e
+        //cultists.insert(c)
         S.redirectTo("approach", () => email(Some(e)))
       case _ =>
         S.warning("Invalid email")
@@ -35,31 +35,30 @@ class Cultist {
   def approach = {
     ClearClearable &
     ".approach:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
+    ".approach:password" #> (SHtml.password("", t => password(Some(t))) % ("style" -> "width: 250px")) &
     "#approach:submit" #> SHtml.submit("Submit", () => processApproach)
   }
   def processApproach {
     var submittedEmail = email.is.map(_.toLowerCase).getOrElse("")
+    var submittedPassword = password.is.getOrElse("")
 
     if (submittedEmail == emailHint) {
-      S.error("Please enter YOUR email address")
+      S.error("Open your mouth, unworthy parrot!")
     } else { 
-      Cultist.forEmail(submittedEmail) match {
-        case Full(c) =>
-          Cultist.approach(c)
-          S.notice("Proceed with care " + c.sign)
+      Cultist.forEmail(submittedEmail).toOption.flatMap(Cultist.approach(_, submittedPassword)) match {
+        case Some(c) =>
+          S.notice("Proceed with care '" + c.sign + "'.")
           S.redirectTo("/", () => (Cultist.saveCookie))
-        case Empty =>
-          S.warning("'" + submittedEmail + "' is not yet worthy")
-          //S.redirectTo("join", () => email(Some(submittedEmail)))
+        case _ =>
+          S.warning("Unfumble your mind, unworthy worm!")
           S.redirectTo("approach", () => email(Some(submittedEmail)))
-        case Failure(msg, _, _) => S.error(msg)
       }
     }
   }
   def withdraw = {
     Cultist.withdraw()
-    S.notice("Never return, or else")
-    S.redirectTo("/", () => (Cultist.saveCookie))
+    S.notice("Never return, or else...")
+    S.redirectTo("approach", () => (Cultist.saveCookie))
   }
   def profile = {
     Cultist.attending.is match {
