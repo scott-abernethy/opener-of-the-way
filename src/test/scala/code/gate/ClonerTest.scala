@@ -35,7 +35,7 @@ object ClonerTestSpecs extends Specification with Mockito {
     val processing = mock[Processing]
     "start" >> {
       val job: Clone = transaction {
-        clones.insert(new Clone(TestDb.c1ga1.id, TestDb.c2.id, CloneState.queued, 0))
+        clones.insert(new Clone(TestDb.c1ga1.id, TestDb.c2.id, CloneState.queued, 0, T.now, T.zero))
       }
       x.processor.process(any[List[String]]) returns(processing)
       processing.waitFor returns((true, "hlhhklhlkjhkjhlkjhlh" :: Nil))
@@ -44,7 +44,7 @@ object ClonerTestSpecs extends Specification with Mockito {
     }
     "escape space characters" >> {
       val job: Clone = transaction {
-        clones.insert(new Clone(TestDb.c1ga2.id, TestDb.c2.id, CloneState.queued, 0))
+        clones.insert(new Clone(TestDb.c1ga2.id, TestDb.c2.id, CloneState.queued, 0, T.now, T.zero))
       }
       x.processor.process(any[List[String]]) returns(processing)
       processing.waitFor returns((true, "hlhhklhlkjhkjhlkjhlh" :: Nil))

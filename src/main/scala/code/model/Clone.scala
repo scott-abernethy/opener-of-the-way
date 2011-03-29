@@ -5,14 +5,18 @@ import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
+import java.sql.Timestamp
+import code.gate.T
 
 class Clone(
   var artifactId: Long,
   var forCultistId: Long,
   var state: CloneState.Value,
-  var attempts: Long
+  var attempts: Long,
+  var requested: Timestamp,
+  var attempted: Timestamp
 ) extends MythosObject {
-  def this() = this(0, 0, CloneState.queued, 0)
+  def this() = this(0, 0, CloneState.queued, 0, T.now, T.zero)
   def artifact: Option[Artifact] = artifactToClones.right(this).headOption
   def forCultist: Option[Cultist] = cultistToClones.right(this).headOption
 }

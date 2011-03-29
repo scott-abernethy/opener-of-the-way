@@ -38,8 +38,11 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
           case Wake =>
             // has the current cloner timed out?
             // get random(?) waiting clone
-            if (cloner.currently.isEmpty) transaction{
-              waitings.headOption.foreach{c => cloner.start(c)}
+            // checked clone was not attempted very recently, once per 60 seconds should be enough.
+            // todo is this actually in another thread?
+            if (cloner.currently.isEmpty) {
+              val cs = transaction(waitings.toList)
+              cs.filter(_.attempted.before(T.ago(60000))).headOption.foreach{c => cloner.start(c)}
             }
           case Warn(invalid) => if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
           case Withdraw => 

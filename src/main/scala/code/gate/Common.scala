@@ -7,6 +7,6 @@ case object Pong
 
 object T {
   def now: Timestamp = new Timestamp(System.currentTimeMillis)
-  def ago(period: Long): Timestamp = new Timestamp(System.currentTimeMillis - period)
+  def ago(msecPeriod: Long): Timestamp = new Timestamp(System.currentTimeMillis - msecPeriod)
   def zero: Timestamp = new Timestamp(0)
 } 

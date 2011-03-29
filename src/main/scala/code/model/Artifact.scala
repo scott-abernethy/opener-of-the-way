@@ -35,7 +35,7 @@ class Artifact(
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(ArtifactState.available) => 
-        val clone = new Clone(id, cultist.id, CloneState.queued, 0)
+        val clone = new Clone(id, cultist.id, CloneState.queued, 0, T.now, T.zero)
         clones.insert(clone)
         true
       case _ => false

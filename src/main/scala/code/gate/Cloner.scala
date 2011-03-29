@@ -60,6 +60,7 @@ trait ClonerComponentImpl extends ClonerComponent {
     }
     def successfulAttempt(c: Clone) {
       c.state = CloneState.done
+      c.attempted = T.now
       transaction { clones.update(c) }
       cur = None
       ArtifactServer ! ArtifactUpdated(c.artifactId)
@@ -68,6 +69,7 @@ trait ClonerComponentImpl extends ClonerComponent {
     def failedAttempt(c: Clone) {
       c.state = CloneState.queued
       c.attempts = c.attempts + 1
+      c.attempted = T.now
       transaction { clones.update(c) }
       cur = None
       ArtifactServer ! ArtifactUpdated(c.artifactId)
