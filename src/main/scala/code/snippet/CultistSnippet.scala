@@ -67,7 +67,7 @@ class Cultist {
         ClearClearable &
         ".about:sign *" #> c.sign &
         ".about:email *" #> c.email &
-        ".about:gateway" #> bindGateways(gs) _
+        ".about:gateway *" #> bindGateways(gs) _
       case _ =>
         S.redirectTo("/")
     }
@@ -75,8 +75,8 @@ class Cultist {
   def bindGateways(gs: Seq[code.model.Gateway])(in: NodeSeq): NodeSeq = gs.flatMap(bindGateway(in, _))
   def bindGateway(in: NodeSeq, g: code.model.Gateway): NodeSeq = {
     ClearClearable &
-    ".gateway:state" #> g.state.toString &
-    ".gateway:description" #> g.description &
-    ".gateway:mode" #> g.mode.toString
+    ".gateway:state *" #> g.state.toString &
+    ".gateway:description *" #> g.description &
+    ".gateway:mode *" #> g.mode.toString
   }.apply(in)
 }
