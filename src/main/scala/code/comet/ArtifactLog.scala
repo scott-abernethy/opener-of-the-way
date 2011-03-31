@@ -48,6 +48,7 @@ class ArtifactLog extends CometActor with CometListener {
   override def lowPriority = {
     case ArtifactCreated(a) =>
       items = insertItem(items, a)
+      // todo partialUpdate
       reRender
     case ArtifactUpdated(a) =>
       partialUpdate(renderUpdate(a))
