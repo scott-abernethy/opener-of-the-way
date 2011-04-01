@@ -118,6 +118,8 @@ function do_close_all {
 
 function do_flush {
   truecrypt -t --non-interactive -d --force
+  umount /tmp/gates/*/fs
+  killall -u jetty rsync
   sed -i -e "s,^\(\w\+\) \w\+ \(.\+\),\1 flushed \2," $gate_list
 }
 
