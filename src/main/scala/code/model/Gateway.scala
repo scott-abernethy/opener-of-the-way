@@ -19,7 +19,7 @@ class Gateway(
   var state: GateState.Value,
   var scoured: Timestamp
 ) extends MythosObject {
-  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost, T.zero)
+  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost, T.yesterday)
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
   def clonesPath: String = new File(localPath, "clones").getPath
