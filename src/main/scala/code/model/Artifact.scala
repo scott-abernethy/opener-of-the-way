@@ -19,11 +19,11 @@ class Artifact(
   lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
   def localPath: Option[String] = gateway.headOption.map(g => new File(g.localPath, path).getPath)
   def available = true
-  def owner: Option[Cultist] = gateway.headOption.flatMap(_.cultist.headOption)
+  def owner: Option[Cultist] = inTransaction(gateway.headOption.flatMap(_.cultist.headOption))
   def stateFor(cultist: Cultist): Option[ArtifactState.Value] = owner match {
     case Some(c) if (c == cultist) => Some(ArtifactState.mine)
     case Some(c) => 
-      from(clones)(x => where(x.artifactId === id and x.forCultistId === cultist.id) select(x)).headOption.map(_.state) match {
+      inTransaction(from(clones)(x => where(x.artifactId === id and x.forCultistId === cultist.id) select(x)).headOption).map(_.state) match {
         case None => Some(ArtifactState.available)
         case Some(CloneState.queued) => Some(ArtifactState.queued)
         case Some(CloneState.progressing) => Some(ArtifactState.progressing)
@@ -36,7 +36,7 @@ class Artifact(
     stateFor(cultist) match {
       case Some(ArtifactState.available) => 
         val clone = new Clone(id, cultist.id, CloneState.queued, 0, T.now, T.yesterday)
-        clones.insert(clone)
+        transaction(clones.insert(clone))
         true
       case _ => false
     }
@@ -44,7 +44,7 @@ class Artifact(
   def cancelClone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(s) if (s == ArtifactState.queued || s == ArtifactState.progressing) =>
-        clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id))
+        transaction(clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id)))
         true
       case _ => false
     }
@@ -52,8 +52,8 @@ class Artifact(
 }
 
 object Artifact {
-  def find(id: Long): Option[Artifact] = artifacts.lookup(id)
-  def all: List[Artifact] = from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path desc)) toList
+  def find(id: Long): Option[Artifact] = inTransaction(artifacts.lookup(id))
+  def all: List[Artifact] = inTransaction(from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path desc)).toList)
   lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
     where(a.gatewayId === g.id and g.state === GateState.open)
     select(a)

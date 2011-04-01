@@ -47,7 +47,7 @@ object Cultist {
     }
   }
   def withdraw() = attending(Empty)
-  def forEmail(email: String): Box[Cultist] = cultists.where(c => c.email === email) toSeq match {
+  def forEmail(email: String): Box[Cultist] = inTransaction(cultists.where(c => c.email === email).toSeq) match {
     case x :: Nil => Full(x)
     case x :: xs => Full(x) // but this is bad
     case Nil => Empty

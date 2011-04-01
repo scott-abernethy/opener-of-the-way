@@ -29,8 +29,8 @@ class Boot {
 //      Mythos.create
 //      val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
 //      val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
-//      Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.source, GateState.lost, code.gate.T.zero))
-//      Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.source, GateState.lost, code.gate.T.zero))
+//      Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
+//      Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
 //    }
 
     // where to search snippet
@@ -68,9 +68,6 @@ class Boot {
     // Use HTML5 for rendering
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))    
-
-    // Make a transaction span the whole HTTP request
-    S.addAround(new LoanWrapper(){ def apply[T](f : => T): T = transaction(f) })
 
     Environment.start
     LiftRules.unloadHooks.append(() => Environment.dispose)

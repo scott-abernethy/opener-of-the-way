@@ -8,6 +8,8 @@ import _root_.net.liftweb.http.js._
 import _root_.java.util.Date
 import code.model._
 import Helpers._
+import code.model.Mythos._
+import org.squeryl.PrimitiveTypeMode._
 
 class Cultist {
   val emailHint = "gone@insane.yet"
@@ -20,7 +22,6 @@ class Cultist {
     "#join:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
   private def processJoin {
-    import code.model.Mythos._
     email.is.filter(! _.contains("aviat")) match {
       case Some(e) =>
         //val c = new code.model.Cultist
@@ -63,11 +64,11 @@ class Cultist {
   def profile = {
     Cultist.attending.is match {
       case Full(c) =>
-        val gs = c.gateways.toSeq
+        val gs = inTransaction(c.gateways.toSeq)
         ClearClearable &
         ".about:sign *" #> c.sign &
         ".about:email *" #> c.email &
-        ".about:gateway *" #> bindGateways(gs) _
+        ".about:gateway" #> bindGateways(gs) _
       case _ =>
         S.redirectTo("/")
     }
