@@ -44,6 +44,7 @@ class Boot {
       Menu.i("Approach") / "cultist" / "approach" >> notAttending,
 //      Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Profile") / "cultist" / "profile" >> isAttending,
+      Menu.i("Tome") / "static" / "tome" >> isAttending,
       Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
       Menu.i("Add Gateway") / "gateway" / "add" >> Hidden >> isAttending)
 

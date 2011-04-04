@@ -1,0 +1,21 @@
+<div id="main" class="lift:surround?with=default;at=content">
+  <h3>Setup a sink:</h3>
+  <ol>
+    <li>Create a network-share on your computer with read-write permissions for all.</li>
+    <li>Create a <a href="http://www.truecrypt.org/downloads">TrueCrypt 7</a> encrypted volume in that share, using the "create volume" wizard following the instructions below:
+        <ol>
+            <li>Create an encrypted file container</li>
+            <li>Standard TrueCrypt volue</li>
+            <li>Volume location should be in the network-share created earlier, with any name</li>
+            <li>Default encryption options</li>
+            <li>Volume size should be fixed (as variable sized volumes can cause corruption)</li>
+            <li>I will not store files larger than 4GB on the volume. (Only on Ubuntu as this enables selection of FAT in the next step).</li>
+            <li>FAT files system</li>
+            <li>Format</li>
+        </ol>
+    </li>
+    <li>Ensure the file has read-write permissions for all</li>
+    <li><a href="/gateway/add">Add a gateway</a> for this share.</li>
+  </ol>
+</div>
+
