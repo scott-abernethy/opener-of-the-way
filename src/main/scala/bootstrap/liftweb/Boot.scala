@@ -23,15 +23,18 @@ class Boot {
   def boot {
     Db.init
 
-    // TODO Only do the below if run mode is development.
-//    transaction {
-//      Mythos.drop
-//      Mythos.create
-//      val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
-//      val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
-//      Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
-//      Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
-//    }
+    Props.mode match {
+      case Props.RunModes.Development =>
+        Db.clear
+        transaction {
+          val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
+          val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
+          Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
+          Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar-sink", "", "treesaregreen", GateMode.sink, GateState.lost, code.gate.T.yesterday))
+          Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
+        }
+      case _ =>
+    }
 
     // where to search snippet
     LiftRules.addToPackages("code")

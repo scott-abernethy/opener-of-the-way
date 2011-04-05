@@ -10,12 +10,6 @@ object TestDb extends Db {
     super.init
     reset
   }
-  def clear {
-    transaction {
-      Mythos.drop
-      Mythos.create
-    }
-  }
   def reset {
     clear
     transaction {

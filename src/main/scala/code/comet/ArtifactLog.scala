@@ -19,7 +19,7 @@ case object Subscribed
 
 case class ArtifactCreated(artifact: Artifact)
 case class ArtifactUpdated(artifactId: Long)
-case object ArtifactCloned
+case class ArtifactCloned(artifactId: Long)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore"
@@ -30,7 +30,7 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
     case msg @ ArtifactUpdated(id) =>
       logger.debug("Artifact updated " + id)
       updateListeners(msg)
-    case msg @ ArtifactCloned =>
+    case msg @ ArtifactCloned(id) =>
       logger.debug("Artifact cloned")
       updateListeners(msg)
     case _ => 
@@ -50,11 +50,15 @@ class ArtifactLog extends CometActor with CometListener {
     case ArtifactUpdated(a) =>
       snapshot.update(a)
       partialUpdate(renderUpdate(a))
+    case ArtifactCloned(a) =>
+      snapshot.update(a)
+      partialUpdate(renderUpdate(a))
     case _ =>
   }
-  def render =
+  def render = {
     ClearClearable &
     ".log:group" #> bindGroups _
+  }
   def bindGroups(in: NodeSeq): NodeSeq = {
     // use user timezone?
     snapshot.items.toSeq.reverse.flatMap((i: (String, List[Artifact])) => (
@@ -81,19 +85,21 @@ class ArtifactLog extends CometActor with CometListener {
     }
   }
   def itemSelected(id: Long): JsCmd = {
+    // todo return faster?
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
       case Some(newStatus) =>
-        ArtifactServer ! ArtifactCloned
-        renderUpdate(id)
+        ArtifactServer ! ArtifactCloned(id)
+        JsCmds.Noop
       case _ =>
         JsCmds.Noop
     }
   }
   def itemDeselected(id: Long): JsCmd = {
+    // todo return faster?
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
       case Some(newStatus) =>
-        ArtifactServer ! ArtifactCloned
-        renderUpdate(id)
+        ArtifactServer ! ArtifactCloned(id)
+        JsCmds.Noop
       case _ =>
         JsCmds.Noop
     }

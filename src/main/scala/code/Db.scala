@@ -14,6 +14,7 @@ import code.model._
 
 import org.squeryl._
 import internals.DatabaseAdapter
+import org.squeryl.PrimitiveTypeMode._
 
 trait Db {
   lazy val driver = Props.get("db.driver") openOr "org.h2.Driver"
@@ -27,6 +28,12 @@ trait Db {
     SessionFactory.concreteFactory = Some(()=>
       Session.create(java.sql.DriverManager.getConnection(url, user, password), a)
     )
+  }
+  def clear {
+    transaction {
+      Mythos.drop
+      Mythos.create
+    }
   }
   def close {}
 
