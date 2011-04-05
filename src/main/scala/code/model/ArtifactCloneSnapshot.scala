@@ -37,9 +37,11 @@ class ArtifactCloneSnapshot {
     f.setTimeZone(TimeZone.getDefault)
     f
   }
+  var currentCultistId: Long = -1L
   var items: TreeMap[String, List[Artifact]] = new TreeMap[String, List[Artifact]]
   var states: Map[Long, ArtifactState.Value] = _
   def reload(cultistId: Long) {
+    currentCultistId = cultistId
     val as = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
       select((a, g.cultistId, c.map(_.forCultistId), c.map(_.state)))
       orderBy(a.discovered desc, a.path desc)
@@ -52,7 +54,11 @@ class ArtifactCloneSnapshot {
     
   }
   def update(artifact: Long) {
-
+    inTransaction(Artifact.find(artifact).flatMap(a => Cultist.find(currentCultistId).map((a, _))) match {
+      case Some((a, c)) =>
+        a.stateFor(c).foreach(state => states = states + ((a.id, state)))
+      case _ =>
+    })
   }
   private def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
     Option(a.discovered).map(timestamp => new Date(timestamp.getTime)).map(dateF format _) match {
