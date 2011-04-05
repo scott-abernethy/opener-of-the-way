@@ -48,7 +48,13 @@ class ArtifactCloneSnapshot {
     as.foreach(i => items = insertItem(items, i._1))
     states = as.map(i => (i._1.id, parseState(cultistId, i._2, i._4))).toMap
   }
-  def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
+  def add(artifact: Artifact) {
+    
+  }
+  def update(artifact: Long) {
+
+  }
+  private def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
     Option(a.discovered).map(timestamp => new Date(timestamp.getTime)).map(dateF format _) match {
       case Some(key) =>
         val as = into.getOrElse(key, Nil)
@@ -56,7 +62,7 @@ class ArtifactCloneSnapshot {
       case other => into
     }
   }
-  def parseState(cultistId: Long, owner: Long, cloneState: Option[CloneState.Value]) = {
+  private def parseState(cultistId: Long, owner: Long, cloneState: Option[CloneState.Value]) = {
     if (owner == cultistId) {
       ArtifactState.mine
     } else {

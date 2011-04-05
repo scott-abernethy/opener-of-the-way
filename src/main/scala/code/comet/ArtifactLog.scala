@@ -38,41 +38,26 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
 }
 
 class ArtifactLog extends CometActor with CometListener {
-  val dateF = {
-    val f = new SimpleDateFormat("yyyy-MM-dd',' EEEE")
-    f.setTimeZone(TimeZone.getDefault)
-    f
-  }
-  var items = reload
+  val snapshot = new ArtifactCloneSnapshot
+  snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
   def registerWith = ArtifactServer
   override def lowPriority = {
     case ArtifactCreated(a) =>
-      items = insertItem(items, a)
+//      snapshot.add(a)
       // todo partialUpdate
+      snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
       reRender
     case ArtifactUpdated(a) =>
+      snapshot.update(a)
       partialUpdate(renderUpdate(a))
     case _ =>
   }
-  def reload: TreeMap[String, List[Artifact]] = {
-    var m = new TreeMap[String, List[Artifact]]
-    Artifact.all.foreach(a => m = insertItem(m, a)) // already sorted
-    m
-  }
-  def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
-    Option(a.discovered).map(timestamp => new Date(timestamp.getTime)).map(dateF format _) match {
-      case Some(key) =>
-        val as = into.getOrElse(key, Nil)
-        if (!as.contains(a)) into + ((key, a :: as)) else into
-      case other => into
-    }
-  }
-  def render = 
+  def render =
     ClearClearable &
     ".log:group" #> bindGroups _
   def bindGroups(in: NodeSeq): NodeSeq = {
     // use user timezone?
-    items.toSeq.reverse.flatMap((i: (String, List[Artifact])) => (
+    snapshot.items.toSeq.reverse.flatMap((i: (String, List[Artifact])) => (
       ClearClearable &
       ".group:name *" #> i._1 &
       ".log:item" #> bindItems(i._2) _
@@ -80,7 +65,7 @@ class ArtifactLog extends CometActor with CometListener {
   }
   def bindItems(artifacts: List[Artifact])(in: NodeSeq): NodeSeq = artifacts.flatMap(bindItem(in, _))
   def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq = {
-    val artifactState: Option[ArtifactState.Value] = Cultist.attending.is.flatMap(artifact.stateFor(_))
+    val artifactState: Option[ArtifactState.Value] = snapshot.states.get(artifact.id)
     ClearClearable & 
     ".log:item [id]" #> idFor(artifact.id) &
     ".item:select *" #> selectOption(artifact, artifactState) &

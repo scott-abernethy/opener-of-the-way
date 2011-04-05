@@ -26,29 +26,32 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
     }
   }
   "ArtifactCloneSnapshot" should {
-//    "load all artifacts" >> {
-//      val x = new ArtifactCloneSnapshot
-//      x.reload(1)
-//      x.states.size mustEqual(5)
-//    }
-//    "group artifacts by discovery, order by path" >> {
-//      val x = new ArtifactCloneSnapshot
-//      x.reload(1)
-//      x.items.keys.toSeq mustEqual("2011-04-20, Wednesday" :: "2011-04-22, Friday" :: Nil)
-//      x.items.get("2011-04-20, Wednesday").map(as => as.map(a => a.path)) must beSome("a/b/c" :: "fudge" :: Nil)
-//    }
-//    "default state to mine or available if no clones exist" >> {
-//      val x = new ArtifactCloneSnapshot
-//      x.reload(2)
-//      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-//      x.states.get(i) must beSome(ArtifactState.available)
-//      x.states.get(i + 1) must beSome(ArtifactState.mine)
-//      x.states.get(i + 2) must beSome(ArtifactState.available)
-//      x.states.get(i + 3) must beSome(ArtifactState.mine)
-//      x.states.get(i + 4) must beSome(ArtifactState.mine)
-//      x.states.get(i + 5) must beNone
-//    }
-    "relect clone state" >> {
+    "load all artifacts" >> {
+      val x = new ArtifactCloneSnapshot
+      x.reload(1)
+      x.states.size mustEqual(5)
+
+      x.reload(2)
+      x.states.size mustEqual(5)      
+    }
+    "group artifacts by discovery, order by path" >> {
+      val x = new ArtifactCloneSnapshot
+      x.reload(1)
+      x.items.keys.toSeq mustEqual("2011-04-20, Wednesday" :: "2011-04-22, Friday" :: Nil)
+      x.items.get("2011-04-20, Wednesday").map(as => as.map(a => a.path)) must beSome("a/b/c" :: "fudge" :: Nil)
+    }
+    "default state to mine or available if no clones exist" >> {
+      val x = new ArtifactCloneSnapshot
+      x.reload(2)
+      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
+      x.states.get(i) must beSome(ArtifactState.available)
+      x.states.get(i + 1) must beSome(ArtifactState.mine)
+      x.states.get(i + 2) must beSome(ArtifactState.available)
+      x.states.get(i + 3) must beSome(ArtifactState.mine)
+      x.states.get(i + 4) must beSome(ArtifactState.mine)
+      x.states.get(i + 5) must beNone
+    }
+    "reflect clone state" >> {
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(new Clone(i, 2L, CloneState.queued, 0L, T.now, T.now)))
       val theirClone = inTransaction(clones.insert(new Clone(i, 1L, CloneState.progressing, 0L, T.now, T.now)))
@@ -71,6 +74,16 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactState.done)
       x.reload(1L)
       x.states.get(i) must beSome(ArtifactState.mine)
+    }
+    "allow artifacts to be added" >> {
+//      val x = new ArtifactCloneSnapshot
+//      x.reload(1)
+//      x.states.size mustEqual(5)
+
+//      x.add()
+    }
+    "allow artifacts to be updated" >> {
+
     }
   }
   doAfterSpec {
