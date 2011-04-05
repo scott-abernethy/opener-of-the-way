@@ -10,11 +10,14 @@ object TestDb extends Db {
     super.init
     reset
   }
-  def reset {
+  def clear {
     transaction {
       Mythos.drop
       Mythos.create
     }
+  }
+  def reset {
+    clear
     transaction {
       val bob = cultists.insert(new Cultist("bob@bob.com", "bob123"))
       val jane = cultists.insert(new Cultist("jane@jane.com", "jane123"))
