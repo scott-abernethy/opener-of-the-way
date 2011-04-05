@@ -54,21 +54,21 @@ object ArtifactTestSpecs extends Specification with Mockito {
     "be waiting if waiting clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.queued, 0, T.now, T.zero))
+        clones.insert(new Clone(x.id, c2.id, CloneState.queued, 0, T.now, T.yesterday))
         x.stateFor(c2) must beSome(ArtifactState.queued)
       }
     }
     "be progressing if progressing clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.progressing, 0, T.now, T.zero))
+        clones.insert(new Clone(x.id, c2.id, CloneState.progressing, 0, T.now, T.yesterday))
         x.stateFor(c2) must beSome(ArtifactState.progressing)
       }
     }
     "be done if done clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.done, 0, T.now, T.zero))
+        clones.insert(new Clone(x.id, c2.id, CloneState.done, 0, T.now, T.yesterday))
         x.stateFor(c2) must beSome(ArtifactState.done)
       }
     }
@@ -83,14 +83,14 @@ object ArtifactTestSpecs extends Specification with Mockito {
     "cancel existing clone requests" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.queued, 0, T.now, T.zero))
+        clones.insert(new Clone(x.id, c2.id, CloneState.queued, 0, T.now, T.yesterday))
         x.stateFor(c2) must beSome(ArtifactState.queued)
 
         x.cancelClone(c2) must beEqual(true)
         x.stateFor(c2) must beSome(ArtifactState.available)
 
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.progressing, 0, T.now, T.zero))
+        clones.insert(new Clone(x.id, c2.id, CloneState.progressing, 0, T.now, T.yesterday))
         x.stateFor(c2) must beSome(ArtifactState.progressing)
 
         x.cancelClone(c2) must beEqual(true)
@@ -99,7 +99,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
     }
     "have a local path based on the gateway local path" >> {
       transaction {
-        val g: Gateway = gateways.insert(new Gateway(TestDb.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, T.zero))
+        val g: Gateway = gateways.insert(new Gateway(TestDb.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, T.yesterday))
         val a: Artifact = artifacts.insert(new Artifact(g.id, "folder/file.ext", T.now, T.now))
         a.localPath must beSome("/tmp/g/it/folder/file.ext")
 

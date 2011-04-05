@@ -7,6 +7,7 @@ import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 import java.io.File
 import code.gate.T
+import collection.immutable.TreeMap
 
 class Artifact(
   var gatewayId: Long, 
@@ -36,7 +37,7 @@ class Artifact(
     stateFor(cultist) match {
       case Some(ArtifactState.available) => 
         val clone = new Clone(id, cultist.id, CloneState.queued, 0, T.now, T.yesterday)
-        transaction(clones.insert(clone))
+        inTransaction(clones.insert(clone))
         true
       case _ => false
     }
@@ -44,7 +45,7 @@ class Artifact(
   def cancelClone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(s) if (s == ArtifactState.queued || s == ArtifactState.progressing) =>
-        transaction(clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id)))
+        inTransaction(clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id)))
         true
       case _ => false
     }
