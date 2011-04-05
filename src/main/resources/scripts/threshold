@@ -13,6 +13,7 @@ Usage:
  - $script_name closeall
  - $script_name apply (requires root access)
  - $script_name flush (requires root access)
+ - $script_name restart (requires root access)
 EOF
 }
 
@@ -123,6 +124,12 @@ function do_flush {
   sed -i -e "s,^\(\w\+\) \w\+ \(.\+\),\1 flushed \2," $gate_list
 }
 
+function do_restart {
+  service jetty stop
+  do_flush
+  service jetty start
+}
+
 gate_mount_root=/tmp/gates
 gate_list=$gate_mount_root/list
 gate_user=jetty
@@ -147,5 +154,6 @@ case "$1" in
   closeall) do_close_all ;;
   apply) do_apply ;;
   flush) do_flush ;;
+  restart) do_restart ;;
   *) print_usage ; exit 1 ;;
 esac
