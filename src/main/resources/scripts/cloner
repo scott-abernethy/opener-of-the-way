@@ -22,4 +22,4 @@ dest_dir=$2
 
 echo "cloner $src_file $dest_dir"
 mkdir -p $dest_dir
-rsync --verbose --times $src_file $dest_dir ; abort_check $?
+rsync --verbose --times "$src_file" "$dest_dir" ; abort_check $?

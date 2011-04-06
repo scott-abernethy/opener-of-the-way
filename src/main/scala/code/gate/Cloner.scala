@@ -75,6 +75,6 @@ trait ClonerComponentImpl extends ClonerComponent {
       ArtifactServer ! ArtifactUpdated(c.artifactId)
       manipulator ! Wake
     }
-    def escapeString(in: String): String = in.replace(" ", "?")
+    def escapeString(in: String): String = in // no escaping necessary here
   }
 }
