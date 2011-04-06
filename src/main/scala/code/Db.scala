@@ -15,6 +15,7 @@ import code.model._
 import org.squeryl._
 import internals.DatabaseAdapter
 import org.squeryl.PrimitiveTypeMode._
+import com.mchange.v2.c3p0.ComboPooledDataSource
 
 trait Db {
   lazy val driver = Props.get("db.driver") openOr "org.h2.Driver"
@@ -25,9 +26,21 @@ trait Db {
   def init {
     Class.forName(driver)
     val a: DatabaseAdapter = Class.forName(adapter).newInstance.asInstanceOf[DatabaseAdapter]
-    SessionFactory.concreteFactory = Some(()=>
-      Session.create(java.sql.DriverManager.getConnection(url, user, password), a)
-    )
+//    SessionFactory.concreteFactory = Some(()=>
+//      Session.create(java.sql.DriverManager.getConnection(url, user, password), a)
+//    )
+    
+    // Setup connection pooling with c3p0
+    val pool = new ComboPooledDataSource
+    pool.setDriverClass(driver)
+    pool.setJdbcUrl(url)
+    pool.setUser(user)
+    pool.setPassword(password)
+    pool.setMinPoolSize(3)
+    pool.setAcquireIncrement(1)
+    pool.setMaxPoolSize(10)
+    def connection = Session.create(pool.getConnection, a)
+    SessionFactory.concreteFactory = Some(() => connection)
   }
   def clear {
     transaction {
