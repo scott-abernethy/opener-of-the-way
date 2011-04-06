@@ -66,7 +66,7 @@ trait LurkerComponentImpl extends LurkerComponent {
     private def scourGateway(g: Gateway, lp: String): Unit = {
       logger.debug("WayScoured " + lp)
       val now = T.now
-      val filesFound = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/")).toSet
+      val filesFound = fileSystem.find(lp).filterNot(f => f.startsWith("/clones/") || f.startsWith("clones/") || f.contains("System Volume Information")).toSet
       transaction {
         updateGate(g, x => {
           x.scoured = now

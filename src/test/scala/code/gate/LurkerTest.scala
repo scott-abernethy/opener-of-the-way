@@ -73,6 +73,16 @@ object LurkerTestSpecs extends Specification with Mockito {
         val as2 = transaction { g.artifacts toList }
         as2 must haveSize(3)
       }
+      "ignore silly files" >> {
+        transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
+        transaction { update(Mythos.gateways)(g => set(g.scoured := T.yesterday)) }
+        fileSystem.find("/srv/g") returns("System Volume Information/x" :: "folder/sub/another-file.txt" :: Nil)
+        var g = queryG(1L)
+        x ! WayFound(g, "/srv/g")
+        x !? (5000, Ping)
+        val as = transaction { g.artifacts toList }
+        as.filter(_.path.contains("System Volume Information")) must haveSize(0)
+      }
       "removing missing artifacts" >> {}
       "cancelling bad copy jobs" >> {}
     }
