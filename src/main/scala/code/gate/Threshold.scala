@@ -58,6 +58,7 @@ case class Deactivate()
 case class Pulse()
 
 class Maintainer(threshold: Threshold) extends Actor {
+  val maintainDelay: Long = 5 * 60 * 1000L // five minutes (need only be twice the frequency of threshold opening)
   var active = false
   def act() {
     loop {
@@ -72,7 +73,7 @@ class Maintainer(threshold: Threshold) extends Actor {
         case Pulse() =>
           if (active) {
             val maintainer = self
-            ActorPing.schedule(() => maintainer ! Pulse(), 60000L) // one minute
+            ActorPing.schedule(() => maintainer ! Pulse(), maintainDelay)
             threshold ! Open()
           }
         case Destroy =>
