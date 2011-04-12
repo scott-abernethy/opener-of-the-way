@@ -1,0 +1,34 @@
+#!/bin/bash
+set -o nounset
+
+abort_check() {
+  if [ $1 != 0 ] ; then
+    echo "Aborted"
+    exit $1
+  fi
+}
+
+# build, test, package
+sbt clean ; abort_check $?
+sbt test ; abort_check $?
+sbt package ; abort_check $?
+
+# tag
+tag="0.0.0-1"
+unset userin
+read -p "Tag [$tag]: " userin
+if [ "$userin" ]; then
+  tag=$userin
+fi
+tag_message="Next"
+unset userin
+read -p "Tag message [$tag_message]: " userin
+if [ "$userin" ]; then
+  tag_message=$userin
+fi
+git tag -a -m "$tag_message" $tag ; abort_check $?
+
+# deploy
+war=$(find target -iname '*.war')
+scp $war gaffer:ootw-$tag.war ; abort_check $?
+#ssh gaffer deploy /home/gaffer/ootw-$tag.war
