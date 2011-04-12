@@ -56,6 +56,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       c.state = if (result.success) CloneState.done else CloneState.queued
       c.attempts = c.attempts + 1
       c.attempted = T.now
+      c.duration = result.duration
       transaction { clones.update(c) }
       cur = None
       ArtifactServer ! ArtifactUpdated(c.artifactId)

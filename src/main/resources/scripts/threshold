@@ -130,6 +130,18 @@ function do_restart {
   service jetty start
 }
 
+function do_simulate {
+  SAVEIFS=$IFS
+  IFS=$(echo -en "\n\b")
+  for line in $(cat $gate_list) ; do
+    setup_env $(echo $line | awk '{print $3}') $(echo $line | awk '{print $4}')
+    mkdir -p $gate_mount
+    mkdir -p $gate_crypt/clones
+    mark_status "opened" 
+  done 
+  IFS=$SAVEIFS
+}
+
 gate_mount_root=/tmp/gates
 gate_list=$gate_mount_root/list
 gate_user=jetty
@@ -155,5 +167,6 @@ case "$1" in
   apply) do_apply ;;
   flush) do_flush ;;
   restart) do_restart ;;
+  simulate) do_simulate ;;
   *) print_usage ; exit 1 ;;
 esac
