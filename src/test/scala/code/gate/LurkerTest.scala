@@ -83,8 +83,8 @@ object LurkerTestSpecs extends Specification with Mockito {
         val as = transaction { g.artifacts toList }
         as must haveSize(1)
       }
-      "removing missing artifacts" >> {}
-      "cancelling bad copy jobs" >> {}
+      //"removing missing artifacts" >> {}
+      //"cancelling bad copy jobs" >> {}
     }
     "ignore artifacts on sink gates" >> {
       transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
@@ -96,7 +96,7 @@ object LurkerTestSpecs extends Specification with Mockito {
       val as = transaction { g.artifacts toList }
       as must haveSize(0)
     }
-    "activate outstanding copies on way found" >> {}
+    //"activate outstanding copies on way found" >> {}
   }
   doAfterSpec {
     TestDb.close

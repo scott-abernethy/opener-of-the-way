@@ -54,21 +54,21 @@ object ArtifactTestSpecs extends Specification with Mockito {
     "be waiting if waiting clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.queued, 0, T.now, T.yesterday))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.queued))
         x.stateFor(c2) must beSome(ArtifactState.queued)
       }
     }
     "be progressing if progressing clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.progressing, 0, T.now, T.yesterday))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.progressing))
         x.stateFor(c2) must beSome(ArtifactState.progressing)
       }
     }
     "be done if done clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.done, 0, T.now, T.yesterday))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.done))
         x.stateFor(c2) must beSome(ArtifactState.done)
       }
     }
@@ -83,14 +83,14 @@ object ArtifactTestSpecs extends Specification with Mockito {
     "cancel existing clone requests" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.queued, 0, T.now, T.yesterday))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.queued))
         x.stateFor(c2) must beSome(ArtifactState.queued)
 
         x.cancelClone(c2) must beEqual(true)
         x.stateFor(c2) must beSome(ArtifactState.available)
 
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(new Clone(x.id, c2.id, CloneState.progressing, 0, T.now, T.yesterday))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.progressing))
         x.stateFor(c2) must beSome(ArtifactState.progressing)
 
         x.cancelClone(c2) must beEqual(true)

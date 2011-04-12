@@ -28,7 +28,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
     val x = new Threshold(g, self, processor).start
     "open a gateway" in {
       processor.process("threshold" :: "open" :: "10.16.15.43/public" :: "frog/sheep/cow" :: "cowsaregreen" :: Nil) returns(processing)
-      processing.waitFor returns((true, "Gate opened '/var/cache/foo'" :: Nil))
+      processing.waitFor returns(Result(true, "Gate opened '/var/cache/foo'" :: Nil, -1))
       x ! Open()
       self.receiveWithin(1000) {
         case WayFound(g2, lp) => 
@@ -39,7 +39,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
     }
     "close a gateway" in {
       processor.process("threshold" :: "close" :: "10.16.15.43/public" :: "frog/sheep/cow" :: Nil) returns(processing)
-      processing.waitFor returns((true, Nil))
+      processing.waitFor returns(Result(true, Nil, -1))
       x ! Close()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
@@ -49,7 +49,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
     }
     "fail to open a gateway if process errrors" in {
       processor.process(any[List[String]]) returns(processing)
-      processing.waitFor returns((false, "Gate opened '/var/cache/foo'" :: Nil))
+      processing.waitFor returns(Result(false, "Gate opened '/var/cache/foo'" :: Nil, -1))
       x ! Open()
       self.receiveWithin(1000) {
         case WayLost(g2) => 
@@ -59,7 +59,7 @@ object ThresholdTestSpecs extends Specification with Mockito {
     }
     "fail to open a gateway if local path not detected" in {
       processor.process(any[List[String]]) returns(processing)
-      processing.waitFor returns((true, "Moo cow /var/cache/foo" :: Nil))
+      processing.waitFor returns(Result(true, "Moo cow /var/cache/foo" :: Nil, -1))
       x ! Open()
       self.receiveWithin(1000) {
         case WayLost(g2) => 

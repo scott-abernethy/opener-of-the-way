@@ -3,6 +3,8 @@ package code.gate
 import scala.collection.JavaConversions._
 import java.io._
 
+case class Result(success: Boolean, messages: List[String], duration: Long)
+
 trait Processor {
   def process(processDefinition: List[String]): Processing
 }
@@ -12,8 +14,8 @@ trait Cancellable {
 }
 
 trait Processing {
-  def start(after: (Boolean, List[String]) => Unit): Cancellable
-  def waitFor: (Boolean, List[String])
+  def start(after: Result => Unit): Cancellable
+  def waitFor: Result
 }
 
 trait ProcessorComponent {
@@ -28,17 +30,17 @@ trait ProcessorComponentImpl extends ProcessorComponent {
     
 private class ProcessingImpl(processDefinition: List[String]) extends Processing {
   val pb = new ProcessBuilder(processDefinition) 
-  def start(after: (Boolean, List[String]) => Unit): Cancellable = {
+  def start(after: Result => Unit): Cancellable = {
     val t = new Thread() {
       override def run() = {
-        val (s, l) = waitFor
-        after(s, l)
+        after(waitFor)
       }
     }
     t.start
     new Cancellable() { def cancel = t.interrupt }
   }
-  def waitFor: (Boolean, List[String]) = {
+  def waitFor: Result = {
+    val startedAt = System.currentTimeMillis
     var process: Process = null
     try {
       process = pb.start
@@ -46,11 +48,11 @@ private class ProcessingImpl(processDefinition: List[String]) extends Processing
       var messages: List[String] = Nil
       var out = reader.readLine
       while (out != null) { messages = messages ::: out :: Nil ; out = reader.readLine }
-      (process.waitFor == 0, ("Return code " + process.exitValue) :: messages)
+      Result(process.waitFor == 0, ("Return code " + process.exitValue) :: messages, System.currentTimeMillis - startedAt)
     } catch {
       case e =>
         if (process != null) process.destroy
-        (false, ("Exception " + e.getMessage) :: Nil)
+        Result(false, ("Exception " + e.getMessage) :: Nil, -1)
     }
   }
 }

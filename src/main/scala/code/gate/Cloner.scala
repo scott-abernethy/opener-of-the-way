@@ -43,14 +43,7 @@ trait ClonerComponentImpl extends ClonerComponent {
         } yield ("cloner" :: escapeString(src) :: escapeString(dest) ::  Nil)
       } match {
         case Some(command) =>
-          processor.process(command).start((success, messages) => {
-            logger.debug("Process result " + success + " > " + messages + " >> " + command)
-            if (success) {
-              successfulAttempt(job)
-            } else {
-              failedAttempt(job)
-            }
-          })
+          processor.process(command).start(result => attempted(job, result) )
         case None =>
           failedAttempt(job)
       }
@@ -58,16 +51,9 @@ trait ClonerComponentImpl extends ClonerComponent {
     def cancel {
       cur.foreach(failedAttempt _)
     }
-    def successfulAttempt(c: Clone) {
-      c.state = CloneState.done
-      c.attempted = T.now
-      transaction { clones.update(c) }
-      cur = None
-      ArtifactServer ! ArtifactUpdated(c.artifactId)
-      manipulator ! Wake
-    }
-    def failedAttempt(c: Clone) {
-      c.state = CloneState.queued
+    def attempted(c: Clone, result: Result) {
+      logger.debug("Process result " + result)
+      c.state = if (result.success) CloneState.done else CloneState.queued
       c.attempts = c.attempts + 1
       c.attempted = T.now
       transaction { clones.update(c) }
@@ -75,6 +61,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       ArtifactServer ! ArtifactUpdated(c.artifactId)
       manipulator ! Wake
     }
+    def failedAttempt(c: Clone) { attempted(c, Result(false, Nil, -1)) }
     def escapeString(in: String): String = in // no escaping necessary here
   }
 }

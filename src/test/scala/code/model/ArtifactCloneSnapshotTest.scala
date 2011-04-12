@@ -55,8 +55,8 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
     "reflect clone state" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      val myClone = inTransaction(clones.insert(new Clone(i, 2L, CloneState.queued, 0L, T.now, T.now)))
-      val theirClone = inTransaction(clones.insert(new Clone(i, 1L, CloneState.progressing, 0L, T.now, T.now)))
+      val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.queued)))
+      val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.progressing)))
       val x = new ArtifactCloneSnapshot
       x.reload(2L)
       x.states.get(i) must beSome(ArtifactState.queued)
@@ -77,14 +77,6 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       x.reload(1L)
       x.states.get(i) must beSome(ArtifactState.mine)
     }
-    "allow artifacts to be added" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
-//      val x = new ArtifactCloneSnapshot
-//      x.reload(1)
-//      x.states.size mustEqual(5)
-
-//      x.add()
-    }
     "allow artifacts to be updated" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val x = new ArtifactCloneSnapshot
@@ -92,7 +84,7 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       x.states.get(i) must beSome(ArtifactState.available)
 
-      val myClone = inTransaction(clones.insert(new Clone(i, 2L, CloneState.queued, 0L, T.now, T.now)))
+      val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.queued)))
       x.update(i)
       x.states.get(i) must beSome(ArtifactState.queued)      
     }
