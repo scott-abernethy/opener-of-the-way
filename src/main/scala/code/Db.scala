@@ -26,10 +26,7 @@ trait Db {
   def init {
     Class.forName(driver)
     val a: DatabaseAdapter = Class.forName(adapter).newInstance.asInstanceOf[DatabaseAdapter]
-//    SessionFactory.concreteFactory = Some(()=>
-//      Session.create(java.sql.DriverManager.getConnection(url, user, password), a)
-//    )
-    
+
     // Setup connection pooling with c3p0
     val pool = new ComboPooledDataSource
     pool.setDriverClass(driver)
