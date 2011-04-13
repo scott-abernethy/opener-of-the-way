@@ -22,4 +22,8 @@ dest_dir=$2
 
 echo "cloner $src_file $dest_dir"
 mkdir -p $dest_dir
-rsync --verbose --times "$src_file" "$dest_dir" ; abort_check $?
+
+# --partial  (allows continuation from partial transfer, otherwise it is deleted)
+# --whole-file  (skips delta transfer algorithm)
+# --temp-dir=DIR  (scratch directory on receiver, i think this defaults to receive dir)
+rsync --verbose --times --timeout=10 --whole-file "$src_file" "$dest_dir" ; abort_check $?
