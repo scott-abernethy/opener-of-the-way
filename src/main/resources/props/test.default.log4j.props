@@ -16,4 +16,4 @@ log4j.appender.file.layout=org.apache.log4j.PatternLayout
 log4j.appender.file.layout.ConversionPattern=%d [%p] %m%n
 
 ## LOGGER CONTROL
-
+log4j.logger.com.mchange=warn

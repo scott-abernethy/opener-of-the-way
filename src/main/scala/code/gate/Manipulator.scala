@@ -10,6 +10,7 @@ import scala.actors.Actor._
 import net.liftweb.common._
 import org.squeryl.Query
 import org.squeryl.PrimitiveTypeMode._
+import code.util.{Maintainer, Maintain}
 
 case object Wake
 case class Warn(invalid: Clone)
@@ -32,23 +33,26 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
               orderBy(c.attempts asc, c.id asc)
             )
   val manipulator = new Manipulator with Loggable {
+    val maintainer = new Maintainer(this, 1 * 60 * 1000L).start
     def act() {
       loop {
         react {
           case Wake =>
             // has the current cloner timed out?
             // get random(?) waiting clone
-            // checked clone was not attempted very recently, once per 60 seconds should be enough.
             // todo is this actually in another thread?
             if (cloner.currently.isEmpty) {
               val cs = transaction(waitings.toList)
-              cs.filter(_.attempted.before(T.ago(60000))).headOption.foreach{c => cloner.start(c)}
+              cs.filter(_.attempted.before(T.ago(5 * 60 * 1000L))).headOption.foreach{c => cloner.start(c)}
             }
           case Warn(invalid) => if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
-          case Withdraw => 
+          case Withdraw =>
+            maintainer ! Destroy
             cloner.cancel
             exit
           case Ping => reply(Pong)
+          case Activate => maintainer ! Activate
+          case Maintain => self ! Wake
           case _ =>
         }
       }

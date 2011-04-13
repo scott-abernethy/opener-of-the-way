@@ -17,14 +17,13 @@ object Environment
   def start {
     logger.info("Environment start")
     lurker.start
-    manipulator.start
+    manipulator.start ! Activate
     transaction(from(gateways)(g => select(g)).toSeq).foreach(watch(_))
   }
   def watch(gateway: Gateway) {
     logger.debug("Watch " + gateway)
     val threshold = new Threshold(gateway, lurker, processor)
-    threshold.start
-    threshold ! Activate
+    threshold.start ! Activate
     thresholds = threshold :: thresholds
     logger.info(thresholds)
   }
