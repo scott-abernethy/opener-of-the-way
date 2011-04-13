@@ -2,6 +2,10 @@ package code.gate
 
 import java.sql.Timestamp
 
+case object Activate
+case object Deactivate
+case object Destroy
+
 case object Ping
 case object Pong
 

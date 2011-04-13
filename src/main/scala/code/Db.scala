@@ -1,14 +1,7 @@
 package code
 
 import net.liftweb._
-import util._
-import Helpers._
-
-import common._
-import http._
-import sitemap._
-import Loc._
-import mapper._
+import net.liftweb.util.Props
 
 import code.model._
 

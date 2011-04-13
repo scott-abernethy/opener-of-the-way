@@ -10,18 +10,18 @@ import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.util.{Helpers, ActorPing}
 import java.util.concurrent.ScheduledFuture
 import net.liftweb.actor.LiftActor
+import code.util.{Maintain, Maintainer}
 
 case class Open()
 case class Close()
-case class Maintain()
-case object Destroy
 
 object Threshold {
   val localPathMessage = new Regex("""Gate opened[^']+'([^']+)'""")
 }
 
 class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends Actor with Loggable {
-  val maintainer = new Maintainer(this).start
+  val maintainer = new Maintainer(this, 5 * 60 * 1000L).start // five minutes (need only be twice the frequency of threshold opening)
+
   def act() {
     loop {
       react {
@@ -36,12 +36,14 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
           }
         case Close() =>
           logger.debug("Close " + gateway)
-          maintainer ! Deactivate()
+          maintainer ! Deactivate
           val result = processor.process("threshold" :: "close" :: gateway.location :: gateway.path :: Nil).waitFor
           lurker ! WayLost(gateway)
-        case Maintain() => 
+        case Activate =>
           logger.debug("Maintain " + gateway)
-          maintainer ! Activate()
+          maintainer ! Activate
+        case Maintain =>
+          self ! Open()
         case Destroy =>
           logger.debug("Destroy " + gateway)
           maintainer ! Destroy
@@ -53,34 +55,4 @@ class Threshold(gateway: Gateway, lurker: Actor, processor: Processor) extends A
   }
 }
 
-case class Activate()
-case class Deactivate()
-case class Pulse()
-
-class Maintainer(threshold: Threshold) extends Actor {
-  val maintainDelay: Long = 5 * 60 * 1000L // five minutes (need only be twice the frequency of threshold opening)
-  var active = false
-  def act() {
-    loop {
-      react {
-        case Activate() => 
-          if (!active) {
-            active = true
-            self ! Pulse()
-          }
-        case Deactivate() =>
-          active = false
-        case Pulse() =>
-          if (active) {
-            val maintainer = self
-            ActorPing.schedule(() => maintainer ! Pulse(), maintainDelay)
-            threshold ! Open()
-          }
-        case Destroy =>
-          exit
-        case _ => 
-      }
-    }
-  }
-}
 

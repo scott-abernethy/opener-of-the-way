@@ -24,7 +24,7 @@ object Environment
     logger.debug("Watch " + gateway)
     val threshold = new Threshold(gateway, lurker, processor)
     threshold.start
-    threshold ! Maintain()
+    threshold ! Activate
     thresholds = threshold :: thresholds
     logger.info(thresholds)
   }
