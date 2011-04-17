@@ -57,7 +57,7 @@ class Observer extends CometActor with CometListener {
     join(clones, cultists.leftOuter)((c, f) =>
       where(c.state === CloneState.queued or c.state === CloneState.progressing)
       select((c, f))
-      orderBy(c.id asc)
+      orderBy(c.id desc)
       on(c.forCultistId === f.map(_.id))
     ).toSeq
   )
