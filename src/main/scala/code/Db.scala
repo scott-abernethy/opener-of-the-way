@@ -60,8 +60,12 @@ trait Db {
           val b = new Artifact
           b.gatewayId = g3.id
           b.path = "la/foyhyyyyyyyy"
+          val c = new Artifact
+          c.gatewayId = g3.id
+          c.path = "la/lo/ppppp55"
           Mythos.artifacts.insert(a)
           Mythos.artifacts.insert(b)
+          Mythos.artifacts.insert(c)
 
           val clone1 = new Clone
           clone1.artifactId = 1
@@ -71,6 +75,16 @@ trait Db {
           clone1.attempted = T.yesterday
           clone1.attempts = 5
           Mythos.clones.insert(clone1)
+
+          val clone2 = new Clone
+          clone2.artifactId = 3
+          clone2.forCultistId = foo.id
+          clone2.state = CloneState.done
+          clone2.requested = T.ago(89734562)
+          clone2.attempted = T.ago(456789)
+          clone2.attempts = 2
+          clone2.duration = 123456
+          Mythos.clones.insert(clone2)
         }
       case _ =>
     }

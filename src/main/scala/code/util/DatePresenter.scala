@@ -7,9 +7,9 @@ import java.util.TimeZone
 
 object DatePresentation {
   def ago(begin: Long): String = ago(begin, System.currentTimeMillis)
-  def ago(begin: Long, end: Long): String = {
-    val diff = end - begin
-    val mins = diff / (60 * 1000)
+  def ago(begin: Long, end: Long): String = duration(end - begin) + " ago"
+  def duration(time: Long): String = {
+    val mins = time / (60 * 1000)
     val hours = mins / 60L
     val days = hours / 24L
     val years = days / 365L
@@ -18,8 +18,8 @@ object DatePresentation {
     if (days > 0) return format(days, "day")
     if (hours > 0) return format(hours, "hour")
     if (mins > 0) return format(mins, "min")
-    if (diff > 0) return "<1 min ago"
-    "---"
+    if (time > 0) return "<1 min"
+    "?"
   }
-  def format(count: Long, word: String) = count + " " + word + (if (count != 1) "s ago" else " ago")
+  def format(count: Long, word: String) = count + " " + word + (if (count != 1) "s" else "")
 }

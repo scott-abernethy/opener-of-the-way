@@ -32,5 +32,11 @@ object DatePresenterTestSpecs extends Specification with Mockito {
       DatePresentation.ago(System.currentTimeMillis - (15 * 60 * 60 * 1000L)) must be_==("15 hours ago")
       DatePresentation.ago(new Timestamp(System.currentTimeMillis).getTime - (15 * 60 * 60 * 1000L)) must be_==("15 hours ago")
     }
+    "format minutes duration" >> {
+      DatePresentation.duration(4 * 1000) must be_==("<1 min")
+      DatePresentation.duration(60 * 1000) must be_==("1 min")
+      DatePresentation.duration(39 * 60 * 1000) must be_==("39 mins")
+      DatePresentation.duration(59 * 60 * 1000) must be_==("59 mins")
+    }
   }
 }
