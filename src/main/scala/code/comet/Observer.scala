@@ -33,8 +33,9 @@ class Observer extends CometActor with CometListener {
     ".item-what *" #> clone.id &
     ".item-for *" #> name.getOrElse("?") &
     ".item-requested *" #> DatePresentation.ago(clone.requested.getTime) &
+    ".item-attempted *" #> (if (clone.attempts > 0) DatePresentation.ago(clone.attempted.getTime) else "") &
     ".item-state *" #> clone.state.toString &
-    ".item-attempts *" #> clone.attempts.toString apply(in)
+    ".item-attempts *" #> formatAttempts(clone.attempts) apply(in)
   }
   def idFor(id: Long): String = "i" + id
   def incomplete = inTransaction(
@@ -44,4 +45,7 @@ class Observer extends CometActor with CometListener {
       on(c.artifactId === a.map(_.id), c.forCultistId === f.map(_.id))
     ).toSeq
   )
+  def formatAttempts(attempts: Long): String = {
+    if (attempts == 0) "" else attempts.toString + "x"
+  }
 }

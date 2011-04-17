@@ -1,5 +1,6 @@
 package code
 
+import gate.T
 import net.liftweb._
 import net.liftweb.util.Props
 
@@ -56,7 +57,20 @@ trait Db {
           val a = new Artifact
           a.gatewayId = g3.id
           a.path = "la/lo/lah"
+          val b = new Artifact
+          b.gatewayId = g3.id
+          b.path = "la/foyhyyyyyyyy"
           Mythos.artifacts.insert(a)
+          Mythos.artifacts.insert(b)
+
+          val clone1 = new Clone
+          clone1.artifactId = 1
+          clone1.forCultistId = foo.id
+          clone1.state = CloneState.progressing
+          clone1.requested = T.yesterday
+          clone1.attempted = T.yesterday
+          clone1.attempts = 5
+          Mythos.clones.insert(clone1)
         }
       case _ =>
     }
