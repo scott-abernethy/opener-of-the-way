@@ -85,6 +85,11 @@ class ArtifactLog extends CometActor with CometListener {
     }
   }
   def itemSelected(id: Long): JsCmd = {
+//    for {
+//      c <- Cultist.attending.is.toOption
+//      a <- Artifact.find(id)
+//    } yield a.clone(c)
+
     // todo return faster?
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
       case Some(newStatus) =>

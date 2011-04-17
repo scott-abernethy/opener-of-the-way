@@ -19,6 +19,15 @@
 	padding:0;
 	list-style:none;
 }
+.nonelist ol {
+	margin:0;
+	padding:0;
+    list-style:none;
+}
+.nonelist ol li {
+	margin:0;
+	padding:0;
+}
 .artifacts ol {
 	margin:0;
 	padding:0;

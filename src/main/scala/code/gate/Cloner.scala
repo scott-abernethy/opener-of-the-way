@@ -37,6 +37,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       transaction { clones.update(job) }
       ArtifactServer ! ArtifactUpdated(job.artifactId)
       transaction {
+        // todo fix with better comprehension
         for {
           src <- job.artifact.flatMap(_.localPath)
           dest <- job.forCultist.flatMap(_.destination).map(_.clonesPath)

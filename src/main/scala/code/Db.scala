@@ -41,6 +41,26 @@ trait Db {
   def close {}
 
   def describe { Mythos.printDdl }
+
+  def populate {
+    Props.mode match {
+      case Props.RunModes.Development =>
+        Db.clear
+        transaction {
+          val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
+          val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
+          val g1 = Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
+          val g2 = Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar-sink", "", "treesaregreen", GateMode.sink, GateState.lost, code.gate.T.yesterday))
+          val g3 = Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.source, GateState.lost, code.gate.T.yesterday))
+
+          val a = new Artifact
+          a.gatewayId = g3.id
+          a.path = "la/lo/lah"
+          Mythos.artifacts.insert(a)
+        }
+      case _ =>
+    }
+  }
 }
 
 object Db extends Db
