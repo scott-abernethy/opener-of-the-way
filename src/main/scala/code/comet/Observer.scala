@@ -7,6 +7,7 @@ import net.liftweb.util.ClearClearable
 import xml.NodeSeq
 import code.util.DatePresentation
 import code.model._
+import code.gate.T
 
 class Observer extends CometActor with CometListener {
   def registerWith = ArtifactServer
@@ -63,11 +64,11 @@ class Observer extends CometActor with CometListener {
   )
   def complete = inTransaction(
     join(clones, cultists.leftOuter)((c, f) =>
-      where(c.state === CloneState.done)
+      where(c.state === CloneState.done and c.attempted > T.ago(7 * 24 * 60 * 60 * 1000))
       select((c, f))
       orderBy(c.attempted desc)
       on(c.forCultistId === f.map(_.id))
-    ).page(0, 15).toSeq
+    ).toSeq
   )
   def formatAttempts(attempts: Long): String = {
     if (attempts == 0) "" else attempts.toString + "x"
