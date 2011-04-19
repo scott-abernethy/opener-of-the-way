@@ -74,6 +74,7 @@ class ArtifactLog extends CometActor with CometListener {
     ".log:item [id]" #> idFor(artifact.id) &
     ".item:select *" #> selectOption(artifact, artifactState) &
     ".item:status *" #> artifactState.map(_.toString).getOrElse("?") &
+    ".item:status [class+]" #> artifactState.map("state-" + _.toString).getOrElse("") &
     ".item:description *" #> artifact.description apply(in)
   }
   def renderUpdate(id: Long): JsCmd = {

@@ -56,3 +56,15 @@
 .quietlink {
     text-decoration: none
 }
+.state-mine {
+    color: gray;
+}
+.state-queued {
+    color: #ff8c00;
+}
+.state-progressing {
+    color: #8b008b;
+}
+.state-done {
+    color: #006400;
+}
