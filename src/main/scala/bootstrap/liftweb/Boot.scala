@@ -62,6 +62,13 @@ class Boot {
     LiftRules.htmlProperties.default.set((r: Req) =>
       new Html5Properties(r.userAgent))    
 
+    LiftRules.noticesAutoFadeOut.default.set( (notices: NoticeType.Value) => {
+      notices match {
+        case NoticeType.Notice => Full((2 seconds, 2 seconds))
+        case _ => Empty
+      }
+    } )
+    
     Environment.start
     LiftRules.unloadHooks.append(() => Environment.dispose)
   }
