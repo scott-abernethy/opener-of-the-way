@@ -88,6 +88,24 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       x.update(i)
       x.states.get(i) must beSome(ArtifactState.queued)      
     }
+    "not exclude items cloned by others (bug)" >> {
+      inTransaction(clones.delete(from(clones)(c => select(c))))
+
+      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
+
+      inTransaction(clones.insert(Clone.create(i + 2, 3L, CloneState.progressing)))
+      inTransaction(clones.insert(Clone.create(i + 3, 3L, CloneState.queued)))
+
+      val x = new ArtifactCloneSnapshot
+      x.reload(2)
+      
+      x.states.get(i) must beSome(ArtifactState.available)
+      x.states.get(i + 1) must beSome(ArtifactState.mine)
+      x.states.get(i + 2) must beSome(ArtifactState.available)
+      x.states.get(i + 3) must beSome(ArtifactState.mine)
+      x.states.get(i + 4) must beSome(ArtifactState.mine)
+      x.states.get(i + 5) must beNone
+    }
   }
   doAfterSpec {
     TestDb.close

@@ -42,13 +42,22 @@ class ArtifactCloneSnapshot {
   var states: Map[Long, ArtifactState.Value] = _
   def reload(cultistId: Long) {
     currentCultistId = cultistId
-    val as = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
-      select((a, g.cultistId, c.map(_.forCultistId), c.map(_.state)))
+    items = new TreeMap[String, List[Artifact]]
+    val results: Seq[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
+      select((a, g.cultistId, c))
       orderBy(a.discovered desc, a.path desc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId))
-    ).toSeq.filter(i => i._3.getOrElse(cultistId) == cultistId))
-    as.foreach(i => items = insertItem(items, i._1))
-    states = as.map(i => (i._1.id, parseState(cultistId, i._2, i._4))).toMap
+    ).toSeq)
+    val combined: Seq[(Artifact, Long, List[Clone])] = results.foldRight(List.empty[(Artifact, Long, List[Clone])]){ (in: (Artifact, Long, Option[Clone]), out: List[(Artifact, Long, List[Clone])]) =>
+      out match {
+        case head :: tail if (head._1 == in._1) =>
+          ((in._1, in._2, in._3.toList ::: head._3)) :: tail
+        case list =>
+          ((in._1, in._2, in._3.toList)) :: list
+      }
+    }
+    combined.foreach(i => items = insertItem(items, i._1))
+    states = combined.map( a => (a._1.id, parseState(cultistId, a._2, a._3)) ).toMap
   }
   def add(artifact: Artifact) {
     
@@ -68,10 +77,11 @@ class ArtifactCloneSnapshot {
       case other => into
     }
   }
-  private def parseState(cultistId: Long, owner: Long, cloneState: Option[CloneState.Value]) = {
+  private def parseState(cultistId: Long, owner: Long, clones: Seq[Clone]) = {
     if (owner == cultistId) {
       ArtifactState.mine
     } else {
+      val cloneState = clones.find(_.forCultistId == cultistId).map(_.state)
       cloneState match {
         case None => ArtifactState.available
         case Some(CloneState.queued) => ArtifactState.queued

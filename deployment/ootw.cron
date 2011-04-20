@@ -1,0 +1,4 @@
+10,20,30,40 1-3,9-11,13-15    * * *   root	/usr/local/bin/cronic /usr/local/bin/threshold apply
+50,55 11,15    * * *   root	/usr/local/bin/cronic /usr/local/bin/threshold flush
+30 4-6,19-21    * * *   root	/usr/local/bin/cronic /usr/local/bin/threshold flush
+30 22    * * *   root	/usr/local/bin/cronic /usr/local/bin/threshold restart
