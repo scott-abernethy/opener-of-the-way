@@ -44,7 +44,7 @@ class ArtifactLog extends CometActor with CometListener {
   override def lowPriority = {
     case ArtifactCreated(a) =>
 //      snapshot.add(a)
-      // todo partialUpdate
+      // todo partialUpdate, though this rerender is good at the mo as it allows missing artifacts to be highlighted.
       snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
       reRender
     case ArtifactUpdated(a) =>

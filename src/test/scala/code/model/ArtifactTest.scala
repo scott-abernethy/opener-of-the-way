@@ -112,6 +112,38 @@ object ArtifactTestSpecs extends Specification with Mockito {
         a.localPath must beSome("/var/cache/gates/a/x/y/z/readme")        
       }
     }
+    "have missing state if not witnessed recently, with no database transactions" >> {
+      TestDb.clear
+      val now = T.now
+      val threeDaysFromNow = T.agoFrom(now, -3 * 24 * 60 * 60 * 1000L)
+      val fourDaysFromNow = T.agoFrom(now, -4 * 24 * 60 * 60 * 1000L)
+      val fourDaysOneSecondFromNow = T.agoFrom(now, (-4 * 24 * 60 * 60 * 1000L) - 1L)
+      val fiveDaysFromNow = T.agoFrom(now, -5 * 24 * 60 * 60 * 1000L)
+      val x = new Artifact
+      x.witnessed = now
+      val clone = new Clone
+
+      x.stateFor(45L, 45L, None, now) must be_==(ArtifactState.mine)
+      x.stateFor(1L, 2L, None, now) must be_==(ArtifactState.available)
+
+      clone.state = CloneState.queued
+      x.stateFor(45L, 45L, Some(clone), now) must be_==(ArtifactState.mine)
+      x.stateFor(4L, 45L, Some(clone), now) must be_==(ArtifactState.queued)
+      x.stateFor(4L, 45L, Some(clone), threeDaysFromNow) must be_==(ArtifactState.queued)
+      x.stateFor(4L, 45L, Some(clone), fourDaysFromNow) must be_==(ArtifactState.queued)
+      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must be_==(ArtifactState.missing)
+      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must be_==(ArtifactState.missing)
+
+      clone.state = CloneState.progressing
+      x.stateFor(45L, 13L, Some(clone), now) must be_==(ArtifactState.progressing)
+      x.stateFor(45L, 13L, Some(clone), threeDaysFromNow) must be_==(ArtifactState.progressing)
+      x.stateFor(45L, 13L, Some(clone), fourDaysFromNow) must be_==(ArtifactState.progressing)
+      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must be_==(ArtifactState.missing)
+      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must be_==(ArtifactState.missing)
+
+      clone.state = CloneState.done
+      x.stateFor(45L, 13L, Some(clone), now) must be_==(ArtifactState.done)
+    }
   }
   doAfterSpec {
     TestDb.close
