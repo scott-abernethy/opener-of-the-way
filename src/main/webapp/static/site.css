@@ -68,3 +68,6 @@
 .state-done {
     color: #006400;
 }
+.state-missing {
+    color: #8b0000;
+}
