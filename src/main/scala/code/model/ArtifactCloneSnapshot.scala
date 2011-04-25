@@ -5,6 +5,7 @@ import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
 import java.text.SimpleDateFormat
 import java.util.{TimeZone, Date}
+import code.gate.T
 
 /*
 There are probably more than one flavor of the N+1 problem, but a very
@@ -57,7 +58,7 @@ class ArtifactCloneSnapshot {
       }
     }
     combined.foreach(i => items = insertItem(items, i._1))
-    states = combined.map( a => (a._1.id, parseState(cultistId, a._2, a._3)) ).toMap
+    states = combined.map( a => (a._1.id, parseState(a._1, cultistId, a._2, a._3)) ).toMap
   }
   def add(artifact: Artifact) {
     
@@ -77,18 +78,8 @@ class ArtifactCloneSnapshot {
       case other => into
     }
   }
-  private def parseState(cultistId: Long, owner: Long, clones: Seq[Clone]) = {
-    if (owner == cultistId) {
-      ArtifactState.mine
-    } else {
-      val cloneState = clones.find(_.forCultistId == cultistId).map(_.state)
-      cloneState match {
-        case None => ArtifactState.available
-        case Some(CloneState.queued) => ArtifactState.queued
-        case Some(CloneState.progressing) => ArtifactState.progressing
-        case Some(CloneState.done) => ArtifactState.done
-        case _ => ArtifactState.failed
-      }
-    }
+  private def parseState(artifact: Artifact, cultistId: Long, ownerId: Long, clones: Seq[Clone]) = {
+    val clone: Option[Clone] = clones.find(_.forCultistId == cultistId)
+    artifact.stateFor(cultistId, ownerId, clone, T.now)
   }
 }

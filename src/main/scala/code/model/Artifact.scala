@@ -59,7 +59,7 @@ class Artifact(
   }
   def cancelClone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
-      case Some(s) if (s == ArtifactState.queued || s == ArtifactState.progressing) =>
+      case Some(s) if (s == ArtifactState.queued || s == ArtifactState.progressing || s == ArtifactState.missing) =>
         inTransaction(clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id)))
         true
       case _ => false
@@ -86,3 +86,15 @@ object ArtifactState extends Enumeration {
   val done = Value("done") // previously cloned successfully
   val failed = Value("failed") // delete | error | exclamation
 }
+
+/*
+States:
+- "available" = discovered, others
+- "lost" = discovered, others, not recently witnessed
+- "mine" = discovered, mine, available
+- "removed" = discovered, mine, not recently witnessed (do i care my files are now missing?)
+- "queued" = discovered, others, clone queued
+- "progressing" = discovered, others, clone progressing
+- "impossible" = discovered, others, not recently witnessed, clone queued
+- "done" = discovered, others, clone done
+ */
