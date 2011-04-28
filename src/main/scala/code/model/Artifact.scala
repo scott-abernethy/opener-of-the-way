@@ -23,12 +23,12 @@ class Artifact(
   def owner: Option[Cultist] = inTransaction(gateway.headOption.flatMap(_.cultist.headOption))
   def stateFor(cultistId: Long, ownerId: Long, clone: Option[Clone], now: Timestamp): Option[ArtifactState.Value] = {
     if (ownerId == cultistId) {
-      Some(ArtifactState.proffered)
+      missingOr(now)(ArtifactState.proffered, ArtifactState.profferedLost)
     } else {
       clone.map(_.state) match {
-        case None => Some(ArtifactState.glimpsed)
-        case Some(CloneState.queued) => missingOr(now)(ArtifactState.awaiting)
-        case Some(CloneState.progressing) => missingOr(now)(ArtifactState.cloning)
+        case None => missingOr(now)(ArtifactState.glimpsed, ArtifactState.lost)
+        case Some(CloneState.queued) => missingOr(now)(ArtifactState.awaiting, ArtifactState.awaitingLost)
+        case Some(CloneState.progressing) => Some(ArtifactState.cloning)
         case Some(CloneState.done) => Some(ArtifactState.cloned)
         case _ => None
       }
@@ -41,16 +41,16 @@ class Artifact(
       case _ => None
     }
   }
-  private def missingOr(now: Timestamp)(state: ArtifactState.Value): Option[ArtifactState.Value] = {
+  private def missingOr(now: Timestamp)(state: ArtifactState.Value, missing: ArtifactState.Value): Option[ArtifactState.Value] = {
     if (witnessed.before(T.agoFrom(now, 4 * 24 * 60 * 60 * 1000))) {
-      Some(ArtifactState.lost)
+      Some(missing)
     } else {
       Some(state)
     }
   }
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
-      case Some(ArtifactState.glimpsed) =>
+      case Some(s) if ArtifactState.possible_?(s) =>
         val clone = Clone.create(id, cultist.id, CloneState.queued)
         inTransaction(clones.insert(clone))
         true
@@ -59,7 +59,7 @@ class Artifact(
   }
   def cancelClone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
-      case Some(s) if (s == ArtifactState.awaiting || s == ArtifactState.cloning || s == ArtifactState.lost) =>
+      case Some(s) if ArtifactState.awaiting_?(s) =>
         inTransaction(clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultist.id)))
         true
       case _ => false
@@ -97,6 +97,8 @@ object ArtifactState extends Enumeration {
     case ArtifactState.cloned => Some("state-good")
     case _ => None
   }
+  def awaiting_?(s: ArtifactState.Value): Boolean = s == ArtifactState.awaiting || s ==  ArtifactState.awaitingLost || s == ArtifactState.cloning
+  def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost
 }
 
 /*

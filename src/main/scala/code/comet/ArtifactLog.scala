@@ -111,9 +111,9 @@ class ArtifactLog extends CometActor with CometListener {
     }
   }
   def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value]): NodeSeq = artifactState match {
-    case Some(state) if (state == ArtifactState.glimpsed) =>
+    case Some(state) if ArtifactState.possible_?(state) =>
       selectCheckbox(artifact, false)
-    case Some(state) if (state == ArtifactState.awaiting || state == ArtifactState.cloning || state == ArtifactState.lost) =>
+    case Some(state) if ArtifactState.awaiting_?(state) =>
       selectCheckbox(artifact, true)
     case _ => Unparsed("&nbsp;")
   }

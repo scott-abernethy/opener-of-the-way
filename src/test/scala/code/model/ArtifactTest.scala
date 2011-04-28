@@ -112,7 +112,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
         a.localPath must beSome("/var/cache/gates/a/x/y/z/readme")        
       }
     }
-    "have missing state if not witnessed recently, with no database transactions" >> {
+    "have lost state if not witnessed recently, with no database transactions" >> {
       TestDb.clear
       val now = T.now
       val threeDaysFromNow = T.agoFrom(now, -3 * 24 * 60 * 60 * 1000L)
@@ -124,24 +124,35 @@ object ArtifactTestSpecs extends Specification with Mockito {
       val clone = new Clone
 
       x.stateFor(45L, 45L, None, now) must beSome(ArtifactState.proffered)
+      x.stateFor(4L, 4L, None, threeDaysFromNow) must beSome(ArtifactState.proffered)
+      x.stateFor(4L, 4L, None, fourDaysFromNow) must beSome(ArtifactState.proffered)
+      x.stateFor(4L, 4L, None, fourDaysOneSecondFromNow) must beSome(ArtifactState.profferedLost)
+      x.stateFor(4L, 4L, None, fiveDaysFromNow) must beSome(ArtifactState.profferedLost)
+
       x.stateFor(1L, 2L, None, now) must beSome(ArtifactState.glimpsed)
+      x.stateFor(1L, 2L, None, threeDaysFromNow) must beSome(ArtifactState.glimpsed)
+      x.stateFor(1L, 2L, None, fourDaysFromNow) must beSome(ArtifactState.glimpsed)
+      x.stateFor(1L, 2L, None, fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
+      x.stateFor(1L, 2L, None, fiveDaysFromNow) must beSome(ArtifactState.lost)
 
       clone.state = CloneState.queued
       x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
       x.stateFor(4L, 45L, Some(clone), now) must beSome(ArtifactState.awaiting)
       x.stateFor(4L, 45L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.awaiting)
       x.stateFor(4L, 45L, Some(clone), fourDaysFromNow) must beSome(ArtifactState.awaiting)
-      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
-      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.lost)
+      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.awaitingLost)
+      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.awaitingLost)
 
       clone.state = CloneState.progressing
+      x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
       x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloning)
       x.stateFor(45L, 13L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.cloning)
       x.stateFor(45L, 13L, Some(clone), fourDaysFromNow) must beSome(ArtifactState.cloning)
-      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
-      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.lost)
+      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.cloning)
 
       clone.state = CloneState.done
+      x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
       x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloned)
     }
   }
