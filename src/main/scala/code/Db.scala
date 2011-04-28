@@ -67,11 +67,15 @@ trait Db {
           d.gatewayId = g3.id
           d.path = "la/lo/913913.try0"
           d.witnessed = T.ago(12 * 24 * 60 * 60 * 1000L)
-          
-          Mythos.artifacts.insert(a)
-          Mythos.artifacts.insert(b)
-          Mythos.artifacts.insert(c)
-          Mythos.artifacts.insert(d)
+          val e = new Artifact
+          e.gatewayId = g1.id
+          e.path = "mee/neigh"
+          val f = new Artifact
+          f.gatewayId = g1.id
+          f.path = "mee/oink"
+          f.witnessed = T.ago(12 * 24 * 60 * 60 * 1000L)
+
+          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: Nil)
 
           val clone1 = new Clone
           clone1.artifactId = 1
