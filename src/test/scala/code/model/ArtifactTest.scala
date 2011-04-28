@@ -43,58 +43,58 @@ object ArtifactTestSpecs extends Specification with Mockito {
     }
     "be mine if owning cultist is logged in" >> {
       transaction {
-        x.stateFor(c) must beSome(ArtifactState.mine)
+        x.stateFor(c) must beSome(ArtifactState.proffered)
       }
     }
     "be available if not mine" >> {
       transaction {
-        x.stateFor(c2) must beSome(ArtifactState.available)
+        x.stateFor(c2) must beSome(ArtifactState.glimpsed)
       }
     }
     "be waiting if waiting clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
         clones.insert(Clone.create(x.id, c2.id, CloneState.queued))
-        x.stateFor(c2) must beSome(ArtifactState.queued)
+        x.stateFor(c2) must beSome(ArtifactState.awaiting)
       }
     }
     "be progressing if progressing clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
         clones.insert(Clone.create(x.id, c2.id, CloneState.progressing))
-        x.stateFor(c2) must beSome(ArtifactState.progressing)
+        x.stateFor(c2) must beSome(ArtifactState.cloning)
       }
     }
     "be done if done clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
         clones.insert(Clone.create(x.id, c2.id, CloneState.done))
-        x.stateFor(c2) must beSome(ArtifactState.done)
+        x.stateFor(c2) must beSome(ArtifactState.cloned)
       }
     }
     "start waiting clone requests from available state" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        x.stateFor(c2) must beSome(ArtifactState.available)
+        x.stateFor(c2) must beSome(ArtifactState.glimpsed)
         x.clone(c2) must beEqual(true)
-        x.stateFor(c2) must beSome(ArtifactState.queued)
+        x.stateFor(c2) must beSome(ArtifactState.awaiting)
       }
     }
     "cancel existing clone requests" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
         clones.insert(Clone.create(x.id, c2.id, CloneState.queued))
-        x.stateFor(c2) must beSome(ArtifactState.queued)
+        x.stateFor(c2) must beSome(ArtifactState.awaiting)
 
         x.cancelClone(c2) must beEqual(true)
-        x.stateFor(c2) must beSome(ArtifactState.available)
+        x.stateFor(c2) must beSome(ArtifactState.glimpsed)
 
         clones.delete(clones.where(cl => cl.artifactId === x.id))
         clones.insert(Clone.create(x.id, c2.id, CloneState.progressing))
-        x.stateFor(c2) must beSome(ArtifactState.progressing)
+        x.stateFor(c2) must beSome(ArtifactState.cloning)
 
         x.cancelClone(c2) must beEqual(true)
-        x.stateFor(c2) must beSome(ArtifactState.available)
+        x.stateFor(c2) must beSome(ArtifactState.glimpsed)
       }
     }
     "have a local path based on the gateway local path" >> {
@@ -123,26 +123,26 @@ object ArtifactTestSpecs extends Specification with Mockito {
       x.witnessed = now
       val clone = new Clone
 
-      x.stateFor(45L, 45L, None, now) must be_==(ArtifactState.mine)
-      x.stateFor(1L, 2L, None, now) must be_==(ArtifactState.available)
+      x.stateFor(45L, 45L, None, now) must beSome(ArtifactState.proffered)
+      x.stateFor(1L, 2L, None, now) must beSome(ArtifactState.glimpsed)
 
       clone.state = CloneState.queued
-      x.stateFor(45L, 45L, Some(clone), now) must be_==(ArtifactState.mine)
-      x.stateFor(4L, 45L, Some(clone), now) must be_==(ArtifactState.queued)
-      x.stateFor(4L, 45L, Some(clone), threeDaysFromNow) must be_==(ArtifactState.queued)
-      x.stateFor(4L, 45L, Some(clone), fourDaysFromNow) must be_==(ArtifactState.queued)
-      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must be_==(ArtifactState.missing)
-      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must be_==(ArtifactState.missing)
+      x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
+      x.stateFor(4L, 45L, Some(clone), now) must beSome(ArtifactState.awaiting)
+      x.stateFor(4L, 45L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.awaiting)
+      x.stateFor(4L, 45L, Some(clone), fourDaysFromNow) must beSome(ArtifactState.awaiting)
+      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
+      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.lost)
 
       clone.state = CloneState.progressing
-      x.stateFor(45L, 13L, Some(clone), now) must be_==(ArtifactState.progressing)
-      x.stateFor(45L, 13L, Some(clone), threeDaysFromNow) must be_==(ArtifactState.progressing)
-      x.stateFor(45L, 13L, Some(clone), fourDaysFromNow) must be_==(ArtifactState.progressing)
-      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must be_==(ArtifactState.missing)
-      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must be_==(ArtifactState.missing)
+      x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fourDaysFromNow) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
+      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.lost)
 
       clone.state = CloneState.done
-      x.stateFor(45L, 13L, Some(clone), now) must be_==(ArtifactState.done)
+      x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloned)
     }
   }
   doAfterSpec {

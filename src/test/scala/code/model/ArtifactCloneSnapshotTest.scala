@@ -45,11 +45,11 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactState.available)
-      x.states.get(i + 1) must beSome(ArtifactState.mine)
-      x.states.get(i + 2) must beSome(ArtifactState.available)
-      x.states.get(i + 3) must beSome(ArtifactState.mine)
-      x.states.get(i + 4) must beSome(ArtifactState.mine)
+      x.states.get(i) must beSome(ArtifactState.glimpsed)
+      x.states.get(i + 1) must beSome(ArtifactState.proffered)
+      x.states.get(i + 2) must beSome(ArtifactState.glimpsed)
+      x.states.get(i + 3) must beSome(ArtifactState.proffered)
+      x.states.get(i + 4) must beSome(ArtifactState.proffered)
       x.states.get(i + 5) must beNone
     }
     "reflect clone state" >> {
@@ -59,34 +59,34 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.progressing)))
       val x = new ArtifactCloneSnapshot
       x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.queued)
+      x.states.get(i) must beSome(ArtifactState.awaiting)
       x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.mine)
+      x.states.get(i) must beSome(ArtifactState.proffered)
 
       myClone.state = CloneState.progressing
       inTransaction(clones.update(myClone))
       x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.progressing)
+      x.states.get(i) must beSome(ArtifactState.cloning)
       x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.mine)
+      x.states.get(i) must beSome(ArtifactState.proffered)
 
       myClone.state = CloneState.done
       inTransaction(clones.update(myClone))
       x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.done)
+      x.states.get(i) must beSome(ArtifactState.cloned)
       x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.mine)
+      x.states.get(i) must beSome(ArtifactState.proffered)
     }
     "allow artifacts to be updated" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactState.available)
+      x.states.get(i) must beSome(ArtifactState.glimpsed)
 
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.queued)))
       x.update(i)
-      x.states.get(i) must beSome(ArtifactState.queued)      
+      x.states.get(i) must beSome(ArtifactState.awaiting)
     }
     "not exclude items cloned by others (bug)" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
@@ -99,11 +99,11 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       
-      x.states.get(i) must beSome(ArtifactState.available)
-      x.states.get(i + 1) must beSome(ArtifactState.mine)
-      x.states.get(i + 2) must beSome(ArtifactState.available)
-      x.states.get(i + 3) must beSome(ArtifactState.mine)
-      x.states.get(i + 4) must beSome(ArtifactState.mine)
+      x.states.get(i) must beSome(ArtifactState.glimpsed)
+      x.states.get(i + 1) must beSome(ArtifactState.proffered)
+      x.states.get(i + 2) must beSome(ArtifactState.glimpsed)
+      x.states.get(i + 3) must beSome(ArtifactState.proffered)
+      x.states.get(i + 4) must beSome(ArtifactState.proffered)
       x.states.get(i + 5) must beNone
     }
   }

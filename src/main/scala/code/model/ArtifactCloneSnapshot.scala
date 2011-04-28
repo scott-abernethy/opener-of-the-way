@@ -1,11 +1,11 @@
 package code.model
 
-import collection.immutable.TreeMap
 import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
 import java.text.SimpleDateFormat
 import java.util.{TimeZone, Date}
 import code.gate.T
+import collection.immutable.{HashMap, TreeMap}
 
 /*
 There are probably more than one flavor of the N+1 problem, but a very
@@ -44,6 +44,7 @@ class ArtifactCloneSnapshot {
   def reload(cultistId: Long) {
     currentCultistId = cultistId
     items = new TreeMap[String, List[Artifact]]
+    states = new HashMap[Long, ArtifactState.Value]
     val results: Seq[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
       select((a, g.cultistId, c))
       orderBy(a.discovered desc, a.path desc)
@@ -57,8 +58,13 @@ class ArtifactCloneSnapshot {
           ((in._1, in._2, in._3.toList)) :: list
       }
     }
-    combined.foreach(i => items = insertItem(items, i._1))
-    states = combined.map( a => (a._1.id, parseState(a._1, cultistId, a._2, a._3)) ).toMap
+    combined.foreach{i =>
+      val artifact: Artifact = i._1
+      items = insertItem(items, artifact)
+      parseState(artifact, cultistId, i._2, i._3).foreach(s =>
+        states = states + ((artifact.id, s))
+      )
+    }
   }
   def add(artifact: Artifact) {
     
@@ -66,7 +72,10 @@ class ArtifactCloneSnapshot {
   def update(artifact: Long) {
     inTransaction(Artifact.find(artifact).flatMap(a => Cultist.find(currentCultistId).map((a, _))) match {
       case Some((a, c)) =>
-        a.stateFor(c).foreach(state => states = states + ((a.id, state)))
+        a.stateFor(c) match {
+          case Some(state) => states = states + ((a.id, state))
+          case None => states = states - a.id
+        }
       case _ =>
     })
   }

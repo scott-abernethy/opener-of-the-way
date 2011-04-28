@@ -74,7 +74,7 @@ class ArtifactLog extends CometActor with CometListener {
     ".log:item [id]" #> idFor(artifact.id) &
     ".item:select *" #> selectOption(artifact, artifactState) &
     ".item:status *" #> artifactState.map(_.toString).getOrElse("?") &
-    ".item:status [class+]" #> artifactState.map("state-" + _.toString).getOrElse("") &
+    ".item:status [class+]" #> artifactState.flatMap(ArtifactState.style(_)).getOrElse("") &
     ".item:description *" #> artifact.description apply(in)
   }
   def renderUpdate(id: Long): JsCmd = {
@@ -111,9 +111,9 @@ class ArtifactLog extends CometActor with CometListener {
     }
   }
   def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value]): NodeSeq = artifactState match {
-    case Some(state) if (state == ArtifactState.available) =>
+    case Some(state) if (state == ArtifactState.glimpsed) =>
       selectCheckbox(artifact, false)
-    case Some(state) if (state == ArtifactState.queued || state == ArtifactState.progressing || state == ArtifactState.missing || state == ArtifactState.failed) =>
+    case Some(state) if (state == ArtifactState.awaiting || state == ArtifactState.cloning || state == ArtifactState.lost) =>
       selectCheckbox(artifact, true)
     case _ => Unparsed("&nbsp;")
   }
