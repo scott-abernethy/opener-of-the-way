@@ -35,7 +35,7 @@ object ClonerTestSpecs extends Specification with Mockito {
     val processing = mock[Processing]
     "start" >> {
       val job: Clone = transaction {
-        clones.insert(Clone.create(TestDb.c1ga1.id, TestDb.c2.id, CloneState.queued))
+        clones.insert(Clone.create(TestDb.c1ga1.id, TestDb.c2.id, CloneState.awaiting))
       }
       x.processor.process(any[List[String]]) returns(processing)
       processing.waitFor returns(Result(true, "hlhhklhlkjhkjhlkjhlh" :: Nil, -1))

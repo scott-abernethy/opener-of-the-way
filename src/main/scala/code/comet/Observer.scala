@@ -56,7 +56,7 @@ class Observer extends CometActor with CometListener {
   def idFor(id: Long): String = "i" + id
   def incomplete = inTransaction(
     join(clones, cultists.leftOuter)((c, f) =>
-      where(c.state === CloneState.queued or c.state === CloneState.progressing)
+      where(c.state === CloneState.awaiting or c.state === CloneState.cloning)
       select((c, f))
       orderBy(c.id desc)
       on(c.forCultistId === f.map(_.id))
@@ -64,7 +64,7 @@ class Observer extends CometActor with CometListener {
   )
   def complete = inTransaction(
     join(clones, cultists.leftOuter)((c, f) =>
-      where(c.state === CloneState.done and c.attempted > T.ago(7 * 24 * 60 * 60 * 1000))
+      where(c.state === CloneState.cloned and c.attempted > T.ago(7 * 24 * 60 * 60 * 1000))
       select((c, f))
       orderBy(c.attempted desc)
       on(c.forCultistId === f.map(_.id))

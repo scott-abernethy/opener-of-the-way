@@ -22,7 +22,7 @@ class Cultist(
 
   lazy val gateways: OneToMany[Gateway] = cultistToGateways.left(this)
   lazy val activeClones: Query[Clone] = from(clones)(c =>
-    where(c.forCultistId === id and (c.state === CloneState.queued or c.state === CloneState.progressing))
+    where(c.forCultistId === id and (c.state === CloneState.awaiting or c.state === CloneState.cloning))
     select(c)
   )
 }

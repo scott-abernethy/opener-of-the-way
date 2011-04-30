@@ -27,9 +27,9 @@ class Artifact(
     } else {
       clone.map(_.state) match {
         case None => missingOr(now)(ArtifactState.glimpsed, ArtifactState.lost)
-        case Some(CloneState.queued) => missingOr(now)(ArtifactState.awaiting, ArtifactState.awaitingLost)
-        case Some(CloneState.progressing) => Some(ArtifactState.cloning)
-        case Some(CloneState.done) => Some(ArtifactState.cloned)
+        case Some(CloneState.awaiting) => missingOr(now)(ArtifactState.awaiting, ArtifactState.awaitingLost)
+        case Some(CloneState.cloning) => Some(ArtifactState.cloning)
+        case Some(CloneState.cloned) => Some(ArtifactState.cloned)
         case _ => None
       }
     }
@@ -51,7 +51,7 @@ class Artifact(
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(s) if ArtifactState.possible_?(s) =>
-        val clone = Clone.create(id, cultist.id, CloneState.queued)
+        val clone = Clone.create(id, cultist.id, CloneState.awaiting)
         inTransaction(clones.insert(clone))
         true
       case _ => false

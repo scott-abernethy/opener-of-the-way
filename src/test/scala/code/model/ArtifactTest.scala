@@ -54,21 +54,21 @@ object ArtifactTestSpecs extends Specification with Mockito {
     "be waiting if waiting clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(Clone.create(x.id, c2.id, CloneState.queued))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.awaiting))
         x.stateFor(c2) must beSome(ArtifactState.awaiting)
       }
     }
     "be progressing if progressing clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(Clone.create(x.id, c2.id, CloneState.progressing))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.cloning))
         x.stateFor(c2) must beSome(ArtifactState.cloning)
       }
     }
     "be done if done clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(Clone.create(x.id, c2.id, CloneState.done))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.cloned))
         x.stateFor(c2) must beSome(ArtifactState.cloned)
       }
     }
@@ -83,14 +83,14 @@ object ArtifactTestSpecs extends Specification with Mockito {
     "cancel existing clone requests" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(Clone.create(x.id, c2.id, CloneState.queued))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.awaiting))
         x.stateFor(c2) must beSome(ArtifactState.awaiting)
 
         x.cancelClone(c2) must beEqual(true)
         x.stateFor(c2) must beSome(ArtifactState.glimpsed)
 
         clones.delete(clones.where(cl => cl.artifactId === x.id))
-        clones.insert(Clone.create(x.id, c2.id, CloneState.progressing))
+        clones.insert(Clone.create(x.id, c2.id, CloneState.cloning))
         x.stateFor(c2) must beSome(ArtifactState.cloning)
 
         x.cancelClone(c2) must beEqual(true)
@@ -135,7 +135,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
       x.stateFor(1L, 2L, None, fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
       x.stateFor(1L, 2L, None, fiveDaysFromNow) must beSome(ArtifactState.lost)
 
-      clone.state = CloneState.queued
+      clone.state = CloneState.awaiting
       x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
       x.stateFor(4L, 45L, Some(clone), now) must beSome(ArtifactState.awaiting)
       x.stateFor(4L, 45L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.awaiting)
@@ -143,7 +143,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
       x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.awaitingLost)
       x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.awaitingLost)
 
-      clone.state = CloneState.progressing
+      clone.state = CloneState.cloning
       x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
       x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloning)
       x.stateFor(45L, 13L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.cloning)
@@ -151,7 +151,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
       x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.cloning)
       x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.cloning)
 
-      clone.state = CloneState.done
+      clone.state = CloneState.cloned
       x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
       x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloned)
     }

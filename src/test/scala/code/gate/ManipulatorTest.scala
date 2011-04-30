@@ -46,7 +46,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     "with waiting clones, do nothing if no valid destination" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
-        clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.queued))
+        clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.awaiting))
       }
       transaction {
         c1g.state = GateState.open
@@ -89,8 +89,8 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     "with waiting clones, start first with valid source (open) destination (rw, open)" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
-        val cloneB: Clone = clones.insert(Clone.create(c1ga1.id, c2.id, CloneState.queued))
-        val cloneA: Clone = clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.queued))
+        val cloneB: Clone = clones.insert(Clone.create(c1ga1.id, c2.id, CloneState.awaiting))
+        val cloneA: Clone = clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.awaiting))
         c1g.state = GateState.open
         c2g.mode = GateMode.sink
         c2g.state = GateState.open
@@ -108,8 +108,8 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     "yet not start if the cloner is already busy" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
-        val cloneB: Clone = clones.insert(Clone.create(c1ga1.id, c2.id, CloneState.queued))
-        val cloneA: Clone = clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.queued))
+        val cloneB: Clone = clones.insert(Clone.create(c1ga1.id, c2.id, CloneState.awaiting))
+        val cloneA: Clone = clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.awaiting))
         c2g.mode = GateMode.sink
         c2g.state = GateState.open
         gateways.update(c2g)

@@ -80,7 +80,7 @@ trait Db {
           val clone1 = new Clone
           clone1.artifactId = 1
           clone1.forCultistId = foo.id
-          clone1.state = CloneState.progressing
+          clone1.state = CloneState.cloning
           clone1.requested = T.yesterday
           clone1.attempted = T.yesterday
           clone1.attempts = 5
@@ -89,7 +89,7 @@ trait Db {
           val clone2 = new Clone
           clone2.artifactId = 3
           clone2.forCultistId = foo.id
-          clone2.state = CloneState.done
+          clone2.state = CloneState.cloned
           clone2.requested = T.ago(89734562)
           clone2.attempted = T.ago(456789)
           clone2.attempts = 2
