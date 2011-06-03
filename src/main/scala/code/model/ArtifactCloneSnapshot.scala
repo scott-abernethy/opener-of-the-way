@@ -2,10 +2,10 @@ package code.model
 
 import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
-import java.text.SimpleDateFormat
 import java.util.{TimeZone, Date}
 import code.gate.T
 import collection.immutable.{HashMap, TreeMap}
+import java.text.{DateFormat, SimpleDateFormat}
 
 /*
 There are probably more than one flavor of the N+1 problem, but a very
@@ -80,10 +80,17 @@ class ArtifactCloneSnapshot {
     })
   }
   private def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
-    Option(a.discovered).map(timestamp => new Date(timestamp.getTime)).map(dateF format _) match {
+    def discoveredGroup(a: Artifact): Option[String] = {
+      for {
+        timestamp <- Option(a.discovered)
+        time = new Date(timestamp.getTime)
+      }
+      yield dateF.format(time)
+    }
+    discoveredGroup(a) match {
       case Some(key) =>
-        val as = into.getOrElse(key, Nil)
-        if (!as.contains(a)) into + ((key, a :: as)) else into
+        val as = into.getOrElse(key.toString, Nil)
+        if (!as.contains(a)) into + ((key.toString, a :: as)) else into
       case other => into
     }
   }
