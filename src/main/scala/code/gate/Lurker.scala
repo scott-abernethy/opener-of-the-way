@@ -49,7 +49,7 @@ trait LurkerComponentImpl extends LurkerComponent {
     private def shouldScour(g: Gateway): Boolean = {
       transaction(gateways.lookup(g.id)) match {
         case Some(g2) =>
-          g2.mode == GateMode.source && g2.scoured.before(T.ago(1800000L)) // thirty minutes
+          g2.mode == GateMode.source && g2.scoured.before(T.ago(60*60*1000L)) // 60 minutes
         case _ =>
           false
       }
