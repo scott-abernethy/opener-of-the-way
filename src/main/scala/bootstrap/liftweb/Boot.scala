@@ -31,7 +31,10 @@ class Boot {
     val notAttending = Unless(() => Cultist.attending_?, () => RedirectResponse("/"))
 
     // Build SiteMap
-    def sitemap = SiteMap(Menu.i("Home") / "index" >> isAttending,
+    def sitemap = SiteMap(
+      Menu.i("Home") / "index" >> isAttending,
+      Menu.i("Search") / "search" >> isAttending >> Hidden,
+      Menu.i("Awaiting") / "awaiting" >> isAttending >> Hidden,
       Menu.i("Approach") / "cultist" / "approach" >> notAttending,
 //      Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Profile") / "cultist" / "profile" >> isAttending,

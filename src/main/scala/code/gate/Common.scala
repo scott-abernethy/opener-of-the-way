@@ -15,4 +15,5 @@ object T {
   def agoFrom(start: Timestamp, msecPeriod: Long): Timestamp = new Timestamp(start.getTime - msecPeriod)
   def yesterday: Timestamp = ago(1000 * 60 * 60 * 24)
   //  def zero: Timestamp = new Timestamp(0)
+  def at(year: Int, month: Int, date: Int, hour: Int, minute: Int, second: Int): Timestamp = new Timestamp(year, month, date, hour, minute, second, 0)
 }
