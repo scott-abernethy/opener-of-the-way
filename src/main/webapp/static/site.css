@@ -1,11 +1,11 @@
 #lift__noticesContainer___notice {
-  color: #3f8a10;
+  color: #859900;
 }
 #lift__noticesContainer___warning {
-  color: #5b108a;
+  color: #cb4b16;
 }
 #lift__noticesContainer___error {
-  color: #8a1f11;
+  color: #d33682;
 }
 #lift__noticesContainer__ {
     margin-bottom: 1em;
@@ -18,6 +18,12 @@
 	margin:0;
 	padding:0;
 	list-style:none;
+}
+body {
+  color: #586e75;
+}
+a {
+  color: #268bd2;
 }
 .nonelist ol {
 	margin:0;
@@ -37,8 +43,14 @@
 	margin:0;
 	padding:0;
 }
-.artifacts h3 {
-    color: #aaa;
+h1 {
+    color: #93a1a1;
+}
+h2 {
+    color: #93a1a1;
+}
+h3 {
+    color: #93a1a1;
     margin-top: 1em;
     margin-bottom: 0.6em;
 }
@@ -50,24 +62,42 @@
     display: inline;
 }
 .stripstatus {
-    color: #666;
     padding-right: 2em;
 }
 .quietlink {
     text-decoration: none
 }
 .state-lesser {
-    color: gray;
+    color: #93a1a1;
 }
 .state-inactive {
-    color: #ff8c00;
+    color: #b58900;
 }
 .state-active {
-    color: #8b008b;
+    color: #6c71c4;
 }
 .state-good {
-    color: #006400;
+    color: #2aa198;
 }
 .state-bad {
-    color: #8b0000;
+    color: #dc322f;
 }
+/**
+ * http://ethanschoonover.com/solarized
+ * $base03:    #002b36;
+ * $base02:    #073642;
+ * $base01:    #586e75; 
+ * $base00:    #657b83; normal text
+ * $base0:     #839496; heading text
+ * $base1:     #93a1a1;
+ * $base2:     #eee8d5;
+ * $base3:     #fdf6e3; background
+ * $yellow:    #b58900;
+ * $orange:    #cb4b16;
+ * $red:       #dc322f;
+ * $magenta:   #d33682;
+ * $violet:    #6c71c4;
+ * $blue:      #268bd2;
+ * $cyan:      #2aa198;
+ * $green:     #859900;
+ */
