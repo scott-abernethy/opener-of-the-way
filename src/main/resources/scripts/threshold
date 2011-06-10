@@ -49,7 +49,7 @@ function do_apply_open {
 
   if [ $(mount | grep $gate_mount -c) == 0 ] ; then
     echo "Mounting"
-    mount -t cifs //$gate_location $gate_mount --verbose -o rw,noexec,user=wmtdev,password=***REMOVED***
+    mount -t cifs //$gate_location $gate_mount --verbose -o _netdev,rw,noexec,user=wmtdev,password=***REMOVED***
     if [ $? != 0 ] ; then
       mark_status "failed"
       return $?
