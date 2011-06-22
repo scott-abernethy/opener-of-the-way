@@ -10,10 +10,6 @@ import Helpers._
 import code.model._
 import scala.xml._
 import org.squeryl.PrimitiveTypeMode._
-import java.text.{SimpleDateFormat}
-import java.util.{Date, TimeZone}
-import collection.SortedMap
-import collection.immutable.TreeMap
 
 case object Subscribed
 
@@ -37,7 +33,7 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   }
 }
 
-class ArtifactLog extends CometActor with CometListener {
+class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   val snapshot = new ArtifactCloneSnapshot
   snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
   def registerWith = ArtifactServer
@@ -67,58 +63,17 @@ class ArtifactLog extends CometActor with CometListener {
       ".log:item" #> bindItems(i._2) _
     ) apply(in)).toSeq
   }
-  def bindItems(artifacts: List[Artifact])(in: NodeSeq): NodeSeq = artifacts.flatMap(bindItem(in, _))
-  def bindItem(in: NodeSeq, artifact: Artifact): NodeSeq = {
-    val artifactState: Option[ArtifactState.Value] = snapshot.states.get(artifact.id)
-    ClearClearable & 
-    ".log:item [id]" #> idFor(artifact.id) &
-    ".item:select *" #> selectOption(artifact, artifactState) &
-    ".item:status *" #> artifactState.map(_.toString).getOrElse("?") &
-    ".item:status [class+]" #> artifactState.flatMap(ArtifactState.style(_)).getOrElse("") &
-    ".item:description *" #> artifact.description apply(in)
+  def bindItems(artifacts: List[Artifact])(in: NodeSeq): NodeSeq = {
+    artifacts.flatMap{a =>
+      bindItem(in, a, snapshot.states.get(a.id))
+    }
   }
   def renderUpdate(id: Long): JsCmd = {
     inTransaction(Artifact.find(id)) match {
       case Some(updated) =>
-        JsCmds.Replace(idFor(id), bindItem((defaultXml \\ "li"), updated))
+        JsCmds.Replace(idFor(id), bindItem((defaultXml \\ "li"), updated, snapshot.states.get(updated.id)))
       case _ =>
         JsCmds.Noop
     }
   }
-  def itemSelected(id: Long): JsCmd = {
-//    for {
-//      c <- Cultist.attending.is.toOption
-//      a <- Artifact.find(id)
-//    } yield a.clone(c)
-
-    // todo return faster?
-    Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
-      case Some(newStatus) =>
-        ArtifactServer ! ArtifactCloned(id)
-        JsCmds.Noop
-      case _ =>
-        JsCmds.Noop
-    }
-  }
-  def itemDeselected(id: Long): JsCmd = {
-    // todo return faster?
-    Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
-      case Some(newStatus) =>
-        ArtifactServer ! ArtifactCloned(id)
-        JsCmds.Noop
-      case _ =>
-        JsCmds.Noop
-    }
-  }
-  def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value]): NodeSeq = artifactState match {
-    case Some(state) if ArtifactState.possible_?(state) =>
-      selectCheckbox(artifact, false)
-    case Some(state) if ArtifactState.awaiting_?(state) =>
-      selectCheckbox(artifact, true)
-    case _ => Unparsed("&nbsp;")
-  }
-  def selectCheckbox(artifact: Artifact, defaultSelected: Boolean): NodeSeq = {
-    SHtml.ajaxCheckbox(defaultSelected, (s: Boolean) => if (s) itemSelected(artifact.id) else itemDeselected(artifact.id))
-  }
-  def idFor(id: Long): String = "artifact" + id
 }

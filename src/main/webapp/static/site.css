@@ -60,6 +60,10 @@ h3 {
 }
 .stripmenu li {
     display: inline;
+    margin-right: 0.2em;
+}
+.stripmenu form {
+    display: inline;
 }
 .stripstatus {
     padding-right: 2em;
