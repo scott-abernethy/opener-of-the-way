@@ -1,4 +1,6 @@
 #!/bin/bash
+server_host="gaffer"
+war_name="ootw-"
 set -o nounset
 
 abort_check() {
@@ -30,5 +32,5 @@ git tag -a -m "$tag_message" $tag ; abort_check $?
 
 # deploy
 war=$(find target -iname '*.war')
-scp $war gaffer:ootw-$tag.war ; abort_check $?
+scp $war $server_host:$war_name$tag.war ; abort_check $?
 #ssh gaffer deploy /home/gaffer/ootw-$tag.war
