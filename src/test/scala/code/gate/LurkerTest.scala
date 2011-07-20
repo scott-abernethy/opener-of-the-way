@@ -16,9 +16,13 @@ class LurkerTestSpecsAsTest extends JUnit4(LurkerTestSpecs)
 object LurkerTestSpecsRunner extends ConsoleRunner(LurkerTestSpecs)
 
 object LurkerTestSpecs extends Specification with Mockito {
+  val db = new TestDb
+  db.init
+
   doBeforeSpec {
-    TestDb.init
+    db.reset
   }
+
   "Lurker" should {
     def queryG(id: Long): Gateway = transaction { Mythos.gateways.lookup(id) getOrElse null }
     object LurkerComponentTest extends LurkerComponentImpl with FileSystemComponent with ManipulatorComponent {
@@ -89,7 +93,8 @@ object LurkerTestSpecs extends Specification with Mockito {
     }
     //"activate outstanding copies on way found" >> {}
   }
-  doAfterSpec {
-    TestDb.close
+
+  doAfter {
+    db.close
   }
 }

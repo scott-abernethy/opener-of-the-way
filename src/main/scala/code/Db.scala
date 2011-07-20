@@ -17,10 +17,7 @@ trait Db {
   lazy val url = Props.get("db.url") openOr "jdbc:h2:test"
   lazy val user = Props.get("db.user") openOr ""
   lazy val password = Props.get("db.password") openOr ""
-  def init {
-    Class.forName(driver)
-    val a: DatabaseAdapter = Class.forName(adapter).newInstance.asInstanceOf[DatabaseAdapter]
-
+  lazy val pool = {
     // Setup connection pooling with c3p0
     val pool = new ComboPooledDataSource
     pool.setDriverClass(driver)
@@ -30,23 +27,32 @@ trait Db {
     pool.setMinPoolSize(3)
     pool.setAcquireIncrement(1)
     pool.setMaxPoolSize(10)
-    def connection = Session.create(pool.getConnection, a)
-    SessionFactory.concreteFactory = Some(() => connection)
+    pool
   }
+
+  def init {
+    Class.forName(driver)
+    val adapterInstance: DatabaseAdapter = Class.forName(adapter).newInstance.asInstanceOf[DatabaseAdapter]
+    SessionFactory.concreteFactory = Some(() => Session.create(pool.getConnection, adapterInstance))
+  }
+
   def clear {
     transaction {
       Mythos.drop
       Mythos.create
     }
   }
-  def close {}
+
+  def close {
+    pool.close()
+  }
 
   def describe { Mythos.printDdl }
 
   def populate {
     Props.mode match {
       case Props.RunModes.Development =>
-        Db.clear
+        clear
         transaction {
           val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
           val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
@@ -100,5 +106,3 @@ trait Db {
     }
   }
 }
-
-object Db extends Db

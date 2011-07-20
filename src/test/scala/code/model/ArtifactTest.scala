@@ -26,9 +26,13 @@ import code.gate.T
 class ArtifactTestSpecsAsTest extends JUnit4(ArtifactTestSpecs)
 object ArtifactTestSpecsRunner extends ConsoleRunner(ArtifactTestSpecs)
 object ArtifactTestSpecs extends Specification with Mockito {
+  val db = new TestDb
+  db.init
+
   doBeforeSpec {
-    TestDb.init
+    db.reset
   }
+
   "Artifact" should {
     val (c: Cultist, c2: Cultist, x: Artifact) = transaction {
       (cultists.lookup(1L) getOrElse null,
@@ -99,7 +103,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
     }
     "have a local path based on the gateway local path" >> {
       transaction {
-        val g: Gateway = gateways.insert(new Gateway(TestDb.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, T.yesterday))
+        val g: Gateway = gateways.insert(new Gateway(db.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, T.yesterday))
         val a: Artifact = artifacts.insert(new Artifact(g.id, "folder/file.ext", T.now, T.now))
         a.localPath must beSome("/tmp/g/it/folder/file.ext")
 
@@ -113,7 +117,6 @@ object ArtifactTestSpecs extends Specification with Mockito {
       }
     }
     "have lost state if not witnessed recently, with no database transactions" >> {
-      TestDb.clear
       val now = T.now
       val threeDaysFromNow = T.agoFrom(now, -3 * 24 * 60 * 60 * 1000L)
       val fourDaysFromNow = T.agoFrom(now, -4 * 24 * 60 * 60 * 1000L)
@@ -156,7 +159,8 @@ object ArtifactTestSpecs extends Specification with Mockito {
       x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloned)
     }
   }
-  doAfterSpec {
-    TestDb.close
+
+  doAfter {
+    db.close
   }
 }

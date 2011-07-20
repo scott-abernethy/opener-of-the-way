@@ -3,13 +3,9 @@ package code
 import model._
 import org.squeryl.PrimitiveTypeMode._
 
-object TestDb extends Db {
+class TestDb extends Db {
   import code.gate.T
   import code.model.Mythos._
-  override def init {
-    super.init
-    reset
-  }
   def reset {
     clear
     transaction {

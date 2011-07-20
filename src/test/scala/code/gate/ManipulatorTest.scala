@@ -17,7 +17,6 @@ import org.specs.mock.Mockito
 import org.mockito.Matchers._
 
 import code.TestDb
-import code.TestDb._
 import code.model._
 
 import code.model.Mythos._
@@ -31,7 +30,12 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     val cloner = mock[Cloner]
     cloner.currently returns(None)
   }
-  doBeforeSpec { TestDb.init }
+
+  val db = new TestDb
+
+  doBefore { db.init }
+  doBeforeSpec { db.reset }
+
   "Manipulator" should {
     "wake and do nothing if no waiting clones" >> {
       transaction {
@@ -46,13 +50,13 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     "with waiting clones, do nothing if no valid destination" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
-        clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.awaiting))
+        clones.insert(Clone.create(db.c1ga2.id, db.c2.id, CloneState.awaiting))
       }
       transaction {
-        c1g.state = GateState.open
-        c2g.mode = GateMode.source
-        c2g.state = GateState.open
-        gateways.update(c1g :: c2g :: Nil)
+        db.c1g.state = GateState.open
+        db.c2g.mode = GateMode.source
+        db.c2g.state = GateState.open
+        gateways.update(db.c1g :: db.c2g :: Nil)
       }
 
       val x = new ManipulatorComponentTestImpl
@@ -63,10 +67,10 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       there was no(x.cloner).cancel
 
       transaction {
-        c1g.state = GateState.open
-        c2g.mode = GateMode.sink
-        c2g.state = GateState.lost
-        gateways.update(c1g :: c2g :: Nil)
+        db.c1g.state = GateState.open
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.lost
+        gateways.update(db.c1g :: db.c2g :: Nil)
       }
 
       x.manipulator ! Wake
@@ -75,10 +79,10 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       there was no(x.cloner).cancel
 
       transaction {
-        c1g.state = GateState.lost
-        c2g.mode = GateMode.sink
-        c2g.state = GateState.open
-        gateways.update(c1g :: c2g :: Nil)
+        db.c1g.state = GateState.lost
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.open
+        gateways.update(db.c1g :: db.c2g :: Nil)
       }
 
       x.manipulator ! Wake
@@ -89,12 +93,12 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     "with waiting clones, start first with valid source (open) destination (rw, open)" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
-        val cloneB: Clone = clones.insert(Clone.create(c1ga1.id, c2.id, CloneState.awaiting))
-        val cloneA: Clone = clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.awaiting))
-        c1g.state = GateState.open
-        c2g.mode = GateMode.sink
-        c2g.state = GateState.open
-        gateways.update(c1g :: c2g :: Nil)
+        val cloneB: Clone = clones.insert(Clone.create(db.c1ga1.id, db.c2.id, CloneState.awaiting))
+        val cloneA: Clone = clones.insert(Clone.create(db.c1ga2.id, db.c2.id, CloneState.awaiting))
+        db.c1g.state = GateState.open
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.open
+        gateways.update(db.c1g :: db.c2g :: Nil)
       }
 
       val x = new ManipulatorComponentTestImpl
@@ -108,11 +112,11 @@ object ManipulatorTestSpecs extends Specification with Mockito {
     "yet not start if the cloner is already busy" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
-        val cloneB: Clone = clones.insert(Clone.create(c1ga1.id, c2.id, CloneState.awaiting))
-        val cloneA: Clone = clones.insert(Clone.create(c1ga2.id, c2.id, CloneState.awaiting))
-        c2g.mode = GateMode.sink
-        c2g.state = GateState.open
-        gateways.update(c2g)
+        val cloneB: Clone = clones.insert(Clone.create(db.c1ga1.id, db.c2.id, CloneState.awaiting))
+        val cloneA: Clone = clones.insert(Clone.create(db.c1ga2.id, db.c2.id, CloneState.awaiting))
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.open
+        gateways.update(db.c2g)
       }
 
       val x = new ManipulatorComponentTestImpl
@@ -133,5 +137,6 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       there was one(x.cloner).cancel
     }
   }
-  doAfterSpec { TestDb.close }
+
+  doAfterSpec { db.close }
 }

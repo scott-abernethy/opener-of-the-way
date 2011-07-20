@@ -24,9 +24,13 @@ class ClonerTestSpecsAsTest extends JUnit4(ClonerTestSpecs)
 object ClonerTestSpecsRunner extends ConsoleRunner(ClonerTestSpecs)
 
 object ClonerTestSpecs extends Specification with Mockito {
+  val db = new TestDb
+  db.init
+  
   doBeforeSpec {
-    TestDb.init
+    db.reset
   }
+
   "Cloner" should {
     val x = new ClonerComponentImpl with ProcessorComponent with ManipulatorComponent {
       val processor = mock[Processor]
@@ -35,12 +39,16 @@ object ClonerTestSpecs extends Specification with Mockito {
     val processing = mock[Processing]
     "start" >> {
       val job: Clone = transaction {
-        clones.insert(Clone.create(TestDb.c1ga1.id, TestDb.c2.id, CloneState.awaiting))
+        clones.insert(Clone.create(db.c1ga1.id, db.c2.id, CloneState.awaiting))
       }
       x.processor.process(any[List[String]]) returns(processing)
       processing.waitFor returns(Result(true, "hlhhklhlkjhkjhlkjhlh" :: Nil, -1))
       x.cloner.start(job)
       there was one(x.processor).process("cloner" :: "/tmp/cache/gate/cow/glue" :: "/tmp/cache/gate/goat/clones" :: Nil)
     }
+  }
+
+  doAfter {
+    db.close
   }
 }

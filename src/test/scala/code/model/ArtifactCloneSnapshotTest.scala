@@ -12,8 +12,11 @@ import java.sql.Timestamp
 class ArtifactCloneSnapshotTestSpecsAsTest extends JUnit4(ArtifactCloneSnapshotTestSpecs)
 object ArtifactCloneSnapshotTestSpecsRunner extends ConsoleRunner(ArtifactCloneSnapshotTestSpecs)
 object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
+  val db = new TestDb
+  db.init
+
   doBeforeSpec {
-    TestDb.init
+    db.reset
     inTransaction{
       val time1 = new Timestamp(111, 3, 20, 1, 2, 3, 0)
       val time2 = new Timestamp(111, 3, 22, 1, 2, 3, 0)
@@ -25,6 +28,7 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       artifacts.insert(new Artifact(2L, "chocolate", time2, T.now))
     }
   }
+
   "ArtifactCloneSnapshot" should {
     "load all artifacts" >> {
       val x = new ArtifactCloneSnapshot
@@ -107,7 +111,8 @@ object ArtifactCloneSnapshotTestSpecs extends Specification with Mockito {
       x.states.get(i + 5) must beNone
     }
   }
-  doAfterSpec {
-    TestDb.close
+
+  doAfter {
+    db.close
   }
 }

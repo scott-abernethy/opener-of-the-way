@@ -12,8 +12,11 @@ import java.sql.Timestamp
 class CloneSnapshotFactoryTestSpecsAsTest extends JUnit4(CloneSnapshotFactoryTestSpecs)
 object CloneSnapshotFactoryTestSpecsRunner extends ConsoleRunner(CloneSnapshotFactoryTestSpecs)
 object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
+  val db = new TestDb
+  db.init
+
   doBeforeSpec {
-    TestDb.init
+    db.reset
     inTransaction{
       val time1 = T.at(111, 3, 20, 1, 2, 3)
       val time2 = T.at(111, 3, 22, 1, 2, 3)
@@ -25,6 +28,7 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
       artifacts.insert(new Artifact(2L, "chocolate", time2, T.now))
     }
   }
+
   "CloneSnapshotFactory" should {
     "be empty for no clones" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
@@ -140,7 +144,8 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
     }
     */
   }
-  doAfterSpec {
-    TestDb.close
+
+  doAfter {
+    db.close
   }
 }

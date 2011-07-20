@@ -21,8 +21,9 @@ import org.squeryl.PrimitiveTypeMode._
  */
 class Boot {
   def boot {
-    Db.init
-    Db.populate
+    val db = new Db{}
+    db.populate
+    LiftRules.unloadHooks.append(() => db.close)
 
     // where to search snippet
     LiftRules.addToPackages("code")
