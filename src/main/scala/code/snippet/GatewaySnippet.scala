@@ -34,6 +34,9 @@ class Gateway {
   private def processAdd {
     Cultist.attending.is match {
       case Full(c) =>
+        // replace \ with /
+        // check host matches a pattern
+        // allow edits? with a big warning about implications, redetection etc
         val g = new code.model.Gateway
         g.cultistId = c.id
         g.location = host.is.trim + "/" + share.is.trim
