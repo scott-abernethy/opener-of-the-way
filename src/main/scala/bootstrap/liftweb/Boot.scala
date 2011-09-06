@@ -8,7 +8,6 @@ import common._
 import http._
 import sitemap._
 import Loc._
-import mapper._
 
 import code.Db
 import code.model._
@@ -47,6 +46,9 @@ class Boot {
     // set the sitemap.  Note if you don't want access control for
     // each page, just comment this line out.
     LiftRules.setSiteMapFunc(() => sitemap)
+
+    // Use jQuery 1.4
+    LiftRules.jsArtifacts = net.liftweb.http.js.jquery.JQuery14Artifacts
 
     //Show the spinny image when an Ajax call starts
     LiftRules.ajaxStart =

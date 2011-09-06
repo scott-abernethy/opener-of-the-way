@@ -10,7 +10,6 @@ import net.liftweb.common._
 import org.specs.matcher._
 import org.specs.specification._
 import Helpers._
-import mapper._
 import scala.actors.Actor
 import scala.actors.Actor._
 import org.specs.mock.Mockito
