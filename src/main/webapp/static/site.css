@@ -25,6 +25,7 @@ body {
 a {
   color: #268bd2;
 }
+tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
 .nonelist ol {
 	margin:0;
 	padding:0;
