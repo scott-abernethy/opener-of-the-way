@@ -47,11 +47,15 @@ object Cultist {
     }
   }
   def withdraw() = attending(Empty)
-  def forEmail(email: String): Box[Cultist] = inTransaction(cultists.where(c => c.email === email).toSeq) match {
-    case x :: Nil => Full(x)
-    case x :: xs => Full(x) // but this is bad
-    case Nil => Empty
+
+  def forEmail(email: String): Box[Cultist] = {
+    inTransaction(cultists.where(c => c.email === email).toList) match {
+      case x :: Nil => Full(x)
+      case x :: xs => Full(x) // but this is bad
+      case Nil => Empty
+    }
   }
+
   def saveCookie() {
     val text = attending.is.map(_.id.toString).openOr("###")
     S.addCookie(HTTPCookie(cultistCookie, text).setMaxAge(3600 * 24 * 7).setPath("/"))

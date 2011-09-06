@@ -21,6 +21,7 @@ import org.squeryl.PrimitiveTypeMode._
 class Boot {
   def boot {
     val db = new Db{}
+    db.init
     db.populate
     LiftRules.unloadHooks.append(() => db.close)
 

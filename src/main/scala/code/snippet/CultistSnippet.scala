@@ -64,7 +64,7 @@ class Cultist {
   def profile = {
     Cultist.attending.is match {
       case Full(c) =>
-        val gs = inTransaction(c.gateways.toSeq)
+        val gs = inTransaction(c.gateways.toList)
         ClearClearable &
         ".about:sign *" #> c.sign &
         ".about:email *" #> c.email &

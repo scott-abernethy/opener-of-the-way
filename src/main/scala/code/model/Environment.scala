@@ -18,7 +18,7 @@ object Environment
     logger.info("Environment start")
     lurker.start
     manipulator.start ! Activate
-    transaction(from(gateways)(g => select(g)).toSeq).foreach(watch(_))
+    transaction(from(gateways)(g => select(g)).toList).foreach(watch(_))
   }
   def watch(gateway: Gateway) {
     logger.debug("Watch " + gateway)

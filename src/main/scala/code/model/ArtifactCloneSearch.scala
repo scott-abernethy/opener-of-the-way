@@ -10,12 +10,12 @@ import com.sun.jmx.trace.TraceImplementation
 class ArtifactCloneSearchFactory {
   def create(cultistId: Long, search: String): Seq[(Artifact, Option[ArtifactState.Value])] = {
     val formattedSearch = formatSearch(search)
-    val results: Seq[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
+    val results: List[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
       where(a.path like formattedSearch)
       select((a, g.cultistId, c))
       orderBy(a.path asc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId))
-    ).toSeq)
+    ).toList)
     val combined: Seq[(Artifact, Long, List[Clone])] = results.foldRight(List.empty[(Artifact, Long, List[Clone])]){ (in: (Artifact, Long, Option[Clone]), out: List[(Artifact, Long, List[Clone])]) =>
       out match {
         case head :: tail if (head._1 == in._1) =>

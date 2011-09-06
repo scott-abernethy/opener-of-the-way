@@ -19,7 +19,7 @@ class CloneStatus extends CometActor with CometListener {
   }
   def render = {
     val clones = Cultist.attending.is.toOption match {
-      case Some(cultist) => inTransaction( cultist.activeClones.toSeq )
+      case Some(cultist) => inTransaction( cultist.activeClones.toList )
       case _ => Nil
     }
 

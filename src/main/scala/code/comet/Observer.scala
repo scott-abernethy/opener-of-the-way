@@ -60,7 +60,7 @@ class Observer extends CometActor with CometListener {
       select((c, f))
       orderBy(c.id desc)
       on(c.forCultistId === f.map(_.id))
-    ).toSeq
+    ).toList
   )
   def complete = inTransaction(
     join(clones, cultists.leftOuter)((c, f) =>
@@ -68,7 +68,7 @@ class Observer extends CometActor with CometListener {
       select((c, f))
       orderBy(c.attempted desc)
       on(c.forCultistId === f.map(_.id))
-    ).toSeq
+    ).toList
   )
   def formatAttempts(attempts: Long): String = {
     if (attempts == 0) "" else attempts.toString + "x"
