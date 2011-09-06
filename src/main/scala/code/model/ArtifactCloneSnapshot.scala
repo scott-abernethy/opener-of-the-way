@@ -45,11 +45,11 @@ class ArtifactCloneSnapshot {
     currentCultistId = cultistId
     items = new TreeMap[String, List[Artifact]]
     states = new HashMap[Long, ArtifactState.Value]
-    val results: Seq[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
+    val results: List[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
       select((a, g.cultistId, c))
       orderBy(a.discovered desc, a.path desc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId))
-    ).toSeq)
+    ).toList)
     val combined: Seq[(Artifact, Long, List[Clone])] = results.foldRight(List.empty[(Artifact, Long, List[Clone])]){ (in: (Artifact, Long, Option[Clone]), out: List[(Artifact, Long, List[Clone])]) =>
       out match {
         case head :: tail if (head._1 == in._1) =>

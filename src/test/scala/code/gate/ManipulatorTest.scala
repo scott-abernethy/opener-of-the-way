@@ -1,28 +1,12 @@
 package code.gate
 
 import org.specs._
-import org.specs.runner.JUnit4
-import org.specs.runner.ConsoleRunner
-import net.liftweb._
-import http._
-import net.liftweb.util._
-import net.liftweb.common._
-import org.specs.matcher._
-import org.specs.specification._
-import Helpers._
-import scala.actors.Actor
-import scala.actors.Actor._
 import org.specs.mock.Mockito
-import org.mockito.Matchers._
-
 import code.TestDb
 import code.model._
 
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
-
-class ManipulatorTestSpecsAsTest extends JUnit4(ManipulatorTestSpecs)
-object ManipulatorTestSpecsRunner extends ConsoleRunner(ManipulatorTestSpecs)
 
 object ManipulatorTestSpecs extends Specification with Mockito {
   class ManipulatorComponentTestImpl extends ManipulatorComponentImpl with ClonerComponent {
@@ -32,8 +16,10 @@ object ManipulatorTestSpecs extends Specification with Mockito {
 
   val db = new TestDb
 
-  doBefore { db.init }
-  doBeforeSpec { db.reset }
+  doBeforeSpec {
+    db.init
+    db.reset
+  }
 
   "Manipulator" should {
     "wake and do nothing if no waiting clones" >> {
