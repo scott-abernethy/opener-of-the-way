@@ -5,8 +5,9 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import code.model.{GateMode, Gateway, CloneState, GateState}
+import net.liftweb.common.Loggable
 
-class Watcher(threshold: ActorRef) extends Actor {
+class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor with Loggable {
 
   val sourcesQuery: Query[Gateway] = join(clones, artifacts, gateways)( (c, a, g) =>
     where(c.state <> CloneState.cloned)
@@ -35,6 +36,9 @@ class Watcher(threshold: ActorRef) extends Actor {
         (sourcesQuery.toList, sinksQuery.toList, scourQuery.toList, openQuery.toList)
       }
 
+      logger.info("Watcher open " + open)
+      logger.info("Watcher want source " + sources + " sinks " + sinks + " scour " + scour)
+      
       val toOpen = (sources ::: sinks ::: scour).distinct
 
       for (g <- toOpen if !open.contains(g)) {
@@ -44,5 +48,8 @@ class Watcher(threshold: ActorRef) extends Actor {
         threshold ! CloseGateway(g)
       }
     }
+    case m @ WayFound(_, _) => lurker ! m
+    case m @ WayLost(_) => lurker ! m
+    case _ =>
   }
 }

@@ -21,7 +21,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
   "Watcher" should {
 
     "handle wake" >> {
-      val x = TestActorRef(new Watcher(testActor))
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{}))
       x.isDefinedAt('Wake) must be (true)
     }
 
@@ -40,7 +40,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c2g)
         Mythos.gateways.update(db.c3g)
       }
-      val x = TestActorRef(new Watcher(testActor)).start
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(500 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g))
@@ -66,7 +66,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         c.attempts = 0
         Mythos.clones.insert(c)
       }
-      val x = TestActorRef(new Watcher(testActor)).start
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(500 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g))
@@ -86,7 +86,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c2g)
         Mythos.clones.delete(from(Mythos.clones)(c => select(c)))
       }
-      val x = TestActorRef(new Watcher(testActor)).start
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(500 millis) {
         x ! 'Wake
         expectMsg(CloseGateway(db.c2g))

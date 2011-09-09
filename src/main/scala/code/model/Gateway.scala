@@ -27,6 +27,8 @@ class Gateway extends MythosObject {
   def clonesPath: String = new File(localPath, "clones").getPath
 
   def description: String = new File(location, path).getPath
+
+  override def toString = "Gateway[" + location + "," + path + "]"
 }
 
 object Gateway {

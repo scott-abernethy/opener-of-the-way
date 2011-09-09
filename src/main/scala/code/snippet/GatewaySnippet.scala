@@ -43,8 +43,7 @@ class Gateway {
         g.path = path.is.trim
         g.password = password.is.trim
         g.mode = mode.is
-        // TODO squeryl doesn't have lifecycle callbacks at present, so we must manually trigger event
-        Environment.watch(transaction(gateways.insert(g)))
+        transaction(gateways.insert(g))
       case _ => S.error("?!")
     }
     S.redirectTo("/cultist/profile")
