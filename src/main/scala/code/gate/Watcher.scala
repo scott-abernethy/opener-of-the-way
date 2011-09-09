@@ -21,6 +21,7 @@ class Watcher(threshold: ActorRef) extends Actor {
   )
 
   val scourQuery: Query[Gateway] = gateways.where(g =>
+    g.mode === GateMode.source and
     g.scoured < T.ago(3 * 60 * 60 * 1000)
   )
 

@@ -33,8 +33,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
         db.c2g.mode = GateMode.source
         db.c2g.state = GateState.inactive
         db.c2g.scoured = T.now
+        db.c3g.mode = GateMode.sink
+        db.c3g.state = GateState.inactive
+        db.c3g.scoured = T.yesterday
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
+        Mythos.gateways.update(db.c3g)
       }
       val x = TestActorRef(new Watcher(testActor)).start
       within(500 millis) {
