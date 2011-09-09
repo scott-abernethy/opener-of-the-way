@@ -21,7 +21,12 @@ object ThresholdTest extends Specification with Mockito with TestKit {
   "Threshold" should {
     val processor = mock[Processor]
     val processing = mock[Processing]
-    val g = new Gateway(0,"10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.sink, GateState.open, "", T.yesterday)
+    val g = new Gateway
+    g.location = "10.16.15.43/public"
+    g.path = "frog/sheep/cow"
+    g.password = "cowsaregreen"
+    g.mode = GateMode.sink
+    g.state = GateState.open
 
     "open a gateway" >> {
       processor.process("threshold" :: "open" :: "10.16.15.43/public" :: "frog/sheep/cow" :: "cowsaregreen" :: Nil) returns(processing)

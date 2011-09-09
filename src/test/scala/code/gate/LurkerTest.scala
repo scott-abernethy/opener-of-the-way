@@ -1,10 +1,6 @@
 package code.gate
 
 import org.specs._
-import org.specs.runner.JUnit4
-import org.specs.runner.ConsoleRunner
-import net.liftweb._
-import net.liftweb.util._
 import org.specs.mock.Mockito
 
 import code.TestDb
@@ -12,10 +8,7 @@ import code.model._
 
 import org.squeryl.PrimitiveTypeMode._
 
-class LurkerTestSpecsAsTest extends JUnit4(LurkerTestSpecs)
-object LurkerTestSpecsRunner extends ConsoleRunner(LurkerTestSpecs)
-
-object LurkerTestSpecs extends Specification with Mockito {
+object LurkerTest extends Specification with Mockito {
   val db = new TestDb
   db.init
 
@@ -42,8 +35,17 @@ object LurkerTestSpecs extends Specification with Mockito {
         g.state must beEqual(GateState.open)
         g.localPath must beMatching("/srv/f")
       }
-      "on way lost" >> {
+      "on way lost, inactive" >> {
         var g = queryG(1L)
+        g.seen = T.ago(3*24*60*60*1000) // 3 days ago
+        x ! WayLost(g)
+        x !? (5000, Ping)
+        g = queryG(1L)
+        g.state must beEqual(GateState.inactive)
+      }
+      "on way lost, truely lost" >> {
+        var g = queryG(1L)
+        g.seen = T.ago((4*24*60*60*1000) + 1) // 4 days ago
         x ! WayLost(g)
         x !? (5000, Ping)
         g = queryG(1L)

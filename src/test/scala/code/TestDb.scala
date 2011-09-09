@@ -13,9 +13,31 @@ class TestDb extends Db {
       val jane = cultists.insert(new Cultist("jane@jane.com", "jane123"))
       val chew = cultists.insert(new Cultist("chew@chew.com", "chew123"))
 
-      val cow = gateways.insert(new Gateway(bob.id, "10.16.15.43/public", "frog/sheep/cow", "/tmp/cache/gate/cow", "cowsaregreen", GateMode.source, GateState.lost, "", T.yesterday))
-      val goat = gateways.insert(new Gateway(jane.id, "10.16.16.16/share", "goat.tc", "/tmp/cache/gate/goat", "nattyNAT", GateMode.sink, GateState.lost, "", T.yesterday))
-      val sheep = gateways.insert(new Gateway(chew.id, "1.2.3.4/p", "file", "/tmp/cache/gate/sheep", "baaaa", GateMode.sink, GateState.lost, "", T.now))
+      val g1: Gateway = new Gateway
+      g1.cultistId = bob.id
+      g1.location = "10.16.15.43/public"
+      g1.path = "frog/sheep/cow"
+      g1.localPath = "/tmp/cache/gate/cow"
+      g1.password = "cowsaregreen"
+      g1.mode = GateMode.source
+      val g2: Gateway = new Gateway
+      g2.cultistId = jane.id
+      g2.location = "10.16.16.16/share"
+      g2.path = "goat.tc"
+      g2.localPath = "/tmp/cache/gate/goat"
+      g2.password = "nattyNAT"
+      g2.mode = GateMode.sink
+      val g3: Gateway = new Gateway
+      g3.cultistId = chew.id
+      g3.location = "1.2.3.4/p"
+      g3.path = "file"
+      g3.localPath = "/tmp/cache/gate/sheep"
+      g3.password = "baaaa"
+      g3.mode = GateMode.sink
+
+      val cow = gateways.insert(g1)
+      val goat = gateways.insert(g2)
+      val sheep = gateways.insert(g3)
 
       val now = new java.sql.Timestamp(new java.util.Date().getTime)
       val glue = artifacts.insert(new Artifact(cow.id, "glue", now, now))

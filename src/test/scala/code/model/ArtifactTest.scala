@@ -97,7 +97,15 @@ object ArtifactTest extends Specification with Mockito {
 
     "have a local path based on the gateway local path" >> {
       transaction {
-        val g: Gateway = gateways.insert(new Gateway(db.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, "", T.yesterday))
+        var g = new Gateway
+        g.cultistId = db.c1.id
+        g.location = "foo"
+        g.path = "bar"
+        g.localPath = "/tmp/g/it"
+        g.password = "password"
+        g.mode = GateMode.sink
+        g.state = GateState.open
+        g = gateways.insert(g)
         val a: Artifact = artifacts.insert(new Artifact(g.id, "folder/file.ext", T.now, T.now))
         a.localPath must beSome("/tmp/g/it/folder/file.ext")
 

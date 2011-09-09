@@ -56,9 +56,29 @@ trait Db {
         transaction {
           val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
           val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
-          val g1 = Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar", "", "treesaregreen", GateMode.source, GateState.lost, "", code.gate.T.yesterday))
-          val g2 = Mythos.gateways.insert(new Gateway(foo.id, "10.16.15.43/public", "foobar-sink", "", "treesaregreen", GateMode.sink, GateState.lost, "", code.gate.T.yesterday))
-          val g3 = Mythos.gateways.insert(new Gateway(two.id, "10.16.15.43/public", "frog/sheep/cow", "", "cowsaregreen", GateMode.source, GateState.lost, "", code.gate.T.yesterday))
+
+          var g1: Gateway = new Gateway
+          g1.cultistId = foo.id
+          g1.location = "10.16.15.43/public"
+          g1.path = "foobar"
+          g1.localPath = ""
+          g1.password = "treesaregreen"
+          g1 = Mythos.gateways.insert(g1)
+          var g2: Gateway = new Gateway
+          g2.cultistId = foo.id
+          g2.location = "10.16.15.43/public"
+          g2.path = "foobar-sink"
+          g2.localPath = ""
+          g2.password = "treesaregreen"
+          g2.mode = GateMode.sink
+          g2 = Mythos.gateways.insert(g2)
+          var g3: Gateway = new Gateway
+          g3.cultistId = two.id
+          g3.location = "10.16.15.43/public"
+          g3.path = "frog/sheep/cow"
+          g3.localPath = ""
+          g3.password = "cowsaregreen"
+          g3 = Mythos.gateways.insert(g3)
 
           val a = new Artifact
           a.gatewayId = g3.id
