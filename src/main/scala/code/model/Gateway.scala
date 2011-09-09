@@ -17,9 +17,10 @@ class Gateway(
   var password: String, // storing in cleartext as none should have access to db
   var mode: GateMode.Value,
   var state: GateState.Value,
+  var stateDesc: String,
   var scoured: Timestamp
 ) extends MythosObject {
-  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost, T.yesterday)
+  def this() = this(0, "", "", "", "", GateMode.source, GateState.lost, "", T.yesterday)
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
   def clonesPath: String = new File(localPath, "clones").getPath
@@ -43,5 +44,6 @@ object GateMode extends Enumeration {
 object GateState extends Enumeration {
   type GateState = Value
   val open = Value("open")
+  val inactive = Value("closed")
   val lost = Value("lost")
 }

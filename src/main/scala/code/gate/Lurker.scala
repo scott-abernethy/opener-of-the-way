@@ -10,6 +10,7 @@ import scala.actors.Actor._
 import net.liftweb.common._
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
+import code.util.ExceptionLoggingActor
 
 case class WayFound(gateway: Gateway, localPath: String)
 case class WayLost(gateway: Gateway)
@@ -17,7 +18,7 @@ case object LooseInterest
 
 trait LurkerComponent {
   val lurker: Lurker
-  trait Lurker extends Actor
+  trait Lurker extends ExceptionLoggingActor
 }
 
 trait LurkerComponentImpl extends LurkerComponent {
@@ -49,7 +50,7 @@ trait LurkerComponentImpl extends LurkerComponent {
     private def shouldScour(g: Gateway): Boolean = {
       transaction(gateways.lookup(g.id)) match {
         case Some(g2) =>
-          g2.mode == GateMode.source && g2.scoured.before(T.ago(60*60*1000L)) // 60 minutes
+          g2.mode == GateMode.source && g2.scoured.before(T.ago(2*60*60*1000L)) // 2 hours
         case _ =>
           false
       }

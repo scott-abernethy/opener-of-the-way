@@ -8,7 +8,8 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import code.gate.T
 
-object ArtifactTestSpecs extends Specification with Mockito {
+object ArtifactTest extends Specification with Mockito {
+
   val db = new TestDb
   db.init
 
@@ -17,27 +18,32 @@ object ArtifactTestSpecs extends Specification with Mockito {
   }
 
   "Artifact" should {
+
     val (c: Cultist, c2: Cultist, x: Artifact) = transaction {
       (cultists.lookup(1L) getOrElse null,
       cultists.lookup(2L) getOrElse null,
       artifacts.lookup(1L) getOrElse null)
     }
+
     "resolve it's owning cultist" >> {
       transaction {
         x.owner must beSome(c)
         x.owner must beSome(c)
       }
     }
+
     "be mine if owning cultist is logged in" >> {
       transaction {
         x.stateFor(c) must beSome(ArtifactState.proffered)
       }
     }
+
     "be available if not mine" >> {
       transaction {
         x.stateFor(c2) must beSome(ArtifactState.glimpsed)
       }
     }
+
     "be waiting if waiting clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
@@ -45,6 +51,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
         x.stateFor(c2) must beSome(ArtifactState.awaiting)
       }
     }
+
     "be progressing if progressing clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
@@ -52,6 +59,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
         x.stateFor(c2) must beSome(ArtifactState.cloning)
       }
     }
+
     "be done if done clone exists" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
@@ -59,6 +67,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
         x.stateFor(c2) must beSome(ArtifactState.cloned)
       }
     }
+
     "start waiting clone requests from available state" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
@@ -67,6 +76,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
         x.stateFor(c2) must beSome(ArtifactState.awaiting)
       }
     }
+
     "cancel existing clone requests" >> {
       transaction {
         clones.delete(clones.where(cl => cl.artifactId === x.id))
@@ -84,9 +94,10 @@ object ArtifactTestSpecs extends Specification with Mockito {
         x.stateFor(c2) must beSome(ArtifactState.glimpsed)
       }
     }
+
     "have a local path based on the gateway local path" >> {
       transaction {
-        val g: Gateway = gateways.insert(new Gateway(db.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, T.yesterday))
+        val g: Gateway = gateways.insert(new Gateway(db.c1.id, "foo", "bar", "/tmp/g/it", "password", GateMode.sink, GateState.open, "", T.yesterday))
         val a: Artifact = artifacts.insert(new Artifact(g.id, "folder/file.ext", T.now, T.now))
         a.localPath must beSome("/tmp/g/it/folder/file.ext")
 
@@ -99,6 +110,7 @@ object ArtifactTestSpecs extends Specification with Mockito {
         a.localPath must beSome("/var/cache/gates/a/x/y/z/readme")        
       }
     }
+
     "have lost state if not witnessed recently, with no database transactions" >> {
       val now = T.now
       val threeDaysFromNow = T.agoFrom(now, -3 * 24 * 60 * 60 * 1000L)

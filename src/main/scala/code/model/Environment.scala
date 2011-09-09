@@ -13,7 +13,7 @@ object Environment
   with ProcessorComponentImpl
   with Loggable
 {
-  var thresholds: List[Threshold] = Nil
+//  var thresholds: List[Threshold] = Nil
   def start {
     logger.info("Environment start")
     lurker.start
@@ -22,16 +22,16 @@ object Environment
   }
   def watch(gateway: Gateway) {
     logger.debug("Watch " + gateway)
-    val threshold = new Threshold(gateway, lurker, processor)
-    threshold.start ! Activate
-    thresholds = threshold :: thresholds
-    logger.info(thresholds)
+//    val threshold = new Threshold(gateway, lurker, processor)
+//    threshold.start ! Activate
+//    thresholds = threshold :: thresholds
+//    logger.info(thresholds)
   }
   def dispose {
     logger.info("Environment end")
     lurker ! LooseInterest
     manipulator ! Withdraw
-    thresholds.foreach(_ ! Destroy)
-    thresholds = Nil
+//    thresholds.foreach(_ ! Destroy)
+//    thresholds = Nil
   }
 }
