@@ -8,22 +8,34 @@
   color: #d33682;
 }
 #lift__noticesContainer__ {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 #lift__noticesContainer__ ul {
-	margin:0;
-	padding:0;
+  margin:0;
+  padding:0;
 }
 #lift__noticesContainer__ ul li {
-	margin:0;
-	padding:0;
-	list-style:none;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+.header {
+  background: #1c242f;
+  border-bottom: 1px solid #ffffff;
+}
+.header h1 {
+  margin-top: 0.5em;
+}
+.header a {
+  color: #bf96b8;
 }
 body {
+  margin: 0;
+  background: #e8eed5;
   color: #586e75;
 }
 a {
-  color: #268bd2;
+  color: #956380;
 }
 tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
 .nonelist ol {
