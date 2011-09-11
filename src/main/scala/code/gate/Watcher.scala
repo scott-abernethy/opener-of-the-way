@@ -33,7 +33,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
   def receive = {
     case 'Wake => {
       val (sources, sinks, scour, open) = transaction {
-        (sourcesQuery.toList, sinksQuery.toList, scourQuery.toList, openQuery.toList)
+        (sourcesQuery.toList.distinct, sinksQuery.toList.distinct, scourQuery.toList.distinct, openQuery.toList.distinct)
       }
 
       logger.info("Watcher open " + open)
