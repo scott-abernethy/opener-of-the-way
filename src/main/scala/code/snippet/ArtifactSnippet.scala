@@ -13,10 +13,15 @@ object searchText extends RequestVar[Option[String]](None)
 
 class ArtifactSnippet extends ArtifactBinding {
   def searcher = {
-    ClearClearable &
+    if (Cultist.attending_?) {
+      ClearClearable &
       ".search:text" #> JsCmds.FocusOnLoad(SHtml.text(searchText.is.getOrElse(""), t => searchText(Some(t))) % ("style" -> "width: 250px")) &
       "#search:submit" #> SHtml.submit("Search", () => processSearch)
+    } else {
+      "#searcher" #> NodeSeq.Empty
+    }
   }
+
   def processSearch {
     val tmp = searchText.is.getOrElse("")
     S.redirectTo("search", () => {
