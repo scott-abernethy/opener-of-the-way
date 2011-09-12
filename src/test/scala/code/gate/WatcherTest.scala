@@ -118,6 +118,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(500 millis) {
         x ! 'Wake
+        expectMsg(OpenGateway(db.c1g)) // This one IS still required, and so will be reopened.
         expectMsg(CloseGateway(db.c2g))
         expectNoMsg
       }

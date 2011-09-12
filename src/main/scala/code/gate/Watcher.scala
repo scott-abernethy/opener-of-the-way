@@ -47,7 +47,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       
       val toOpen = (sources ::: sinks ::: scour).distinct
 
-      for (g <- toOpen if !open.contains(g)) {
+      for (g <- toOpen/* if !open.contains(g)*/) {
         threshold ! OpenGateway(g)
       }
       for (g <- open if !toOpen.contains(g)) {

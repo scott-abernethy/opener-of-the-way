@@ -71,6 +71,8 @@ function do_mount {
 
   if [ $? != 0 ] ; then return $? ; fi
 
+  #TODO check for closed tag file here
+
   echo "Gate opened on '$gate_crypt'"
 }
 
@@ -121,6 +123,9 @@ function setup_env {
 if [ "$#" == "0" ] ; then
   print_usage ; exit 1
 fi
+
+# For all operations, pause such that the output will be trapped correctly.
+sleep 2s
 
 case "$1" in
   stage) setup_env $2 $3 ; do_stage ;;
