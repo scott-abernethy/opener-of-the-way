@@ -9,9 +9,7 @@ import code.gate.T
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 
-class CloneSnapshotFactoryTestSpecsAsTest extends JUnit4(CloneSnapshotFactoryTestSpecs)
-object CloneSnapshotFactoryTestSpecsRunner extends ConsoleRunner(CloneSnapshotFactoryTestSpecs)
-object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
+object CloneSnapshotFactoryTest extends Specification with Mockito {
   val db = new TestDb
   db.init
 
@@ -30,6 +28,7 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
   }
 
   "CloneSnapshotFactory" should {
+
     "be empty for no clones" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val x = new CloneSnapshotFactory
@@ -37,6 +36,7 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
       xx.awaiting must beEmpty
       xx.cloned must beEmpty
     }
+
     "only show artifacts cloned by cultist" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
@@ -47,6 +47,25 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
       xx.awaiting must haveSize(1)
       xx.cloned must haveSize(0)
     }
+
+    "only show artifacts cloned by cultist, in the last 7 days" >> {
+      inTransaction(clones.delete(from(clones)(c => select(c))))
+      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
+      val myClone = Clone.create(i, 2L, CloneState.cloned)
+      myClone.attempted = T.ago(6 * 24 * 60 * 60 * 1000)
+      val myOldClone = Clone.create(i+1, 2L, CloneState.cloned)
+      myOldClone.attempted = T.ago((7 * 24 * 60 * 60 * 1000) + 1)
+      inTransaction {
+        clones.insert(myClone)
+        clones.insert(myOldClone)
+      }
+
+      val x = new CloneSnapshotFactory
+      val xx = x.create(2)
+      xx.awaiting must haveSize(0)
+      xx.cloned must haveSize(1)
+    }
+
     "ordered by non-completes by request date, then completes by completion date" >> {
       inTransaction {
 //        artifacts.delete(from(artifacts)(a => select(a)))
@@ -59,9 +78,9 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
         clones.delete(from(clones)(c => select(c)))
         clones.insert(Clone.fake(a3.id, 2L, CloneState.awaiting, new Timestamp(600000), T.yesterday))
         clones.insert(Clone.fake(a2.id, 2L, CloneState.cloning, new Timestamp(700000), T.yesterday))
-        clones.insert(Clone.fake(a5.id, 2L, CloneState.cloned, new Timestamp(700000), new Timestamp(900000)))
+        clones.insert(Clone.fake(a5.id, 2L, CloneState.cloned, new Timestamp(700000), T.ago(3 * 24 * 60 * 60 * 1000)))
         clones.insert(Clone.fake(a4.id, 2L, CloneState.awaiting, new Timestamp(610000), T.yesterday))
-        clones.insert(Clone.fake(a1.id, 2L, CloneState.cloned, new Timestamp(800000), new Timestamp(850000)))
+        clones.insert(Clone.fake(a1.id, 2L, CloneState.cloned, new Timestamp(800000), T.ago(4 * 24 * 60 * 60 * 1000)))
 
         val x = new CloneSnapshotFactory
         val xx = x.create(2)
@@ -75,6 +94,7 @@ object CloneSnapshotFactoryTestSpecs extends Specification with Mockito {
         xx.cloned(1)._1 must be_==(a1)
       }
     }
+
     /*
     "default state to mine or available if no clones exist" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))

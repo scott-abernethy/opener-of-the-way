@@ -24,7 +24,7 @@ class CloneSnapshotFactory {
   }
   def cloned(cultistId: Long) = {
     join(clones, artifacts)((c, a) =>
-      where(c.forCultistId === cultistId and c.state === CloneState.cloned)
+      where(c.forCultistId === cultistId and c.state === CloneState.cloned and c.attempted >= T.ago(7 * 24 * 60 * 60 * 1000))
         select((c, a))
         orderBy(c.attempted desc)
         on(c.artifactId === a.id)
