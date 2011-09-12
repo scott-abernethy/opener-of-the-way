@@ -79,7 +79,7 @@ object Artifact {
 
   lazy val lostAfter = 4 * 24 * 60 * 60 * 1000L
 
-  lazy val deleteAfter = 4 * 24 * 60 * 60 * 1000L
+  lazy val goneAfter = 12 * 24 * 60 * 60 * 1000L
 }
 
 object ArtifactState extends Enumeration {

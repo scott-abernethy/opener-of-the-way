@@ -5,7 +5,7 @@ import code.model.Mythos._
 import java.util.{TimeZone, Date}
 import code.gate.T
 import collection.immutable.{HashMap, TreeMap}
-import java.text.{DateFormat, SimpleDateFormat}
+import java.text.{SimpleDateFormat}
 
 /*
 There are probably more than one flavor of the N+1 problem, but a very
@@ -41,11 +41,13 @@ class ArtifactCloneSnapshot {
   var currentCultistId: Long = -1L
   var items: TreeMap[String, List[Artifact]] = new TreeMap[String, List[Artifact]]
   var states: Map[Long, ArtifactState.Value] = _
+
   def reload(cultistId: Long) {
     currentCultistId = cultistId
     items = new TreeMap[String, List[Artifact]]
     states = new HashMap[Long, ArtifactState.Value]
     val results: List[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
+      where(a.witnessed > T.ago(Artifact.goneAfter))
       select((a, g.cultistId, c))
       orderBy(a.discovered desc, a.path desc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId))
@@ -66,9 +68,11 @@ class ArtifactCloneSnapshot {
       )
     }
   }
+
   def add(artifact: Artifact) {
     
   }
+
   def update(artifact: Long) {
     inTransaction(Artifact.find(artifact).flatMap(a => Cultist.find(currentCultistId).map((a, _))) match {
       case Some((a, c)) =>
@@ -79,6 +83,7 @@ class ArtifactCloneSnapshot {
       case _ =>
     })
   }
+
   private def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
     def discoveredGroup(a: Artifact): Option[String] = {
       for {
@@ -94,6 +99,7 @@ class ArtifactCloneSnapshot {
       case other => into
     }
   }
+
   private def parseState(artifact: Artifact, cultistId: Long, ownerId: Long, clones: Seq[Clone]) = {
     val clone: Option[Clone] = clones.find(_.forCultistId == cultistId)
     artifact.stateFor(cultistId, ownerId, clone, T.now)
