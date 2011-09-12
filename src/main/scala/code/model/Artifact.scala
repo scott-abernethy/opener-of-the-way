@@ -42,7 +42,7 @@ class Artifact(
     }
   }
   private def missingOr(now: Timestamp)(state: ArtifactState.Value, missing: ArtifactState.Value): Option[ArtifactState.Value] = {
-    if (witnessed.before(T.agoFrom(now, 4 * 24 * 60 * 60 * 1000))) {
+    if (witnessed.before(T.agoFrom(now, Artifact.lostAfter))) {
       Some(missing)
     } else {
       Some(state)
@@ -69,11 +69,17 @@ class Artifact(
 
 object Artifact {
   def find(id: Long): Option[Artifact] = inTransaction(artifacts.lookup(id))
+
   def all: List[Artifact] = inTransaction(from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path desc)).toList)
+  
   lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
     where(a.gatewayId === g.id and g.state === GateState.open)
     select(a)
   )
+
+  lazy val lostAfter = 4 * 24 * 60 * 60 * 1000L
+
+  lazy val deleteAfter = 4 * 24 * 60 * 60 * 1000L
 }
 
 object ArtifactState extends Enumeration {

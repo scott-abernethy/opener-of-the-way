@@ -4,19 +4,25 @@ import akka.actor.{ActorRef, Actor}
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
-import code.model.{GateMode, Gateway, CloneState, GateState}
 import net.liftweb.common.Loggable
+import code.model._
 
 class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor with Loggable {
 
-  val sourcesQuery: Query[Gateway] = join(clones, artifacts, gateways)( (c, a, g) =>
-    where(c.state <> CloneState.cloned)
+  def readyClonesQuery(): Query[Clone] = join(clones, artifacts)( (c, a) =>
+    where(c.state <> CloneState.cloned and a.witnessed > T.ago(Artifact.lostAfter))
+    select(c)
+    on(c.artifactId === a.id)
+  )
+
+  def sourcesQuery(): Query[Gateway] = join(clones, artifacts, gateways)( (c, a, g) =>
+    where(c.id in from(readyClonesQuery)(c => select(c.id)))
     select(g)
     on(c.artifactId === a.id, a.gatewayId === g.id)
   )
 
   val sinksQuery: Query[Gateway] = join(clones, cultists, gateways)( (cl, cu, g) =>
-    where(cl.state <> CloneState.cloned and g.mode === GateMode.sink)
+    where(cl.id in from(readyClonesQuery)(c => select(c.id)) and g.mode === GateMode.sink)
     select(g)
     on(cl.forCultistId === cu.id, cu.id === g.cultistId)
   )
@@ -33,7 +39,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
   def receive = {
     case 'Wake => {
       val (sources, sinks, scour, open) = transaction {
-        (sourcesQuery.toList.distinct, sinksQuery.toList.distinct, scourQuery.toList.distinct, openQuery.toList.distinct)
+        (sourcesQuery().toList.distinct, sinksQuery.toList.distinct, scourQuery.toList.distinct, openQuery.toList.distinct)
       }
 
       logger.info("Watcher open " + open)

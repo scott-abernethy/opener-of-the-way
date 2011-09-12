@@ -15,7 +15,6 @@ object WatcherTest extends Specification with Mockito with TestKit {
 
   doBeforeSpec {
     db.init
-    db.reset
   }
 
   "Watcher" should {
@@ -27,6 +26,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
 
     "open gateways that need to be scoured" >> {
       transaction {
+        db.reset
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.inactive
         db.c1g.scoured = T.ago((3 * 60 * 60 * 1000) + 1)
@@ -51,6 +51,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
 
     "open gateways required for clones" >> {
       transaction {
+        db.reset
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.inactive
         db.c1g.scoured = T.now
@@ -76,15 +77,43 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
+    "open gateways required for clones, but not if the artifact is lost" >> {
+      transaction {
+        db.reset
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.inactive
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.inactive
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        db.c1ga1.witnessed = T.ago(Artifact.lostAfter + 1)
+        Mythos.artifacts.update(db.c1ga1)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      within(500 millis) {
+        x ! 'Wake
+        expectNoMsg
+      }
+      x.getMailboxSize() must be_==(0)
+    }
+
     "close gateways no longer required" >> {
       transaction {
+        db.reset
         db.c1g.state = GateState.open
         db.c1g.scoured = T.yesterday
         db.c2g.state = GateState.open
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
-        Mythos.clones.delete(from(Mythos.clones)(c => select(c)))
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(500 millis) {
