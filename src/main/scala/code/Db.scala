@@ -104,8 +104,13 @@ trait Db {
           g.gatewayId = g3.id
           g.path = "/var/cache/mv/outgoing/A Really Super Dooper Long File-name Which Could Cause Issues On Screen.archive.foo.bar.baz.mp3"
           g.witnessed = T.now
+          val h = new Artifact
+          h.gatewayId = g3.id
+          h.path = "other/one/foo.giz"
+          h.witnessed = T.now
+          h.discovered = T.ago(12 * 24 * 60 * 60 * 1000L)
 
-          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: Nil)
+          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: Nil)
 
           val clone1 = new Clone
           clone1.artifactId = 1
