@@ -48,13 +48,16 @@ tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
 	padding:0;
 }
 .artifacts ol {
-	margin:0;
-	padding:0;
+	margin: 0;
+	padding: 0;
     list-style:none;
 }
 .artifacts ol li {
-	margin:0;
-	padding:0;
+    margin: 0;
+    padding: 0;
+}
+.sep-bottom {
+    margin-bottom: 0.4em;
 }
 h1 {
     color: #93a1a1;

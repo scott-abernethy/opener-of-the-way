@@ -100,8 +100,12 @@ trait Db {
           f.gatewayId = g1.id
           f.path = "mee/oink"
           f.witnessed = T.ago(12 * 24 * 60 * 60 * 1000L)
+          val g = new Artifact
+          g.gatewayId = g3.id
+          g.path = "/var/cache/mv/outgoing/A Really Super Dooper Long File-name Which Could Cause Issues On Screen.archive.foo.bar.baz.mp3"
+          g.witnessed = T.now
 
-          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: Nil)
+          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: Nil)
 
           val clone1 = new Clone
           clone1.artifactId = 1
