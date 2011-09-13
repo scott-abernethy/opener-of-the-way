@@ -26,31 +26,41 @@ function abort_check {
   fi
 }
 
+function mount_gate_mount {
+  sudo mount -t cifs //$gate_location $gate_mount --verbose -o _netdev,rw,noexec,user=$1,password=$2 2>&1
+}
+
 function do_stage {
   if [ ! -d $gate_mount ] ; then
     mkdir -p $gate_mount
   fi
 
   if [ $(mount | grep $gate_mount -c) == 0 ] ; then
-    echo "Mounting"
+    echo "Staging"
     #TODO  rw / ro depending on gate mode
-    CIFS_USER=wmtdev
-    CIFS_PASS=***REMOVED***
-    sudo mount -t cifs //$gate_location $gate_mount --verbose -o _netdev,rw,noexec,user=$CIFS_USER,password=$CIFS_PASS
-    if [ $? != 0 ] ; then
-      CIFS_USER=sqatest
-      CIFS_PASS=***REMOVED***
-      sudo mount -t cifs //$gate_location $gate_mount --verbose -o _netdev,rw,noexec,user=$CIFS_USER,password=$CIFS_PASS
-      return $?
+    mount_gate_mount sqatest ***REMOVED***
+    local result=$?
+    if [ $result != 0 ] ; then
+      return $result
     fi
+    #if [ $? != 0 ] ; then
+    #  mount_gate_mount wmtdev ***REMOVED***
+    #  local result=$?
+    #  if [ $result != 0 ] ; then
+    #    return $result
+    #  fi
+    #fi
   fi
+
+  ls $gate_mount/.. >/dev/null 2>&1
+  if [ $? != 0 ] ; then
+    return 2
+  fi  
 }
 
 function do_unstage {
   sudo umount $gate_mount
-  if [ $? != 0 ] ; then
-    return $?
-  fi
+  return $?
 }
 
 function do_mount {
@@ -62,16 +72,19 @@ function do_mount {
   fi
 
   if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
-    echo "Opening"
-    sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="uid=$(id -u $gate_user),gid=$(id -g $gate_user)"
-    if [ $? != 0 ] ; then
-      return $?
+    echo "Mounting"
+    sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="uid=$(id -u $gate_user),gid=$(id -g $gate_user)" 2>&1
+    local result=$?
+    if [ $result != 0 ] ; then
+      return $result
     fi
   fi
 
-  if [ $? != 0 ] ; then return $? ; fi
-
-  #TODO check for closed tag file here
+  ls $gate_crypt/closed >/dev/null 2>&1
+  if [ $? == 0 ] ; then
+    echo "Detected closed flag"
+    return 2
+  fi
 
   echo "Gate opened on '$gate_crypt'"
 }
@@ -83,23 +96,35 @@ function do_unmount {
     fi
   fi
 
-  if [ $? != 0 ] ; then return $? ; fi
+  local result=$?
+  if [ $result != 0 ] ; then
+    echo "Failed to unmount gate"
+    return $result
+  fi
 
-  echo "Gate closed"
+  echo "Gate unmounted"
 }
 
 function do_open {
   do_stage
-  if [ $? != 0 ] ; then return $? ; fi
+  local result=$?
+  if [ $result != 0 ] ; then
+    do_unstage
+    return $result
+  fi
+
   do_mount $1
-  if [ $? != 0 ] ; then return $? ; fi
+  result=$?
+  if [ $result != 0 ] ; then
+    do_unmount
+    do_unstage
+    return $result
+  fi
 }
 
 function do_close {
   do_unmount
-  if [ $? != 0 ] ; then return $? ; fi
   do_unstage
-  if [ $? != 0 ] ; then return $? ; fi
 }
 
 function do_flush {
