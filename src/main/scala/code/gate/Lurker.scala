@@ -28,12 +28,12 @@ trait LurkerComponentImpl extends LurkerComponent {
       loop {
         react {
           case WayFound(g, lp) =>
-            logger.debug("WayFound " + lp)
+            logger.debug("WayFound " + g)
             markGatewayOpen(g, lp)
             if (shouldScour(g)) scourGateway(g, lp)
             manipulator ! Wake
           case WayLost(g) =>
-            logger.debug("WayLost")
+            logger.debug("WayLost " + g)
             transaction{
               updateGate(g, x => {
                 x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.inactive
