@@ -27,7 +27,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     on(cl.forCultistId === cu.id, cu.id === g.cultistId)
   )
 
-  val scourQuery: Query[Gateway] = gateways.where(g =>
+  def scourQuery(): Query[Gateway] = gateways.where(g =>
     g.mode === GateMode.source and
     g.scoured < T.ago(3 * 60 * 60 * 1000)
   )
@@ -39,7 +39,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
   def receive = {
     case 'Wake => {
       val (sources, sinks, scour, open) = transaction {
-        (sourcesQuery().toList.distinct, sinksQuery.toList.distinct, scourQuery.toList.distinct, openQuery.toList.distinct)
+        (sourcesQuery().toList.distinct, sinksQuery.toList.distinct, scourQuery().toList.distinct, openQuery.toList.distinct)
       }
 
       logger.info("Watcher open " + open)
