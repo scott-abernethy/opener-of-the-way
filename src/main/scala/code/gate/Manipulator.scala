@@ -42,8 +42,11 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             // get random(?) waiting clone
             // todo is this actually in another thread?
             if (cloner.currently.isEmpty) {
-              val cs = transaction(waitings.toList)
-              cs.filter(_.attempted.before(T.ago(5 * 60 * 1000L))).headOption.foreach{c => cloner.start(c)}
+              val cs = for {
+                c <- transaction(waitings.toList)
+                if c.attempts == 0 || c.attempted.before(T.ago((3 * c.attempts) * 60 * 1000L))
+              } yield c
+              cs.headOption.foreach{ c => cloner.start(c) }
             }
           case Warn(invalid) => if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
           case Withdraw =>

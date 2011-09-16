@@ -32,6 +32,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
         there was no(x.cloner).cancel
       }
     }
+
     "with waiting clones, do nothing if no valid destination" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
@@ -75,6 +76,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       there was no(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
     }
+
     "with waiting clones, start first with valid source (open) destination (rw, open)" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
@@ -94,6 +96,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       there was one(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
     }
+
     "yet not start if the cloner is already busy" >> {
       transaction {
         clones.delete(from(clones)(c => select(c)))
@@ -113,6 +116,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       there was no(x.cloner).start(any[Clone])
       there was no(x.cloner).cancel
     }
+
     "cancel cloning if withdrawn" >> {
       val x = new ManipulatorComponentTestImpl
       x.manipulator.start
