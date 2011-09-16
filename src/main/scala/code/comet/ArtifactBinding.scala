@@ -15,8 +15,7 @@ trait ArtifactBinding {
     {ClearClearable &
     ".log:item [id]" #> idFor(artifact.id) &
     ".item:select *" #> selectOption(artifact, artifactState) &
-    ".item:status *" #> artifactState.map(_.toString).getOrElse("?") &
-    ".item:status [class+]" #> artifactState.flatMap(ArtifactState.style(_)).getOrElse("") &
+    ".item:status *" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
     ".item:description *" #> artifact.description}.apply(in)
   }
   def itemSelected(id: Long): JsCmd = {

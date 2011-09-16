@@ -56,6 +56,9 @@ tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
     margin: 0;
     padding: 0;
 }
+.artifacts img {
+    margin-top: 1px;
+}
 .sep-bottom {
     margin-bottom: 0.4em;
 }

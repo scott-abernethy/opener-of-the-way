@@ -8,6 +8,7 @@ import java.sql.Timestamp
 import java.io.File
 import code.gate.T
 import collection.immutable.TreeMap
+import xml.Node
 
 class Artifact(
   var gatewayId: Long, 
@@ -93,17 +94,22 @@ object ArtifactState extends Enumeration {
   val cloning = Value("cloning")
   val cloned = Value("cloned")
 
-  def style(s: ArtifactState.Value): Option[String] = s match {
-    case ArtifactState.proffered => Some("state-lesser")
-    case ArtifactState.profferedLost => Some("state-lesser")
-    case ArtifactState.awaiting => Some("state-inactive")
-    case ArtifactState.awaitingLost => Some("state-bad")
-    case ArtifactState.lost => Some("state-lesser")
-    case ArtifactState.cloning => Some("state-active")
-    case ArtifactState.cloned => Some("state-good")
+  def symbol(s: ArtifactState.Value): Option[Node] = s match {
+    case ArtifactState.proffered => Some(<img src="/static/c_proffered.png" title="Proffered"/>)
+    case ArtifactState.profferedLost => Some(<img src="/static/c_proffered_lost.png" title="Proffered, lost"/>)
+    case ArtifactState.awaiting => Some(<img src="/static/c_awaiting.png" title="Awaiting"/>)
+    case ArtifactState.awaitingLost => Some(<img src="/static/c_awaiting_lost.png" title="Awaiting, lost"/>)
+    case ArtifactState.glimpsed => Some(<img src="/static/c_glimpsed.png" title="Glimpsed"/>)
+    case ArtifactState.lost => Some(<img src="/static/c_glimpsed_lost.png" title="Glimpsed, lost"/>)
+    case ArtifactState.cloning => Some(<img src="/static/c_cloning.png" title="Cloning..."/>)
+    case ArtifactState.cloned => Some(<img src="/static/c_cloned.png" title="Cloned"/>)
     case _ => None
   }
+
+  val unknownSymbol: Node = <img src="/static/c_unknown.png" title="?"/>
+  
   def awaiting_?(s: ArtifactState.Value): Boolean = s == ArtifactState.awaiting || s ==  ArtifactState.awaitingLost || s == ArtifactState.cloning
+
   def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost
 }
 

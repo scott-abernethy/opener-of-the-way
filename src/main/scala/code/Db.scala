@@ -107,10 +107,15 @@ trait Db {
           val h = new Artifact
           h.gatewayId = g3.id
           h.path = "other/one/foo.giz"
-          h.witnessed = T.now
+          h.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
           h.discovered = T.ago(12 * 24 * 60 * 60 * 1000L)
+          val i = new Artifact
+          i.gatewayId = g1.id
+          i.path = "mee/nurfnurf"
+          i.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
+          i.discovered = T.ago(5 * 24 * 60 * 60 * 1000L)
 
-          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: Nil)
+          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: Nil)
 
           val clone1 = new Clone
           clone1.artifactId = 1
