@@ -44,7 +44,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             if (cloner.currently.isEmpty) {
               val cs = for {
                 c <- transaction(waitings.toList)
-                if c.attempts == 0 || c.attempted.before(T.ago((3 * c.attempts) * 60 * 1000L))
+                if c.attempts == 0 || c.attempted.before(T.ago((c.attempts ^ 2) * 60 * 1000L))
               } yield c
               cs.headOption.foreach{ c => cloner.start(c) }
             }
