@@ -1,0 +1,6 @@
+sudo addgroup lurkers
+sudo adduser jetty lurkers
+
+/etc/sudoers
+# Members of the lurkers group may execute truecrypt without password
+%lurkers ALL=(root) NOPASSWD: /usr/bin/truecrypt, /bin/mount, /bin/umount
