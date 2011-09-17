@@ -101,7 +101,7 @@ object ArtifactState extends Enumeration {
     case ArtifactState.awaitingLost => Some(<img src="/static/c_awaiting_lost.png" title="Awaiting, lost"/>)
     case ArtifactState.glimpsed => Some(<img src="/static/c_glimpsed.png" title="Glimpsed"/>)
     case ArtifactState.lost => Some(<img src="/static/c_glimpsed_lost.png" title="Glimpsed, lost"/>)
-    case ArtifactState.cloning => Some(<img src="/static/c_cloning.png" title="Cloning..."/>)
+    case ArtifactState.cloning => Some(<img src="/static/c_cloning.gif" title="Cloning..."/>)
     case ArtifactState.cloned => Some(<img src="/static/c_cloned.png" title="Cloned"/>)
     case _ => None
   }
