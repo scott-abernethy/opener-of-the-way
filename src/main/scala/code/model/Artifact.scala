@@ -78,6 +78,8 @@ object Artifact {
     select(a)
   )
 
+  lazy val immatureBefore = 10 * 60 * 1000L
+
   lazy val lostAfter = 4 * 24 * 60 * 60 * 1000L
 
   lazy val goneAfter = 12 * 24 * 60 * 60 * 1000L

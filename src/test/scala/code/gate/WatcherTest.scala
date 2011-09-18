@@ -12,24 +12,53 @@ import code.model._
 object WatcherTest extends Specification with Mockito with TestKit {
 
   val db = new TestDb
+  db.init
 
-  doBeforeSpec {
-    db.init
+  "Watcher Queries" should {
+
+    "clone is not ready if artifact very recently discovered" >> {
+
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.inactive
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.inactive
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        db.c1ga1.discovered = T.now
+        db.c1ga1.witnessed = T.now
+        Mythos.artifacts.update(db.c1ga1)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+      }
+
+      val x = transaction(Watcher.readyClonesQuery().toList)
+      x must haveSize(0)
+    }
+
   }
 
   "Watcher" should {
 
     "handle wake" >> {
+      db.reset
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{}))
       x.isDefinedAt('Wake) must be (true)
     }
 
     "open gateways that need to be scoured" >> {
+      db.reset
       transaction {
-        db.reset
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.inactive
-        db.c1g.scoured = T.ago((3 * 60 * 60 * 1000) + 1)
+        db.c1g.scoured = T.ago((3 * 60 * 60 * 1000) + 1000)
         db.c2g.mode = GateMode.source
         db.c2g.state = GateState.inactive
         db.c2g.scoured = T.now
@@ -50,8 +79,8 @@ object WatcherTest extends Specification with Mockito with TestKit {
     }
 
     "open gateways required for clones" >> {
+      db.reset
       transaction {
-        db.reset
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.inactive
         db.c1g.scoured = T.now
@@ -78,8 +107,8 @@ object WatcherTest extends Specification with Mockito with TestKit {
     }
 
     "open gateways required for clones, but not if the artifact is lost" >> {
+      db.reset
       transaction {
-        db.reset
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.inactive
         db.c1g.scoured = T.now
@@ -106,8 +135,8 @@ object WatcherTest extends Specification with Mockito with TestKit {
     }
 
     "close gateways no longer required" >> {
+      db.reset
       transaction {
-        db.reset
         db.c1g.state = GateState.open
         db.c1g.scoured = T.yesterday
         db.c2g.state = GateState.open
