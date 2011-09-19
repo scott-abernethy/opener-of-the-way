@@ -113,6 +113,8 @@ object ArtifactState extends Enumeration {
   def awaiting_?(s: ArtifactState.Value): Boolean = s == ArtifactState.awaiting || s ==  ArtifactState.awaitingLost || s == ArtifactState.cloning
 
   def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost
+
+  def proffered_?(s: ArtifactState.Value): Boolean = s == ArtifactState.proffered || s == ArtifactState.profferedLost
 }
 
 /*

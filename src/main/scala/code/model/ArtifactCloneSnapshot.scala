@@ -32,6 +32,8 @@ from(school.professors, classes, classes2students, students)((p,c,c2s,s) =>
 which does it's thing with a single DB round trip.
  */
 
+case class ArtifactCloneInfo(state: ArtifactState.Value, clones: Int)
+
 class ArtifactCloneSnapshot {
   val dateF = {
     val f = new SimpleDateFormat("yyyy-MM-dd',' EEEE")
@@ -40,12 +42,16 @@ class ArtifactCloneSnapshot {
   }
   var currentCultistId: Long = -1L
   var items: TreeMap[String, List[Artifact]] = new TreeMap[String, List[Artifact]]
-  var states: Map[Long, ArtifactState.Value] = _
+  var states: Map[Long, ArtifactCloneInfo] = _
+
+  def stateFor(artifactId: Long): Option[ArtifactState.Value] = states.get(artifactId).map(_.state)
+
+  def clonesFor(artifactId: Long): Option[Int] = states.get(artifactId).map(_.clones)
 
   def reload(cultistId: Long) {
     currentCultistId = cultistId
     items = new TreeMap[String, List[Artifact]]
-    states = new HashMap[Long, ArtifactState.Value]
+    states = new HashMap[Long, ArtifactCloneInfo]
     val results: List[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
       where(a.witnessed > T.ago(Artifact.goneAfter))
       select((a, g.cultistId, c))
@@ -60,11 +66,11 @@ class ArtifactCloneSnapshot {
           ((in._1, in._2, in._3.toList)) :: list
       }
     }
-    combined.foreach{i =>
+    combined.foreach{ i =>
       val artifact: Artifact = i._1
       items = insertItem(items, artifact)
       parseState(artifact, cultistId, i._2, i._3).foreach(s =>
-        states = states + ((artifact.id, s))
+        states = states + ((artifact.id, ArtifactCloneInfo(s, i._3.size)))
       )
     }
   }
@@ -77,7 +83,7 @@ class ArtifactCloneSnapshot {
     inTransaction(Artifact.find(artifact).flatMap(a => Cultist.find(currentCultistId).map((a, _))) match {
       case Some((a, c)) =>
         a.stateFor(c) match {
-          case Some(state) => states = states + ((a.id, state))
+          case Some(state) => states = states + ((a.id, ArtifactCloneInfo(state, 0)))
           case None => states = states - a.id
         }
       case _ =>

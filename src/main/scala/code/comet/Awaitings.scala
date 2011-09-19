@@ -37,6 +37,6 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding {
     ".cloned:item" #> bindItems(snapshot.cloned) _
   }
   def bindItems(xs: List[(Artifact, Option[ArtifactState.Value])])(in: NodeSeq): NodeSeq = {
-    xs.flatMap((i: (Artifact, Option[ArtifactState.Value])) => bindItem(in, i._1, i._2))
+    xs.flatMap((i: (Artifact, Option[ArtifactState.Value])) => bindItem(in, i._1, i._2, None))
   }
 }

@@ -50,11 +50,11 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 1) must beSome(ArtifactState.proffered)
-      x.states.get(i + 2) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 3) must beSome(ArtifactState.proffered)
-      x.states.get(i + 4) must beSome(ArtifactState.profferedLost)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
+      x.states.get(i + 1) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 0))
+      x.states.get(i + 2) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
+      x.states.get(i + 3) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 0))
+      x.states.get(i + 4) must beSome(ArtifactCloneInfo(ArtifactState.profferedLost, 0))
       x.states.get(i + 5) must beNone
     }
 
@@ -65,23 +65,23 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloning)))
       val x = new ArtifactCloneSnapshot
       x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.awaiting)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaiting, 2))
       x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.proffered)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
 
       myClone.state = CloneState.cloning
       inTransaction(clones.update(myClone))
       x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.cloning)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloning, 2))
       x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.proffered)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
 
       myClone.state = CloneState.cloned
       inTransaction(clones.update(myClone))
       x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.cloned)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloned, 2))
       x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.proffered)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
     }
 
     "allow artifacts to be updated" >> {
@@ -89,11 +89,11 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactState.glimpsed)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
 
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
       x.update(i)
-      x.states.get(i) must beSome(ArtifactState.awaiting)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaiting, 0))
     }
 
     "not exclude items cloned by others (bug)" >> {
@@ -107,11 +107,11 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       
-      x.states.get(i) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 1) must beSome(ArtifactState.proffered)
-      x.states.get(i + 2) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 3) must beSome(ArtifactState.proffered)
-      x.states.get(i + 4) must beSome(ArtifactState.profferedLost)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
+      x.states.get(i + 1) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 0))
+      x.states.get(i + 2) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 1))
+      x.states.get(i + 3) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 1))
+      x.states.get(i + 4) must beSome(ArtifactCloneInfo(ArtifactState.profferedLost, 0))
       x.states.get(i + 5) must beNone
     }
   }

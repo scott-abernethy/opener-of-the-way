@@ -105,6 +105,11 @@ h3 {
 .state-bad {
     color: #dc322f;
 }
+.clone-count {
+   font-size: 0.8em;
+   color: #93a1a1;
+   margin-left: 0.5em;
+}
 /**
  * http://ethanschoonover.com/solarized
  * $base03:    #002b36;

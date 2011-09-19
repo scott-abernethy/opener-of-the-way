@@ -36,7 +36,9 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
 class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   val snapshot = new ArtifactCloneSnapshot
   snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
+
   def registerWith = ArtifactServer
+
   override def lowPriority = {
     case ArtifactCreated(a) =>
 //      snapshot.add(a)
@@ -51,10 +53,12 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
       partialUpdate(renderUpdate(a))
     case _ =>
   }
+
   def render = {
     ClearClearable &
     ".log:group" #> bindGroups _
   }
+
   def bindGroups(in: NodeSeq): NodeSeq = {
     // use user timezone?
     snapshot.items.toSeq.reverse.flatMap((i: (String, List[Artifact])) => (
@@ -63,15 +67,17 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
       ".log:item" #> bindItems(i._2) _
     ) apply(in)).toSeq
   }
+
   def bindItems(artifacts: List[Artifact])(in: NodeSeq): NodeSeq = {
     artifacts.flatMap{a =>
-      bindItem(in, a, snapshot.states.get(a.id))
+      bindItem(in, a, snapshot.stateFor(a.id), snapshot.clonesFor(a.id))
     }
   }
+
   def renderUpdate(id: Long): JsCmd = {
     inTransaction(Artifact.find(id)) match {
       case Some(updated) =>
-        JsCmds.Replace(idFor(id), bindItem((defaultXml \\ "li"), updated, snapshot.states.get(updated.id)))
+        JsCmds.Replace(idFor(id), bindItem((defaultXml \\ "li"), updated, snapshot.stateFor(updated.id), snapshot.clonesFor(updated.id)))
       case _ =>
         JsCmds.Noop
     }
