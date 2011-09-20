@@ -56,6 +56,13 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
           case Ping => reply(Pong)
           case Activate => maintainer ! Activate
           case Maintain => self ! Wake
+          case 'Flush =>
+            if (cloner.currently.isEmpty) {
+              transaction ( update(clones)(c =>
+                where(c.state === CloneState.cloning)
+                set(c.state := CloneState.awaiting))
+              )
+            }
           case _ =>
         }
       }

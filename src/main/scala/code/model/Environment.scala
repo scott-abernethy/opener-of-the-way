@@ -23,7 +23,10 @@ object Environment
     logger.info("Environment start")
 
     lurker.start
-    manipulator.start ! Activate
+    lurker ! 'Flush
+    manipulator.start
+    manipulator ! 'Flush
+    manipulator ! Activate
     threshold = actorOf(new Threshold(processor)).start
     watcher = actorOf(new Watcher(threshold, lurker)).start
     Scheduler.schedule(watcher, 'Wake, 1, 5, TimeUnit.MINUTES)

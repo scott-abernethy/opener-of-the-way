@@ -34,13 +34,15 @@ trait LurkerComponentImpl extends LurkerComponent {
             manipulator ! Wake
           case WayLost(g) =>
             logger.debug("WayLost " + g)
-            transaction{
+            transaction {
               updateGate(g, x => {
                 x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.inactive
                 x
               })
             }
-          case LooseInterest => 
+          case 'Flush =>
+            transaction ( update(gateways)(g => setAll(g.state := GateState.inactive)) )
+          case LooseInterest =>
             exit
           case Ping => reply(Pong)
           case _ =>
