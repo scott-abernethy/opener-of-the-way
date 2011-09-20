@@ -41,7 +41,10 @@ trait LurkerComponentImpl extends LurkerComponent {
               })
             }
           case 'Flush =>
-            transaction ( update(gateways)(g => setAll(g.state := GateState.inactive)) )
+            transaction ( update(gateways)(g =>
+              where(g.state === GateState.open)
+              set(g.state := GateState.inactive)
+            ) )
           case LooseInterest =>
             exit
           case Ping => reply(Pong)
