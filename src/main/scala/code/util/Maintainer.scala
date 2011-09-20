@@ -2,8 +2,8 @@ package code.util
 
 import actors.Actor
 import actors.Actor._
-import net.liftweb.util.ActorPing
 import code.gate.{Deactivate, Activate, Destroy}
+import net.liftweb.util.{Schedule}
 
 case object Maintain
 
@@ -23,7 +23,7 @@ class Maintainer(subject: Actor, maintainDelay: Long) extends Actor {
         case Pulse =>
           if (active) {
             val maintainer = self
-            ActorPing.schedule(() => maintainer ! Pulse, maintainDelay)
+            Schedule.schedule(() => maintainer ! Pulse, maintainDelay)
             subject ! Maintain
           }
         case Destroy =>

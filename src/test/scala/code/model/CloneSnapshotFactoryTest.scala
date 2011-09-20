@@ -16,8 +16,8 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
   doBeforeSpec {
     db.reset
     inTransaction{
-      val time1 = T.at(111, 3, 20, 1, 2, 3)
-      val time2 = T.at(111, 3, 22, 1, 2, 3)
+      val time1 = T.at(2011, 3, 20, 1, 2, 3)
+      val time2 = T.at(2011, 3, 22, 1, 2, 3)
       artifacts.delete(from(artifacts)(a => select(a)))
       artifacts.insert(new Artifact(1L, "a/b/c", time1, T.now))
       artifacts.insert(new Artifact(2L, "fudge", time1, T.now))

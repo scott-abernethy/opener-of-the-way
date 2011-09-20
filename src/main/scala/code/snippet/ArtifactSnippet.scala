@@ -1,7 +1,7 @@
 package code.snippet
 
 import xml.NodeSeq
-import code.model.{ArtifactState, Artifact, Cultist, ArtifactCloneSearchFactory}
+import code._
 import _root_.net.liftweb.util._
 import _root_.net.liftweb.common._
 import _root_.net.liftweb.http._
@@ -13,7 +13,7 @@ object searchText extends RequestVar[Option[String]](None)
 
 class ArtifactSnippet extends ArtifactBinding {
   def searcher = {
-    if (Cultist.attending_?) {
+    if (model.Cultist.attending_?) {
       ClearClearable &
       ".search:text" #> JsCmds.FocusOnLoad(SHtml.text(searchText.is.getOrElse(""), t => searchText(Some(t))) % ("class" -> "span-7")) &
       "#search:submit" #> SHtml.submit("Search", () => processSearch)

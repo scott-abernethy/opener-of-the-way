@@ -1,6 +1,7 @@
 package code.gate
 
 import java.sql.Timestamp
+import java.util.Calendar
 
 case object Activate
 case object Deactivate
@@ -15,5 +16,9 @@ object T {
   def agoFrom(start: Timestamp, msecPeriod: Long): Timestamp = new Timestamp(start.getTime - msecPeriod)
   def yesterday: Timestamp = ago(1000 * 60 * 60 * 24)
   //  def zero: Timestamp = new Timestamp(0)
-  def at(year: Int, month: Int, date: Int, hour: Int, minute: Int, second: Int): Timestamp = new Timestamp(year, month, date, hour, minute, second, 0)
+  def at(year: Int, month: Int, date: Int, hour: Int, minute: Int, second: Int): Timestamp = {
+    val c = Calendar.getInstance()
+    c.set(year, month, date, hour, minute, second)
+    new Timestamp(c.getTime.getTime)
+  }
 }

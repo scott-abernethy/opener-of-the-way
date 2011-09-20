@@ -77,7 +77,7 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   def renderUpdate(id: Long): JsCmd = {
     inTransaction(Artifact.find(id)) match {
       case Some(updated) =>
-        JsCmds.Replace(idFor(id), bindItem((defaultXml \\ "li"), updated, snapshot.stateFor(updated.id), snapshot.clonesFor(updated.id)))
+        JsCmds.Replace(idFor(id), bindItem((defaultHtml \\ "li"), updated, snapshot.stateFor(updated.id), snapshot.clonesFor(updated.id)))
       case _ =>
         JsCmds.Noop
     }
