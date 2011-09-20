@@ -110,6 +110,9 @@ h3 {
    color: #93a1a1;
    margin-left: 0.5em;
 }
+.no-margin input {
+  margin: 0;
+}
 /**
  * http://ethanschoonover.com/solarized
  * $base03:    #002b36;
