@@ -113,6 +113,29 @@ h3 {
 .no-margin input {
   margin: 0;
 }
+.roundbox {
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+.warning-surround {
+  /*border: #999999 solid thin;*/
+  background: #ffffff;
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+  padding: 0.5em 0.5em 0.5em 0.8em;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+}
+.warning-symbol {
+  display: inline;
+  margin-right: 0.5em;
+}
+.warning-symbol img {
+  vertical-align: baseline;
+}
+.warning-text {
+  display: inline;
+}
 /**
  * http://ethanschoonover.com/solarized
  * $base03:    #002b36;

@@ -8,6 +8,7 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
 import java.sql.Timestamp
+import xml.{Unparsed, Node}
 
 class Gateway extends MythosObject {
   var cultistId: Long = 0
@@ -32,7 +33,15 @@ class Gateway extends MythosObject {
 }
 
 object Gateway {
-  lazy val viableDestinations: Query[Gateway] = gateways.where(g => g.mode === GateMode.sink and g.state === GateState.open)
+  lazy val viableDestinations: Query[Gateway] = {
+    gateways.where(g =>
+      g.mode === GateMode.sink and
+      g.state === GateState.open)
+  }
+
+  lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
+  lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
+  lazy val symbolExclamation = <img src="/static/g_exclamation.png" title="Are you crazy?!!"/>
 }
 
 object GateMode extends Enumeration {
@@ -44,7 +53,13 @@ object GateMode extends Enumeration {
   def parse(text: String): GateMode = text match {
     case "sink (write only)" => sink
     case _ => source
-  }  
+  }
+
+  def symbol(s: GateMode.Value): Node = s match {
+    case GateMode.source => <img src="/static/g_source.png" title="Source"/>
+    case GateMode.sink => <img src="/static/g_sink.png" title="Sink"/>
+    case _ => Unparsed("&nbsp;")
+  }
 }
 
 object GateState extends Enumeration {
@@ -53,4 +68,11 @@ object GateState extends Enumeration {
   val open = Value("open")
   val inactive = Value("closed")
   val lost = Value("lost")
+
+  def symbol(s: GateState.Value): Node = s match {
+    case GateState.open => <img src="/static/g_open.png" title="Open"/>
+    case GateState.inactive => <img src="/static/g_inactive.png" title="Closed"/>
+    case GateState.lost => <img src="/static/g_lost.png" title="Lost"/>
+    case _ => Unparsed("&nbsp;")
+  }
 }

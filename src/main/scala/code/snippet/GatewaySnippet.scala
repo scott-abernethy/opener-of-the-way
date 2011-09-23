@@ -13,6 +13,7 @@ import code.gate.T
 
 import Helpers._
 import org.squeryl.PrimitiveTypeMode._
+import code.comet.GatewayServer
 
 class Gateway {
   val modes = GateMode.values.toSeq map (i => (i.toString, i.toString))
@@ -21,6 +22,7 @@ class Gateway {
   object path extends RequestVar("")
   object password extends RequestVar("")
   object mode extends RequestVar(GateMode.source)
+
   def add = {
     ClearClearable &
     ".add:host" #> JsCmds.FocusOnLoad(SHtml.text(host.is, t => host(t)) % ("style" -> "width: 250px")) &
@@ -31,6 +33,7 @@ class Gateway {
     "#add:submit" #> SHtml.submit("Submit", () => processAdd) &
     "#add:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
+
   private def processAdd {
     Cultist.attending.is match {
       case Full(c) =>
@@ -44,6 +47,7 @@ class Gateway {
         g.password = password.is.trim
         g.mode = mode.is
         transaction(gateways.insert(g))
+        GatewayServer ! 'WayChanged
       case _ => S.error("?!")
     }
     S.redirectTo("/cultist/profile")

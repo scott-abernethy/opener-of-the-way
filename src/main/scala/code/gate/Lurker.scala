@@ -32,6 +32,7 @@ trait LurkerComponentImpl extends LurkerComponent {
             markGatewayOpen(g, lp)
             if (shouldScour(g)) scourGateway(g, lp)
             manipulator ! Wake
+            GatewayServer ! 'WayFound
           case WayLost(g) =>
             logger.debug("WayLost " + g)
             transaction {
@@ -40,11 +41,13 @@ trait LurkerComponentImpl extends LurkerComponent {
                 x
               })
             }
+            GatewayServer ! 'WayLost
           case 'Flush =>
             transaction ( update(gateways)(g =>
               where(g.state === GateState.open)
               set(g.state := GateState.inactive)
             ) )
+            GatewayServer ! 'Flush
           case LooseInterest =>
             exit
           case Ping => reply(Pong)
