@@ -37,7 +37,7 @@ trait LurkerComponentImpl extends LurkerComponent {
             logger.debug("WayLost " + g)
             transaction {
               updateGate(g, x => {
-                x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.inactive
+                x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.closed
                 x
               })
             }
@@ -45,7 +45,7 @@ trait LurkerComponentImpl extends LurkerComponent {
           case 'Flush =>
             transaction ( update(gateways)(g =>
               where(g.state === GateState.open)
-              set(g.state := GateState.inactive)
+              set(g.state := GateState.closed)
             ) )
             GatewayServer ! 'Flush
           case LooseInterest =>

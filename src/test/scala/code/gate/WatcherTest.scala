@@ -21,10 +21,10 @@ object WatcherTest extends Specification with Mockito with TestKit {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
-        db.c1g.state = GateState.inactive
+        db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
         db.c2g.mode = GateMode.sink
-        db.c2g.state = GateState.inactive
+        db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
@@ -57,13 +57,13 @@ object WatcherTest extends Specification with Mockito with TestKit {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
-        db.c1g.state = GateState.inactive
+        db.c1g.state = GateState.closed
         db.c1g.scoured = T.ago((3 * 60 * 60 * 1000) + 1000)
         db.c2g.mode = GateMode.source
-        db.c2g.state = GateState.inactive
+        db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         db.c3g.mode = GateMode.sink
-        db.c3g.state = GateState.inactive
+        db.c3g.state = GateState.closed
         db.c3g.scoured = T.yesterday
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
@@ -82,10 +82,10 @@ object WatcherTest extends Specification with Mockito with TestKit {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
-        db.c1g.state = GateState.inactive
+        db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
         db.c2g.mode = GateMode.sink
-        db.c2g.state = GateState.inactive
+        db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
@@ -110,10 +110,10 @@ object WatcherTest extends Specification with Mockito with TestKit {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
-        db.c1g.state = GateState.inactive
+        db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
         db.c2g.mode = GateMode.sink
-        db.c2g.state = GateState.inactive
+        db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
@@ -134,7 +134,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
-    "close gateways no longer required" >> {
+    "mark gateways no longer required as transient" >> {
       db.reset
       transaction {
         db.c1g.state = GateState.open
@@ -148,7 +148,55 @@ object WatcherTest extends Specification with Mockito with TestKit {
       within(500 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g)) // This one IS still required, and so will be reopened.
-        expectMsg(CloseGateway(db.c2g))
+        expectNoMsg
+      }
+      x.getMailboxSize() must be_==(0)
+      transaction ( Mythos.gateways.where(g => g.id === db.c2g.id).head.state ) must be_==(GateState.transient)
+    }
+
+//    "check open gateways are still open" >> {
+//
+//    }
+
+    "close transient gateways" >> {
+      db.reset
+      transaction {
+        db.c1g.state = GateState.transient
+        db.c1g.scoured = T.now
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      within(500 millis) {
+        x ! 'Wake
+        expectMsg(CloseGateway(db.c1g))
+        expectNoMsg
+      }
+      x.getMailboxSize() must be_==(0)
+    }
+
+    "close transient gateways, but not if any clones are cloning (to be safe)" >> {
+      db.reset
+      transaction {
+        db.c1g.state = GateState.transient
+        db.c1g.scoured = T.now
+        db.c2g.state = GateState.open
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.cloning
+        c.attempts = 0
+        Mythos.clones.insert(c)
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      within(500 millis) {
+        x ! 'Wake
+        expectMsg(OpenGateway(db.c2g)) // because there is a clone
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)

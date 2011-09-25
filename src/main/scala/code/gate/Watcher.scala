@@ -38,6 +38,14 @@ object Watcher {
   val openQuery: Query[Gateway] = gateways.where(g =>
     g.state === GateState.open
   )
+
+  val transientQuery: Query[Gateway] = gateways.where(g =>
+    g.state === GateState.transient
+  )
+
+  val cloningQuery: Query[Clone] = clones.where(c =>
+    c.state === CloneState.cloning
+  )
 }
 
 class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor with Loggable {
@@ -46,19 +54,38 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
 
   def receive = {
     case 'Wake => {
-      val (sources, sinks, scour, open) = transaction {
-        (sourcesQuery().toList.distinct, sinksQuery.toList.distinct, scourQuery.toList.distinct, openQuery.toList.distinct)
+      val (toOpen, toClose) = transaction {
+        val sources = sourcesQuery().toList.distinct
+        val sinks = sinksQuery.toList.distinct
+        val scour = scourQuery.toList.distinct
+        val open = openQuery.toList.distinct
+        val transient = transientQuery.toSet
+        val isCloning = cloningQuery.toList.size > 0
+
+        logger.info("Watcher OPEN: " + open)
+        logger.info("Watcher WANT source: " + sources)
+        logger.info("Watcher WANT sink " + sinks)
+        logger.info("Watcher WANT scout: " + scour)
+        logger.info("Watcher CLOSE transient: " + transient)
+
+        val toOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
+        var toClose = if (isCloning) Set.empty[Gateway] else transient
+        val toTransient = (open.toSet -- toOpen) -- transient
+
+        for (t <- toTransient) {
+          Mythos.gateways.update(g =>
+            where(g.id === t.id)
+            set(g.state := GateState.transient)
+          )
+        }
+
+        (toOpen, toClose)
       }
 
-      logger.info("Watcher open " + open)
-      logger.info("Watcher want source " + sources + " sinks " + sinks + " scour " + scour)
-      
-      val toOpen = (sources ::: sinks ::: scour).distinct
-
-      for (g <- toOpen/* if !open.contains(g)*/) {
+      for (g <- toOpen) {
         threshold ! OpenGateway(g)
       }
-      for (g <- open if !toOpen.contains(g)) {
+      for (g <- toClose) {
         threshold ! CloseGateway(g)
       }
     }

@@ -5,7 +5,6 @@ import scala.collection.JavaConversions._
 import scala.util.matching.Regex
 import net.liftweb.common._
 import org.squeryl.PrimitiveTypeMode._
-import code.util.{Maintain, Maintainer}
 import akka.actor.{ActorRef, Actor}
 
 case class OpenGateway(gateway: Gateway)

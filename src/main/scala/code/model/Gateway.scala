@@ -29,7 +29,7 @@ class Gateway extends MythosObject {
 
   def description: String = new File(location, path).getPath
 
-  override def toString = "Gateway[" + location + "," + path + "," + mode + "]"
+  override def toString = "Gateway[" + location + "/" + path + "=" + mode + "]"
 }
 
 object Gateway {
@@ -47,11 +47,11 @@ object Gateway {
 object GateMode extends Enumeration {
   type GateMode = Value
 
-  val source = Value("source (read only)")
-  val sink = Value("sink (write only)")
+  val source = Value("Source")
+  val sink = Value("Sink")
 
   def parse(text: String): GateMode = text match {
-    case "sink (write only)" => sink
+    case "Sink" => sink
     case _ => source
   }
 
@@ -66,12 +66,15 @@ object GateState extends Enumeration {
   type GateState = Value
 
   val open = Value("open")
-  val inactive = Value("closed")
+  val transient = Value("transient")
+  val closed = Value("closed")
   val lost = Value("lost")
 
+  // TODO should the titles for these images give more help?
   def symbol(s: GateState.Value): Node = s match {
     case GateState.open => <img src="/static/g_open.png" title="Open"/>
-    case GateState.inactive => <img src="/static/g_inactive.png" title="Closed"/>
+    case GateState.transient => <img src="/static/g_transient.png" title="Closing..."/>
+    case GateState.closed => <img src="/static/g_inactive.png" title="Closed"/>
     case GateState.lost => <img src="/static/g_lost.png" title="Lost"/>
     case _ => Unparsed("&nbsp;")
   }

@@ -41,7 +41,7 @@ object LurkerTest extends Specification with Mockito {
         x ! WayLost(g)
         x !? (5000, Ping)
         g = queryG(1L)
-        g.state must beEqual(GateState.inactive)
+        g.state must beEqual(GateState.closed)
       }
       "on way lost, truely lost" >> {
         var g = queryG(1L)
