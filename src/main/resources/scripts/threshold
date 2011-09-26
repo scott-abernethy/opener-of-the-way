@@ -20,9 +20,11 @@ EOF
 set -o nounset
 
 function abort_check {
-  if [ $1 != 0 ] ; then
-    echo "Aborted"
-    exit $1
+  local RESULT=$1
+  local EXIT_CODE=$2
+  if [ "$RESULT" != "0" ] ; then
+    echo "Aborted $RESULT as $EXIT_CODE"
+    exit $EXIT_CODE
   fi
 }
 
@@ -32,7 +34,7 @@ function mount_gate_mount {
 
 function do_stage {
   if [ ! -d $gate_mount ] ; then
-    mkdir -p $gate_mount
+    mkdir -p $gate_mount ; abort_check $? 1
   fi
 
   if [ $(mount | grep $gate_mount -c) == 0 ] ; then
@@ -67,17 +69,13 @@ function do_mount {
   gate_password=$1
 
   if [ ! -d $gate_crypt ] ; then
-    mkdir -p $gate_crypt
-    touch $gate_crypt/closed
+    mkdir -p $gate_crypt ; abort_check $? 1
+    touch $gate_crypt/closed ; abort_check $? 1
   fi
 
   if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
     echo "Mounting"
-    sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="uid=$(id -u $gate_user),gid=$(id -g $gate_user)" 2>&1
-    local result=$?
-    if [ $result != 0 ] ; then
-      return $result
-    fi
+    sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="uid=$(id -u $gate_user),gid=$(id -g $gate_user)" 2>&1 ; abort_check $? 2
   fi
 
   ls $gate_crypt/closed >/dev/null 2>&1
@@ -106,17 +104,8 @@ function do_unmount {
 }
 
 function do_open {
-  do_stage
-  local result=$?
-  if [ $result != 0 ] ; then
-    return $result
-  fi
-
-  do_mount $1
-  result=$?
-  if [ $result != 0 ] ; then
-    return $result
-  fi
+  do_stage ; abort_check $? 3
+  do_mount $1 ; abort_check $? 4
 }
 
 function do_close {
