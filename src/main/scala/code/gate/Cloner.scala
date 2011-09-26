@@ -34,6 +34,7 @@ trait ClonerComponentImpl extends ClonerComponent {
     def start(job: Clone) {
       cur = Some(job)
       job.state = CloneState.cloning
+      job.attempted = T.now
       transaction { clones.update(job) }
       ArtifactServer ! ArtifactUpdated(job.artifactId)
       transaction {
@@ -56,7 +57,6 @@ trait ClonerComponentImpl extends ClonerComponent {
       logger.debug("Process result " + result)
       c.state = if (result.success) CloneState.cloned else CloneState.awaiting
       c.attempts = c.attempts + 1
-      c.attempted = T.now
       c.duration = result.duration
       transaction { clones.update(c) }
       cur = None
