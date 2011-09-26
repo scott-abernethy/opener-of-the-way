@@ -17,10 +17,13 @@ class Cultist(
   var password: String) extends MythosObject {
 
   def this() = this("", "")
+
   def sign: String = Cultist.loadCodename(id.toString) // lame but simple
+
   def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.mode === GateMode.sink) select(g) orderBy(g.id asc)) headOption
 
   lazy val gateways: OneToMany[Gateway] = cultistToGateways.left(this)
+
   lazy val activeClones: Query[Clone] = from(clones)(c =>
     where(c.forCultistId === id and (c.state === CloneState.awaiting or c.state === CloneState.cloning))
     select(c)

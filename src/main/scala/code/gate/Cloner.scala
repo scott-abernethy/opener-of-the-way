@@ -28,9 +28,12 @@ trait ClonerComponent {
     */
 trait ClonerComponentImpl extends ClonerComponent {
   this: ProcessorComponent with ManipulatorComponent =>
+
   val cloner = new Cloner() with Loggable {
     private var cur: Option[Clone] = None
+
     def currently = cur
+
     def start(job: Clone) {
       cur = Some(job)
       job.state = CloneState.cloning
@@ -50,9 +53,12 @@ trait ClonerComponentImpl extends ClonerComponent {
           failedAttempt(job)
       }
     }
+
     def cancel {
+      // TODO kill the process?
       cur.foreach(failedAttempt _)
     }
+
     def attempted(c: Clone, result: Result) {
       logger.debug("Process result " + result)
       c.state = if (result.success) CloneState.cloned else CloneState.awaiting
@@ -60,10 +66,13 @@ trait ClonerComponentImpl extends ClonerComponent {
       c.duration = result.duration
       transaction { clones.update(c) }
       cur = None
+      if (!result.success) Environment.watcher ! CloneFailed(c)
       ArtifactServer ! ArtifactUpdated(c.artifactId)
       manipulator ! Wake
     }
+
     def failedAttempt(c: Clone) { attempted(c, Result(false, Nil, -1)) }
+
     def escapeString(in: String): String = in // no escaping necessary here
   }
 }

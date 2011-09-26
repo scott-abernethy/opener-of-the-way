@@ -17,11 +17,17 @@ class Artifact(
   var witnessed: Timestamp
 ) extends MythosObject {
   def this() = this(0, "", T.now, T.now)
+
   def description = path
+
   lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
+
   def localPath: Option[String] = gateway.headOption.map(g => new File(g.localPath, path).getPath)
+
   def available = true
+
   def owner: Option[Cultist] = inTransaction(gateway.headOption.flatMap(_.cultist.headOption))
+
   def stateFor(cultistId: Long, ownerId: Long, clone: Option[Clone], now: Timestamp): Option[ArtifactState.Value] = {
     if (ownerId == cultistId) {
       missingOr(now)(ArtifactState.proffered, ArtifactState.profferedLost)
@@ -35,6 +41,7 @@ class Artifact(
       }
     }
   }
+
   def stateFor(cultist: Cultist): Option[ArtifactState.Value] = {
     val cultistsClone = inTransaction(from(clones)(x => where(x.artifactId === id and x.forCultistId === cultist.id) select(x)).headOption)
     owner.map(_.id) match {
@@ -42,6 +49,7 @@ class Artifact(
       case _ => None
     }
   }
+
   private def missingOr(now: Timestamp)(state: ArtifactState.Value, missing: ArtifactState.Value): Option[ArtifactState.Value] = {
     if (witnessed.before(T.agoFrom(now, Artifact.lostAfter))) {
       Some(missing)
@@ -49,6 +57,7 @@ class Artifact(
       Some(state)
     }
   }
+
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(s) if ArtifactState.possible_?(s) =>
@@ -58,6 +67,7 @@ class Artifact(
       case _ => false
     }
   }
+
   def cancelClone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
       case Some(s) if ArtifactState.awaiting_?(s) =>

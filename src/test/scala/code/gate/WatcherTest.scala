@@ -213,6 +213,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       g = transaction( Mythos.gateways.lookup(g.id).getOrElse(null) )
       g.state must beEqual(GateState.open)
       g.localPath must beMatching("/srv/f")
+      x.getMailboxSize() must be_==(0)
     }
 
     "update a gateway state, on way lost, inactive" >> {
@@ -228,6 +229,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       g = transaction( Mythos.gateways.lookup(g.id).getOrElse(null) )
       g.state must beEqual(GateState.closed)
+      x.getMailboxSize() must be_==(0)
     }
 
     "update a gateway state, on way lost, truely lost" >> {
@@ -243,7 +245,33 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       g = transaction( Mythos.gateways.lookup(g.id).getOrElse(null) )
       g.state must beEqual(GateState.lost)
+      x.getMailboxSize() must be_==(0)
     }
 
+    "listen for failed clones and mark associated gateways as transient" >> {
+      db.reset
+      val c = transaction {
+        db.c1g.state = GateState.open
+        db.c2g.state = GateState.open
+        db.c3g.state = GateState.open
+        Mythos.gateways.update(db.c1g :: db.c2g :: db.c3g :: Nil)
+        Mythos.clones.insert( Clone.create(db.c1ga2.id, db.c3.id, CloneState.awaiting) )
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      within(500 millis) {
+        x ! CloneFailed(c)
+        x ! 'Ping
+        expectMsg('Pong)
+      }
+      transaction {
+        val g1 = Mythos.gateways.lookup(db.c1g.id).getOrElse(null)
+        val g2 = Mythos.gateways.lookup(db.c2g.id).getOrElse(null)
+        val g3 = Mythos.gateways.lookup(db.c3g.id).getOrElse(null)
+        g1.state must be_==(GateState.transient)
+        g2.state must be_==(GateState.open)
+        g3.state must be_==(GateState.transient)
+      }
+      x.getMailboxSize() must be_==(0)
+    }
   }
 }

@@ -8,6 +8,8 @@ import net.liftweb.common.Loggable
 import code.model._
 import code.comet.GatewayServer
 
+case class CloneFailed(c: Clone)
+
 object Watcher {
 
   // TODO should also include check for reattempt timeout, as Manipulator does...
@@ -100,6 +102,21 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     case CloseGateFailed(g) =>
       markTransient(g)
 
+    case CloneFailed(c) =>
+      val (source, sink) = transaction {
+        val source = for {
+          artifact <- c.artifact
+          gateway <- artifact.gateway.headOption
+        } yield gateway
+        val sink = for {
+          requester <- c.forCultist
+          gateway <- requester.destination
+        } yield gateway
+        (source, sink)
+      }
+      source.foreach( markTransient(_) )
+      sink.foreach( markTransient(_) )
+      
     case 'Ping =>
       self.reply( 'Pong )
       
@@ -119,13 +136,13 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     GatewayServer ! 'WayFound
   }
 
-  def markTransient(g: Gateway) {
-    logger.debug("WayTransient " + g)
+  def markTransient(transient: Gateway) {
+    logger.debug("WayTransient " + transient)
     transaction {
-      updateGate(g, x => {
-        x.state = GateState.transient
-        x
-      })
+      gateways.update(g =>
+        where(g.id === transient.id and g.state === GateState.open)
+        set(g.state := GateState.transient)
+      )
     }
     GatewayServer ! 'WayTransient
   }
