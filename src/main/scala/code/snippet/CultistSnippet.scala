@@ -15,12 +15,14 @@ class Cultist {
   val emailHint = "gone@insane.yet"
   object email extends RequestVar[Option[String]](Some(emailHint))
   object password extends RequestVar[Option[String]](None)
+
   def join = {
     ClearClearable &
     ".join:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
     "#join:submit" #> SHtml.submit("Submit", () => processJoin) &
     "#join:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
+
   private def processJoin {
     email.is.filter(! _.contains("aviat")) match {
       case Some(e) =>
@@ -33,12 +35,14 @@ class Cultist {
         S.redirectTo("join")
     }
   }
+
   def approach = {
     ClearClearable &
     ".approach:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
     ".approach:password" #> (SHtml.password("", t => password(Some(t))) % ("style" -> "width: 250px")) &
     "#approach:submit" #> SHtml.submit("Submit", () => processApproach)
   }
+
   def processApproach {
     var submittedEmail = email.is.map(_.toLowerCase).getOrElse("")
     var submittedPassword = password.is.getOrElse("")
@@ -56,11 +60,13 @@ class Cultist {
       }
     }
   }
+
   def withdraw = {
     Cultist.withdraw()
     S.notice("Never return, or else...")
     S.redirectTo("approach", () => (Cultist.saveCookie))
   }
+
   def profile = {
     Cultist.attending.is match {
       case Full(c) =>
@@ -73,11 +79,13 @@ class Cultist {
         S.redirectTo("/")
     }
   }
+
   def bindGateways(gs: Seq[code.model.Gateway])(in: NodeSeq): NodeSeq = gs.flatMap(bindGateway(in, _))
+
   def bindGateway(in: NodeSeq, g: code.model.Gateway): NodeSeq = {
     ClearClearable &
-    ".gateway:state *" #> g.state.toString &
+    ".gateway:state *" #> <span>{ GateState.symbol(g.state) } { g.state.toString }</span> &
     ".gateway:description *" #> g.description &
-    ".gateway:mode *" #> g.mode.toString
+    ".gateway:mode *" #> <span>{ GateMode.symbol(g.mode) } { g.mode.toString }</span>
   }.apply(in)
 }

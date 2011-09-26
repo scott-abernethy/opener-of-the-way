@@ -65,10 +65,10 @@ object GateMode extends Enumeration {
 object GateState extends Enumeration {
   type GateState = Value
 
-  val open = Value("open")
-  val transient = Value("transient")
-  val closed = Value("closed")
-  val lost = Value("lost")
+  val open = Value("Open")
+  val transient = Value("Transient")
+  val closed = Value("Closed")
+  val lost = Value("Lost")
 
   // TODO should the titles for these images give more help?
   def symbol(s: GateState.Value): Node = s match {
