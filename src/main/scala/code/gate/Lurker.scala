@@ -23,38 +23,34 @@ trait LurkerComponent {
 
 trait LurkerComponentImpl extends LurkerComponent {
   this: FileSystemComponent with ManipulatorComponent =>
+
   val lurker = new Lurker with Loggable {
     def act() {
       loop {
         react {
           case WayFound(g, lp) =>
-            logger.debug("WayFound " + g)
-            markGatewayOpen(g, lp)
             if (shouldScour(g)) scourGateway(g, lp)
             manipulator ! Wake
-            GatewayServer ! 'WayFound
-          case WayLost(g) =>
-            logger.debug("WayLost " + g)
-            transaction {
-              updateGate(g, x => {
-                x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.closed
-                x
-              })
-            }
-            GatewayServer ! 'WayLost
+
           case 'Flush =>
+            // TODO do this in Watcher instead.
             transaction ( update(gateways)(g =>
               where(g.state === GateState.open)
               set(g.state := GateState.closed)
             ) )
             GatewayServer ! 'Flush
+
           case LooseInterest =>
             exit
-          case Ping => reply(Pong)
+
+          case Ping =>
+            reply(Pong)
+
           case _ =>
         }
       }
     }
+
     private def shouldScour(g: Gateway): Boolean = {
       transaction(gateways.lookup(g.id)) match {
         case Some(g2) =>
@@ -63,21 +59,13 @@ trait LurkerComponentImpl extends LurkerComponent {
           false
       }
     }
-    private def markGatewayOpen(g: Gateway, lp: String) {
-      transaction {
-        updateGate(g, x => {
-          x.seen = T.now
-          x.state = GateState.open
-          x.localPath = lp
-          x
-        })
-      }
-    }
+
     private def scourGateway(g: Gateway, lp: String): Unit = {
       logger.debug("WayScoured " + lp)
       val now = T.now
       val filesFound = fileSystem.find(lp).filterNot(_.matches("^/?(clones|System Volume Information|Recycled)/.*")).toSet
       transaction {
+        // TODO do this in Watcher instead.
         updateGate(g, x => {
           x.scoured = now
           x
@@ -99,6 +87,7 @@ trait LurkerComponentImpl extends LurkerComponent {
         }
       }
     }
+
     private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {
       gateways.lookup(g.id) match {
         case Some(x) => gateways.update(updater(x))

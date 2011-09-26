@@ -109,22 +109,20 @@ function do_open {
   do_stage
   local result=$?
   if [ $result != 0 ] ; then
-    do_unstage
     return $result
   fi
 
   do_mount $1
   result=$?
   if [ $result != 0 ] ; then
-    do_unmount
-    do_unstage
     return $result
   fi
 }
 
 function do_close {
   do_unmount
-  do_unstage
+  # Don't unstage _ever_, as we don't know for sure that other mounts require this stage!
+  #do_unstage
 }
 
 function do_flush {

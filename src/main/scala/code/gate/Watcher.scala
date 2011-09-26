@@ -6,6 +6,7 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import net.liftweb.common.Loggable
 import code.model._
+import code.comet.GatewayServer
 
 object Watcher {
 
@@ -82,15 +83,68 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         (toOpen, toClose)
       }
 
-      for (g <- toOpen) {
-        threshold ! OpenGateway(g)
-      }
-      for (g <- toClose) {
-        threshold ! CloseGateway(g)
-      }
+      toOpen.foreach( threshold ! OpenGateway(_) )
+      toClose.foreach( threshold ! CloseGateway(_) )
     }
-    case m @ WayFound(_, _) => lurker ! m
-    case m @ WayLost(_) => lurker ! m
+
+    case OpenGateSuccess(g, lp) =>
+      markOpen(g, lp)
+      lurker ! WayFound(g, lp)
+
+    case OpenGateFailed(g) =>
+      markTransient(g)
+
+    case CloseGateSuccess(g) =>
+      markClosed(g)
+
+    case CloseGateFailed(g) =>
+      markTransient(g)
+
+    case 'Ping =>
+      self.reply( 'Pong )
+      
     case _ =>
+  }
+
+  def markOpen(g: Gateway, lp: String) {
+    logger.debug("WayFound " + g)
+    transaction {
+      updateGate(g, x => {
+        x.seen = T.now
+        x.state = GateState.open
+        x.localPath = lp
+        x
+      })
+    }
+    GatewayServer ! 'WayFound
+  }
+
+  def markTransient(g: Gateway) {
+    logger.debug("WayTransient " + g)
+    transaction {
+      updateGate(g, x => {
+        x.state = GateState.transient
+        x
+      })
+    }
+    GatewayServer ! 'WayTransient
+  }
+
+  def markClosed(g: Gateway) {
+    logger.debug("WayLost " + g)
+    transaction {
+      updateGate(g, x => {
+        x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.closed
+        x
+      })
+    }
+    GatewayServer ! 'WayLost
+  }
+
+  private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {
+    gateways.lookup(g.id) match {
+      case Some(x) => gateways.update(updater(x))
+      case _ => // oop
+    }
   }
 }

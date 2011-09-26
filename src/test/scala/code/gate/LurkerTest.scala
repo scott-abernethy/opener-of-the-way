@@ -26,32 +26,7 @@ object LurkerTest extends Specification with Mockito {
     fileSystem.find("/srv/f") returns(Nil)
     
     val x = LurkerComponentTest.lurker.start
-    "update a gateway state" >> {
-      "on way found" >> {
-        var g = queryG(1L)
-        x ! WayFound(g, "/srv/f")
-        x !? (5000, Ping)
-        g = queryG(1L)
-        g.state must beEqual(GateState.open)
-        g.localPath must beMatching("/srv/f")
-      }
-      "on way lost, inactive" >> {
-        var g = queryG(1L)
-        g.seen = T.ago(3*24*60*60*1000) // 3 days ago
-        x ! WayLost(g)
-        x !? (5000, Ping)
-        g = queryG(1L)
-        g.state must beEqual(GateState.closed)
-      }
-      "on way lost, truely lost" >> {
-        var g = queryG(1L)
-        g.seen = T.ago((4*24*60*60*1000) + 1) // 4 days ago
-        x ! WayLost(g)
-        x !? (5000, Ping)
-        g = queryG(1L)
-        g.state must beEqual(GateState.lost)
-      }
-    }
+
     "parse artifacts on way found" >> {
       "adding new artifacts" >> {
         transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
@@ -70,6 +45,7 @@ object LurkerTest extends Specification with Mockito {
         val as2 = transaction { g.artifacts toList }
         as2 must haveSize(3)
       }
+
       "ignore silly files" >> {
         transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
         transaction { update(Mythos.gateways)(g => setAll(g.scoured := T.yesterday)) }
@@ -83,6 +59,7 @@ object LurkerTest extends Specification with Mockito {
       //"removing missing artifacts" >> {}
       //"cancelling bad copy jobs" >> {}
     }
+
     "ignore artifacts on sink gates" >> {
       transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
       transaction { update(Mythos.gateways)(g => setAll(g.scoured := T.yesterday)) }

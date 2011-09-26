@@ -17,7 +17,6 @@ object WatcherTest extends Specification with Mockito with TestKit {
   "Watcher Queries" should {
 
     "clone is not ready if artifact very recently discovered" >> {
-
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
@@ -201,5 +200,50 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       x.getMailboxSize() must be_==(0)
     }
+
+    "update a gateway state, on way found" >> {
+      db.reset
+      var g = transaction( db.c1g )
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      within(500 millis) {
+        x ! OpenGateSuccess(g, "/srv/f")
+        x ! 'Ping
+        expectMsg('Pong)
+      }
+      g = transaction( Mythos.gateways.lookup(g.id).getOrElse(null) )
+      g.state must beEqual(GateState.open)
+      g.localPath must beMatching("/srv/f")
+    }
+
+    "update a gateway state, on way lost, inactive" >> {
+      db.reset
+      var g = transaction( db.c1g )
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      db.c1g.seen = T.ago(3*24*60*60*1000) // 3 days ago
+      // TODO only pass if that is in db.
+      within(500 millis) {
+        x ! CloseGateSuccess(g)
+        x ! 'Ping
+        expectMsg('Pong)
+      }
+      g = transaction( Mythos.gateways.lookup(g.id).getOrElse(null) )
+      g.state must beEqual(GateState.closed)
+    }
+
+    "update a gateway state, on way lost, truely lost" >> {
+      db.reset
+      var g = transaction( db.c1g )
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      db.c1g.seen = T.ago((4*24*60*60*1000) + 1) // 4 days ago
+      // TODO only pass if that is in db.
+      within(500 millis) {
+        x ! CloseGateSuccess(g)
+        x ! 'Ping
+        expectMsg('Pong)
+      }
+      g = transaction( Mythos.gateways.lookup(g.id).getOrElse(null) )
+      g.state must beEqual(GateState.lost)
+    }
+
   }
 }

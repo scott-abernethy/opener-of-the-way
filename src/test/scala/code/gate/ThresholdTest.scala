@@ -34,7 +34,7 @@ object ThresholdTest extends Specification with Mockito with TestKit {
       val x = TestActorRef(new Threshold(processor)).start
       x ! OpenGateway(g)
       within(500 millis) {
-        expectMsg(WayFound(g, "/var/cache/foo"))
+        expectMsg(OpenGateSuccess(g, "/var/cache/foo"))
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
@@ -46,7 +46,7 @@ object ThresholdTest extends Specification with Mockito with TestKit {
       val x = TestActorRef(new Threshold(processor)).start
       x ! CloseGateway(g)
       within(500 millis) {
-        expectMsg(WayLost(g))
+        expectMsg(CloseGateSuccess(g))
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
@@ -58,7 +58,7 @@ object ThresholdTest extends Specification with Mockito with TestKit {
       val x = TestActorRef(new Threshold(processor)).start
       x ! OpenGateway(g)
       within(500 millis) {
-        expectMsg(WayLost(g))
+        expectMsg(OpenGateFailed(g))
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
@@ -70,7 +70,7 @@ object ThresholdTest extends Specification with Mockito with TestKit {
       val x = TestActorRef(new Threshold(processor)).start
       x ! OpenGateway(g)
       within(500 millis) {
-        expectMsg(WayLost(g))
+        expectMsg(OpenGateFailed(g))
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
