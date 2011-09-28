@@ -30,7 +30,8 @@ class Boot {
 
     val isAttending = If(() => Cultist.attending_?, () => RedirectResponse("/cultist/approach"))
     val notAttending = Unless(() => Cultist.attending_?, () => RedirectResponse("/"))
-
+    val isInsane = If(() => Cultist.attending.is.exists(_.insane), () => RedirectResponse("/cultist/approach"))
+    
     // Build SiteMap
     def sitemap = SiteMap(
       Menu.i("Home") / "index" >> isAttending,
@@ -40,7 +41,7 @@ class Boot {
 //      Menu.i("Join") / "cultist" / "join" >> notAttending,
       Menu.i("Profile") / "cultist" / "profile" >> isAttending,
       Menu.i("Tome") / "static" / "tome" >> isAttending,
-      Menu.i("Observe") / "observe" >> isAttending,
+      Menu.i("Observe") / "observe" >> isInsane,
       Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
       Menu.i("Add Gateway") / "gateway" / "add" >> Hidden >> isAttending)
 

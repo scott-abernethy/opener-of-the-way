@@ -12,11 +12,10 @@ import java.util.Properties
 import java.io.FileReader
 import net.liftweb.util.Helpers
 
-class Cultist(
-  var email: String,
-  var password: String) extends MythosObject {
-
-  def this() = this("", "")
+class Cultist extends MythosObject {
+  var email: String = ""
+  var password: String = ""
+  var insane: Boolean = false
 
   def sign: String = Cultist.loadCodename(id.toString) // lame but simple
 
@@ -31,6 +30,13 @@ class Cultist(
 }
 
 object Cultist {
+  def create(email: String, password: String): Cultist = {
+    val x = new Cultist
+    x.email = email
+    x.password = password
+    x
+  }
+
   def find(id: Long): Option[Cultist] = cultists.lookup(id)
   val cultistCookie = "theyWhomAttendethIt"
   lazy val codenames: Properties = {

@@ -9,9 +9,9 @@ class TestDb extends Db {
   def reset {
     clear
     transaction {
-      val bob = cultists.insert(new Cultist("bob@bob.com", "bob123"))
-      val jane = cultists.insert(new Cultist("jane@jane.com", "jane123"))
-      val chew = cultists.insert(new Cultist("chew@chew.com", "chew123"))
+      val bob = cultists.insert(Cultist.create("bob@bob.com", "bob123"))
+      val jane = cultists.insert(Cultist.create("jane@jane.com", "jane123"))
+      val chew = cultists.insert(Cultist.create("chew@chew.com", "chew123"))
 
       val g1: Gateway = new Gateway
       g1.cultistId = bob.id

@@ -54,8 +54,16 @@ trait Db {
       case Props.RunModes.Development =>
         clear
         transaction {
-          val foo = Mythos.cultists.insert(new Cultist("foo@bar.com", "foo"))
-          val two = Mythos.cultists.insert(new Cultist("two@bar.com", "two"))
+          val c1 = new Cultist
+          c1.email = "foo@bar.com"
+          c1.password = "foo"
+          c1.insane = true
+          val c2 = new Cultist
+          c2.email = "two@bar.com"
+          c2.password = "two"
+
+          val foo = Mythos.cultists.insert(c1)
+          val two = Mythos.cultists.insert(c2)
 
           var g1: Gateway = new Gateway
           g1.cultistId = foo.id
