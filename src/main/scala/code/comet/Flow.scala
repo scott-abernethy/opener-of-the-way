@@ -26,7 +26,11 @@ object Sample
 
 class Flow extends CometActor with CometListener {
 
-  var options: FlotOptions = new FlotOptions {}
+  var options: FlotOptions = new FlotOptions {
+    override def legend = Full(new FlotLegendOptions {
+      override def position = Full("nw")
+    })
+  }
 //  var series: List[FlotSerie] = foo :: Nil
   val idPlaceholder = "flowgid"
 
@@ -51,19 +55,26 @@ class Flow extends CometActor with CometListener {
   def series(): List[FlotSerie] = {
     val a = new FlotSerie {
       override def data = discoveredByDay()
-      override def lines = Full(new FlotLinesOptions {
+      override def bars = Full(new FlotBarsOptions {
         override def show = Full(true)
-        override def fill = Full(true)
       })
+      override def label = Full("Glimpsed")
     }
     val b = new FlotSerie {
       override def data = requestedByDay()
-      override def lines = Full(new FlotLinesOptions {
+      override def bars = Full(new FlotBarsOptions {
         override def show = Full(true)
-        override def fill = Full(true)
       })
+      override def label = Full("Requested")
     }
-    List(a,b)
+    val c = new FlotSerie {
+      override def data = uniqueRequestedByDay()
+      override def bars = Full(new FlotBarsOptions {
+        override def show = Full(true)
+      })
+      override def label = Full("Requested (Unique)")
+    }
+    List(a,b,c)
   }
 
   def discoveredByDay(): List[(Double, Double)] = {
@@ -141,6 +152,52 @@ class Flow extends CometActor with CometListener {
     cal = Calendar.getInstance()
     for (c <- cs)
     {
+      cal.setTime(c.requested)
+      val d: Double = cal.get(Calendar.DAY_OF_YEAR)
+      val y: Double = cal.get(Calendar.YEAR)
+      range.get((d,y)) match {
+        case Some(sample) =>
+          range = range + ((d,y) -> sample.incr)
+        case _ =>
+      }
+    }
+
+    range.values.toList.sortWith(Sample.order).map(sample => (sample.index, sample.count))
+  }
+
+  def uniqueRequestedByDay(): List[(Double, Double)] = {
+    var cal: Calendar = Calendar.getInstance()
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.HOUR_OF_DAY, 1)
+    cal.getTime
+    cal.add(Calendar.DAY_OF_YEAR, -30)
+    val startDate = new Timestamp(cal.getTime.getTime)
+
+    val cs = transaction(
+      from(Mythos.clones)(c =>
+        where(c.requested > startDate)
+        select(c)
+      ).toList
+    )
+
+    val now: Calendar = Calendar.getInstance()
+    var range = Map.empty[(Double,Double), Sample]
+    for (i <- List.range(0, 30))
+    {
+      val d: Double = now.get(Calendar.DAY_OF_YEAR)
+      val label = now.get(Calendar.DAY_OF_MONTH)
+      val y: Double = now.get(Calendar.YEAR)
+      val index: Int = 0 - i
+      range = range + ((d,y) -> Sample(index, 0))
+      now.add(Calendar.DAY_OF_YEAR, -1)
+    }
+
+    var artifacts = Set.empty[Long]
+    cal = Calendar.getInstance()
+    for (c <- cs if !artifacts.contains(c.artifactId))
+    {
+      artifacts = artifacts + c.artifactId
       cal.setTime(c.requested)
       val d: Double = cal.get(Calendar.DAY_OF_YEAR)
       val y: Double = cal.get(Calendar.YEAR)
