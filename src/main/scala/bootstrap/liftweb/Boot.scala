@@ -13,6 +13,7 @@ import code.Db
 import code.model._
 
 import org.squeryl.PrimitiveTypeMode._
+import net.liftweb.widgets.flot.Flot
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -76,7 +77,9 @@ class Boot {
         case _ => Empty
       }
     } )
-    
+
+    Flot.init
+
     Environment.start
     LiftRules.unloadHooks.append(() => Environment.dispose)
   }

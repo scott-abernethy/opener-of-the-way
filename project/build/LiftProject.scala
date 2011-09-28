@@ -18,6 +18,7 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) with IdeaPr
   override def libraryDependencies = Set(
     "net.liftweb" %% "lift-webkit" % liftVersion.value.toString % "compile->default",
     "net.liftweb" %% "lift-record" % liftVersion.value.toString % "compile->default",
+    "net.liftweb" %% "lift-widgets" % liftVersion.value.toString % "compile->default",
     "se.scalablesolutions.akka" % "akka-actor" % "1.1.3",
     "se.scalablesolutions.akka" % "akka-testkit" % "1.1.3",
     "org.squeryl" % "squeryl_2.9.0-1" % "0.9.4" % "compile->default",
