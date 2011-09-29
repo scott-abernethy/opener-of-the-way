@@ -43,15 +43,13 @@ class Spurt extends CometActor with CometListener {
       override def color = Full(Right(2))
       override def lines = Full(new FlotLinesOptions {
         override def show = Full(true)
-      })
-      override def points = Full(new FlotPointsOptions {
-        override def show = Full(true)
+        override def fill = Full(true)
       })
       override def label = Full("Glimpsed")
     }
     val b = new FlotSerie {
       override def data = requested()
-      override def color = Full(Right(1))
+      override def color = Full(Right(3))
       override def lines = Full(new FlotLinesOptions {
         override def show = Full(true)
       })
@@ -62,16 +60,13 @@ class Spurt extends CometActor with CometListener {
     }
     val c = new FlotSerie {
       override def data = uniqueRequested()
-      override def color = Full(Right(3))
+      override def color = Full(Right(1))
       override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
-      override def points = Full(new FlotPointsOptions {
         override def show = Full(true)
       })
       override def label = Full("Requested (Unique)")
     }
-    List(a,b,c)
+    List(a,c,b)
   }
 
   def discovered(): List[(Double, Double)] = {
