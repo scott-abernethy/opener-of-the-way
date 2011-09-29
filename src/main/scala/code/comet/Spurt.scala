@@ -11,7 +11,7 @@ import java.sql.Timestamp
 import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.widgets.flot._
 
-class Spurt extends CometActor with CometListener {
+class Spurt extends CometActor with CometListener with StreamGraphComet {
 
   var options: FlotOptions = new FlotOptions {
 
@@ -20,10 +20,7 @@ class Spurt extends CometActor with CometListener {
       override def max = Full(24.0)
     })
 
-    override def legend = Full(new FlotLegendOptions {
-      override def position = Full("nw")
-      override def backgroundOpacity = Full(0.0)
-    })
+    override def legend = Full(legendOptions)
   }
   val idPlaceholder = "spurtgid"
 
@@ -38,35 +35,7 @@ class Spurt extends CometActor with CometListener {
   }
 
   def series(): List[FlotSerie] = {
-    val a = new FlotSerie {
-      override def data = discovered()
-      override def color = Full(Right(2))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-        override def fill = Full(true)
-      })
-      override def label = Full("Glimpsed")
-    }
-    val b = new FlotSerie {
-      override def data = requested()
-      override def color = Full(Right(3))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
-      override def points = Full(new FlotPointsOptions {
-        override def show = Full(true)
-      })
-      override def label = Full("Requested")
-    }
-    val c = new FlotSerie {
-      override def data = uniqueRequested()
-      override def color = Full(Right(1))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
-      override def label = Full("Requested (Unique)")
-    }
-    List(a,c,b)
+    createSeries(discovered(), requested(), uniqueRequested())
   }
 
   def discovered(): List[(Double, Double)] = {

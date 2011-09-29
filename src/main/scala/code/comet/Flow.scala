@@ -24,13 +24,52 @@ object Sample
   }
 }
 
-class Flow extends CometActor with CometListener {
-
-  var options: FlotOptions = new FlotOptions {
-    override def legend = Full(new FlotLegendOptions {
+trait StreamGraphComet {
+  val legendOptions: FlotLegendOptions = new FlotLegendOptions {
       override def position = Full("nw")
       override def backgroundOpacity = Full(0.0)
-    })
+    }
+
+  def createSeries(discovered: List[(Double, Double)], requested: List[(Double, Double)], uniqueRequested: List[(Double, Double)]): List[FlotSerie] = {
+    val glimpsedSeries = new FlotSerie {
+      override def data = discovered
+      override def color = Full(Right(4))
+      override def lines = Full(new FlotLinesOptions {
+        override def show = Full(true)
+        override def fill = Full(true)
+      })
+      override def label = Full("Glimpsed")
+    }
+    val requestedSeries = new FlotSerie {
+      override def data = requested
+      override def color = Full(Right(2))
+      override def lines = Full(new FlotLinesOptions {
+        override def show = Full(true)
+      })
+      override def points = Full(new FlotPointsOptions {
+        override def show = Full(true)
+      })
+      override def label = Full("Requested")
+    }
+    val uniqueSeries = new FlotSerie {
+      override def data = uniqueRequested
+      override def color = Full(Right(5))
+      override def lines = Full(new FlotLinesOptions {
+        override def show = Full(true)
+      })
+      override def points = Full(new FlotPointsOptions {
+        override def show = Full(true)
+      })
+      override def label = Full("Requested (Unique)")
+    }
+    List(glimpsedSeries, uniqueSeries, requestedSeries)
+  }
+}
+
+class Flow extends CometActor with CometListener with StreamGraphComet {
+
+  val options: FlotOptions = new FlotOptions {
+    override def legend = Full(legendOptions)
   }
   val idPlaceholder = "flowgid"
 
@@ -45,35 +84,7 @@ class Flow extends CometActor with CometListener {
   }
 
   def series(): List[FlotSerie] = {
-    val a = new FlotSerie {
-      override def data = discovered()
-      override def color = Full(Right(2))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-        override def fill = Full(true)
-      })
-      override def label = Full("Glimpsed")
-    }
-    val b = new FlotSerie {
-      override def data = requested()
-      override def color = Full(Right(3))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
-      override def points = Full(new FlotPointsOptions {
-        override def show = Full(true)
-      })
-      override def label = Full("Requested")
-    }
-    val c = new FlotSerie {
-      override def data = uniqueRequested()
-      override def color = Full(Right(1))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
-      override def label = Full("Requested (Unique)")
-    }
-    List(a,c,b)
+    createSeries(discovered(), requested(), uniqueRequested())
   }
 
   def discovered(): List[(Double, Double)] = {
