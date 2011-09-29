@@ -11,27 +11,21 @@ import java.sql.Timestamp
 import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.widgets.flot._
 
-case class Sample(index: Double, count: Double)
-{
-  def incr: Sample = Sample(index, count + 1)
-}
-
-object Sample
-{
-  def order(a: Sample, b: Sample): Boolean =
-  {
-    a.index < b.index
-  }
-}
-
-class Flow extends CometActor with CometListener {
+class Spurt extends CometActor with CometListener {
 
   var options: FlotOptions = new FlotOptions {
+
+    override def xaxis = Full(new FlotAxisOptions {
+      override def min = Full(1.0)
+      override def max = Full(24.0)
+    })
+
     override def legend = Full(new FlotLegendOptions {
       override def position = Full("nw")
+      override def backgroundOpacity = Full(0.0)
     })
   }
-  val idPlaceholder = "flowgid"
+  val idPlaceholder = "spurtgid"
 
   def registerWith = ArtifactServer
 
@@ -81,7 +75,7 @@ class Flow extends CometActor with CometListener {
   }
 
   def discovered(): List[(Double, Double)] = {
-    val startDate = ago30Days()
+    val startDate = agoStartOfDay()
 
     val cs = transaction(
       from(Mythos.artifacts)(c =>
@@ -90,17 +84,16 @@ class Flow extends CometActor with CometListener {
       ).toList
     )
 
-    var range: Map[(Double, Double), Sample] = last30Days()
+    var range: Map[Double, Sample] = lastDay()
 
     val cal = Calendar.getInstance()
     for (c <- cs)
     {
       cal.setTime(c.discovered)
-      val d: Double = cal.get(Calendar.DAY_OF_YEAR)
-      val y: Double = cal.get(Calendar.YEAR)
-      range.get((d,y)) match {
+      val d: Double = cal.get(Calendar.HOUR_OF_DAY)
+      range.get(d) match {
         case Some(sample) =>
-          range = range + ((d,y) -> sample.incr)
+          range = range + (d -> sample.incr)
         case _ =>
       }
     }
@@ -109,7 +102,7 @@ class Flow extends CometActor with CometListener {
   }
 
   def requested(): List[(Double, Double)] = {
-    val startDate = ago30Days()
+    val startDate = agoStartOfDay()
 
     val cs = transaction(
       from(Mythos.clones)(c =>
@@ -118,17 +111,16 @@ class Flow extends CometActor with CometListener {
       ).toList
     )
 
-    var range: Map[(Double, Double), Sample] = last30Days()
+    var range: Map[Double, Sample] = lastDay()
 
     val cal = Calendar.getInstance()
     for (c <- cs)
     {
       cal.setTime(c.requested)
-      val d: Double = cal.get(Calendar.DAY_OF_YEAR)
-      val y: Double = cal.get(Calendar.YEAR)
-      range.get((d,y)) match {
+      val d: Double = cal.get(Calendar.HOUR_OF_DAY)
+      range.get(d) match {
         case Some(sample) =>
-          range = range + ((d,y) -> sample.incr)
+          range = range + (d -> sample.incr)
         case _ =>
       }
     }
@@ -137,7 +129,7 @@ class Flow extends CometActor with CometListener {
   }
 
   def uniqueRequested(): List[(Double, Double)] = {
-    val startDate = ago30Days()
+    val startDate = agoStartOfDay()
 
     val cs = transaction(
       from(Mythos.clones)(c =>
@@ -146,7 +138,7 @@ class Flow extends CometActor with CometListener {
       ).toList
     )
 
-    var range: Map[(Double, Double), Sample] = last30Days()
+    var range: Map[Double, Sample] = lastDay()
 
     var artifacts = Set.empty[Long]
     val cal = Calendar.getInstance()
@@ -154,11 +146,10 @@ class Flow extends CometActor with CometListener {
     {
       artifacts = artifacts + c.artifactId
       cal.setTime(c.requested)
-      val d: Double = cal.get(Calendar.DAY_OF_YEAR)
-      val y: Double = cal.get(Calendar.YEAR)
-      range.get((d,y)) match {
+      val d: Double = cal.get(Calendar.HOUR_OF_DAY)
+      range.get(d) match {
         case Some(sample) =>
-          range = range + ((d,y) -> sample.incr)
+          range = range + (d -> sample.incr)
         case _ =>
       }
     }
@@ -166,27 +157,22 @@ class Flow extends CometActor with CometListener {
     range.values.toList.sortWith(Sample.order).map(sample => (sample.index, sample.count))
   }
 
-  def last30Days(): Map[(Double, Double), Sample] = {
+  def lastDay(): Map[Double, Sample] = {
     val now: Calendar = Calendar.getInstance()
-    var range = Map.empty[(Double, Double), Sample]
-    for (i <- List.range(0, 30)) {
-      val d: Double = now.get(Calendar.DAY_OF_YEAR)
-      val label = now.get(Calendar.DAY_OF_MONTH)
-      val y: Double = now.get(Calendar.YEAR)
-      val index: Int = 0 - i
-      range = range + ((d, y) -> Sample(index, 0))
-      now.add(Calendar.DAY_OF_YEAR, -1)
+    var range = Map.empty[Double, Sample]
+    for (i <- List.range(0, now.get(Calendar.HOUR_OF_DAY))) {
+      val index: Double = i + 1
+      range = range + (index -> Sample(index, 0))
     }
     range
   }
 
-  def ago30Days(): Timestamp = {
+  def agoStartOfDay(): Timestamp = {
     val cal: Calendar = Calendar.getInstance()
     cal.set(Calendar.SECOND, 0)
     cal.set(Calendar.MINUTE, 0)
     cal.set(Calendar.HOUR_OF_DAY, 1)
     cal.getTime
-    cal.add(Calendar.DAY_OF_YEAR, -30)
     new Timestamp(cal.getTime.getTime)
   }
 }
