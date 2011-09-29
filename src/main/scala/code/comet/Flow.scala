@@ -37,6 +37,7 @@ trait StreamGraphComet {
       override def lines = Full(new FlotLinesOptions {
         override def show = Full(true)
         override def fill = Full(true)
+        override def lineWidth = Full(0)
       })
       override def label = Full("Glimpsed")
     }
@@ -62,7 +63,7 @@ trait StreamGraphComet {
       })
       override def label = Full("Requested (Unique)")
     }
-    List(glimpsedSeries, uniqueSeries, requestedSeries)
+    List(glimpsedSeries, requestedSeries, uniqueSeries)
   }
 }
 
