@@ -30,34 +30,32 @@ trait StreamGraphComet {
       override def backgroundOpacity = Full(0.0)
     }
 
+  private def filterOutZeroSamples(in: List[(Double, Double)]): List[(Double, Double)] = {
+    in.filter(_._2 > 0)
+  }
+
   def createSeries(discovered: List[(Double, Double)], requested: List[(Double, Double)], uniqueRequested: List[(Double, Double)]): List[FlotSerie] = {
     val glimpsedSeries = new FlotSerie {
-      override def data = discovered
+      override def data = filterOutZeroSamples(discovered)
       override def color = Full(Right(4))
       override def lines = Full(new FlotLinesOptions {
         override def show = Full(true)
         override def fill = Full(true)
-        override def lineWidth = Full(0)
+        override def lineWidth = Full(1)
       })
       override def label = Full("Glimpsed")
     }
     val requestedSeries = new FlotSerie {
-      override def data = requested
-      override def color = Full(Right(2))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
+      override def data = filterOutZeroSamples(requested)
+      override def color = Full(Right(5))
       override def points = Full(new FlotPointsOptions {
         override def show = Full(true)
       })
       override def label = Full("Requested")
     }
     val uniqueSeries = new FlotSerie {
-      override def data = uniqueRequested
-      override def color = Full(Right(5))
-      override def lines = Full(new FlotLinesOptions {
-        override def show = Full(true)
-      })
+      override def data = filterOutZeroSamples(uniqueRequested)
+      override def color = Full(Right(2))
       override def points = Full(new FlotPointsOptions {
         override def show = Full(true)
       })
@@ -70,6 +68,10 @@ trait StreamGraphComet {
 class Flow extends CometActor with CometListener with StreamGraphComet {
 
   val options: FlotOptions = new FlotOptions {
+    override def xaxis = Full(new FlotAxisOptions {
+      override def min = Full(-29.0)
+      override def max = Full(0)
+    })
     override def legend = Full(legendOptions)
   }
   val idPlaceholder = "flowgid"

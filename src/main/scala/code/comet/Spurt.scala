@@ -14,12 +14,10 @@ import net.liftweb.widgets.flot._
 class Spurt extends CometActor with CometListener with StreamGraphComet {
 
   var options: FlotOptions = new FlotOptions {
-
     override def xaxis = Full(new FlotAxisOptions {
       override def min = Full(1.0)
       override def max = Full(24.0)
     })
-
     override def legend = Full(legendOptions)
   }
   val idPlaceholder = "spurtgid"
