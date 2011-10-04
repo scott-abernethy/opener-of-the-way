@@ -12,6 +12,7 @@ object Mythos extends Schema {
   val gateways = table[Gateway]
   val artifacts = table[Artifact]
   val clones = table[Clone]
+  val presences = table[Presence]
 
   on(artifacts)(a => declare(
     a.path is(indexed),
@@ -22,11 +23,15 @@ object Mythos extends Schema {
     c.forCultistId is(indexed),
     columns(c.artifactId, c.forCultistId) are(unique, indexed)
   ))
+  on(presences)(p => declare(
+    p.artifactId is(indexed, unique)
+  ))
 
   val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
   val gatewayToArtifacts = oneToManyRelation(gateways, artifacts).via((g,a) => g.id === a.gatewayId)
   val artifactToClones = oneToManyRelation(artifacts, clones).via((a,cl) => a.id === cl.artifactId)
   val cultistToClones = oneToManyRelation(cultists, clones).via((c,cl) => c.id === cl.forCultistId)
+  val artifactToPresences = oneToManyRelation(artifacts, presences).via((a,p) => a.id === p.artifactId)
 
   override def drop = super.drop
 }

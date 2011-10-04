@@ -30,6 +30,7 @@ trait LurkerComponentImpl extends LurkerComponent {
         react {
           case WayFound(g, lp) =>
             if (shouldScour(g)) scourGateway(g, lp)
+            // TODO no need to chain this, move manipulator call external
             manipulator ! Wake
 
           case 'Flush =>

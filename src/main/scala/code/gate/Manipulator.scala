@@ -23,6 +23,8 @@ trait ManipulatorComponent {
 
 trait ManipulatorComponentImpl extends ManipulatorComponent {
   this: ClonerComponent =>
+
+  // TODO can this not be made from the same queries as used in Watcher?
   val waitings: Query[Clone] = from(clones)(c =>
               where(
                 (c.state === CloneState.awaiting) and

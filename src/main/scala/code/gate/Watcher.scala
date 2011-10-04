@@ -9,10 +9,11 @@ import code.model._
 import code.comet.GatewayServer
 
 case class CloneFailed(c: Clone)
+case class PresenceFailed(p: Presence)
 
 object Watcher {
 
-  // TODO should also include check for reattempt timeout, as Manipulator does...
+  // TODO should also include check for reattempt timeout, as Manipulator does... can't be added to query.
   def readyClonesQuery(): Query[Clone] = join(clones, artifacts)( (c, a) =>
     where(c.state <> CloneState.cloned and
       a.witnessed > T.ago(Artifact.lostAfter) and
@@ -21,16 +22,18 @@ object Watcher {
     on(c.artifactId === a.id)
   )
 
-  def sourcesQuery(): Query[Gateway] = join(clones, artifacts, gateways)( (c, a, g) =>
-    where(c.id in from(readyClonesQuery())(c => select(c.id)))
-    select(g)
-    on(c.artifactId === a.id, a.gatewayId === g.id)
-  )
+  // TODO change to Query[Clone, Gateway] for use in Manipulator etc
 
-  def sinksQuery(): Query[Gateway] = join(clones, cultists, gateways)( (cl, cu, g) =>
-    where(cl.id in from(readyClonesQuery())(c => select(c.id)) and g.mode === GateMode.sink)
+  def sourcesQuery(): Query[Gateway] = join(clones, artifacts, gateways, presences.leftOuter)( (c, a, g, p) =>
+    where((c.id in from(readyClonesQuery())(c => select(c.id))) and (p.map(_.state).~.isNull or p.map(_.state).~ <> Some(PresenceState.present)))
     select(g)
-    on(cl.forCultistId === cu.id, cu.id === g.cultistId)
+    on(c.artifactId === a.id, a.gatewayId === g.id, c.artifactId === p.map(_.artifactId))
+  )
+  
+  def sinksQuery(): Query[Gateway] = join(clones, cultists, gateways, presences.leftOuter)( (cl, cu, g, p) =>
+    where(cl.id in from(readyClonesQuery())(c => select(c.id)) and g.mode === GateMode.sink and p.map(_.state) === Some(PresenceState.present))
+    select(g)
+    on(cl.forCultistId === cu.id, cu.id === g.cultistId, cl.artifactId === p.map(_.artifactId))
   )
 
   val scourQuery: Query[Gateway] = gateways.where(g =>
@@ -68,7 +71,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         logger.info("Watcher OPEN: " + open)
         logger.info("Watcher WANT source: " + sources)
         logger.info("Watcher WANT sink " + sinks)
-        logger.info("Watcher WANT scout: " + scour)
+        logger.info("Watcher WANT scour: " + scour)
         logger.info("Watcher CLOSE transient: " + transient)
 
         val toOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
@@ -102,21 +105,28 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     case CloseGateFailed(g) =>
       markTransient(g)
 
-    case CloneFailed(c) =>
-      val (source, sink) = transaction {
-        val source = for {
-          artifact <- c.artifact
+    case PresenceFailed(p) =>
+      val source = transaction {
+        for {
+          artifact <- p.artifact
           gateway <- artifact.gateway.headOption
         } yield gateway
-        val sink = for {
+      }
+      source.foreach( markTransient(_) )
+
+    case CloneFailed(c) =>
+      val sink = transaction {
+//        val source = for {
+//          artifact <- c.artifact
+//          gateway <- artifact.gateway.headOption
+//        } yield gateway
+        for {
           requester <- c.forCultist
           gateway <- requester.destination
         } yield gateway
-        (source, sink)
       }
-      source.foreach( markTransient(_) )
       sink.foreach( markTransient(_) )
-      
+
     case 'Ping =>
       self.reply( 'Pong )
       

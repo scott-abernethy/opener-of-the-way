@@ -39,7 +39,93 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
 
       val x = transaction(Watcher.readyClonesQuery().toList)
-      x must haveSize(0)
+      x must beEmpty
+    }
+
+    "cloned artifacts not present will be sourced" >> {
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+      }
+      val x = transaction(Watcher.sourcesQuery().toList)
+      x must haveSize(1)
+      x(0) must be_==(db.c1g)
+
+      val y = transaction(Watcher.sinksQuery().toList)
+      y must beEmpty
+    }
+
+    "cloned artifacts already present do not need to be sourced" >> {
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.present
+        Mythos.presences.insert(p)
+      }
+      val x = transaction(Watcher.sourcesQuery().toList)
+      x must beEmpty
+
+      val y = transaction(Watcher.sinksQuery().toList)
+      y must haveSize(1)
+      y(0) must be_==(db.c2g)
+    }
+
+    "cloned artifacts already called are still needing to be sourced" >> {
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.called
+        Mythos.presences.insert(p)
+      }
+      val x = transaction(Watcher.sourcesQuery().toList)
+      x must haveSize(1)
+      x(0) must be_==(db.c1g)
+
+      val y = transaction(Watcher.sinksQuery().toList)
+      y must beEmpty
     }
 
   }
@@ -77,7 +163,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
-    "open gateways required for clones" >> {
+    "open source gateways required for presences, when no presence record exists" >> {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
@@ -99,6 +185,36 @@ object WatcherTest extends Specification with Mockito with TestKit {
       within(500 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g))
+        expectNoMsg
+      }
+      x.getMailboxSize() must be_==(0)
+    }
+
+    "open sink gateways required for clones" >> {
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.present
+        Mythos.presences.insert(p)
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      within(500 millis) {
+        x ! 'Wake
         expectMsg(OpenGateway(db.c2g))
         expectNoMsg
       }
@@ -176,12 +292,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
-    "close transient gateways, but not if any clones are cloning (to be safe)" >> {
+    "close transient gateways, but not source gateways if any presences are presenting or sink gateways if any clones are cloning (to be safe)" >> {
       db.reset
       transaction {
-        db.c1g.state = GateState.transient
+        db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.state = GateState.open
+        db.c2g.state = GateState.transient
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
@@ -191,11 +307,14 @@ object WatcherTest extends Specification with Mockito with TestKit {
         c.state = CloneState.cloning
         c.attempts = 0
         Mythos.clones.insert(c)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.present
+        Mythos.presences.insert(p)
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
       within(500 millis) {
         x ! 'Wake
-        expectMsg(OpenGateway(db.c2g)) // because there is a clone
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
@@ -248,7 +367,34 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
-    "listen for failed clones and mark associated gateways as transient" >> {
+    "listen for failed presences and mark associated source gateways as transient" >> {
+      db.reset
+      val p = transaction {
+        db.c1g.state = GateState.open
+        db.c2g.state = GateState.open
+        db.c3g.state = GateState.open
+        Mythos.gateways.update(db.c1g :: db.c2g :: db.c3g :: Nil)
+        Mythos.clones.insert( Clone.create(db.c1ga2.id, db.c3.id, CloneState.awaiting) )
+        Mythos.presences.insert( Presence.create(db.c1ga2.id, PresenceState.called) )
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      within(500 millis) {
+        x ! PresenceFailed(p)
+        x ! 'Ping
+        expectMsg('Pong)
+      }
+      transaction {
+        val g1 = Mythos.gateways.lookup(db.c1g.id).getOrElse(null)
+        val g2 = Mythos.gateways.lookup(db.c2g.id).getOrElse(null)
+        val g3 = Mythos.gateways.lookup(db.c3g.id).getOrElse(null)
+        g1.state must be_==(GateState.transient)
+        g2.state must be_==(GateState.open)
+        g3.state must be_==(GateState.open)
+      }
+      x.getMailboxSize() must be_==(0)
+    }
+
+    "listen for failed clones and mark associated sink gateways as transient" >> {
       db.reset
       val c = transaction {
         db.c1g.state = GateState.open
@@ -267,7 +413,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         val g1 = Mythos.gateways.lookup(db.c1g.id).getOrElse(null)
         val g2 = Mythos.gateways.lookup(db.c2g.id).getOrElse(null)
         val g3 = Mythos.gateways.lookup(db.c3g.id).getOrElse(null)
-        g1.state must be_==(GateState.transient)
+        g1.state must be_==(GateState.open)
         g2.state must be_==(GateState.open)
         g3.state must be_==(GateState.transient)
       }
