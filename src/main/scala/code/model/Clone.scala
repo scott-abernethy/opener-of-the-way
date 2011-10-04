@@ -29,6 +29,7 @@ object Clone {
     c.state = state
     c
   }
+
   def fake(artifactId: Long, forCultistId: Long, state: CloneState.Value, requested: Timestamp, attempted: Timestamp) = {
     val c = new Clone
     c.artifactId = artifactId
@@ -38,6 +39,8 @@ object Clone {
     c.attempted = attempted
     c
   }
+
+  lazy val nonRepeatableBefore = 30 * 60 * 1000L
 }
 
 object CloneState extends Enumeration {

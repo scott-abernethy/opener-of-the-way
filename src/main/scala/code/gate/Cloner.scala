@@ -1,15 +1,15 @@
 package code.gate
 
-import java.util.Calendar
 import code.comet._
 import code.model._
 import code.model.Mythos._
 import scala.collection.JavaConversions._
-import scala.actors.Actor
-import scala.actors.Actor._
 import net.liftweb.common._
 import org.squeryl.Query
 import org.squeryl.PrimitiveTypeMode._
+import java.io.File
+
+// TODO merge with Presenter
 
 trait Cloner {
   def currently: Option[Clone]
@@ -21,11 +21,6 @@ trait ClonerComponent {
   val cloner: Cloner
 }
 
-    /*
-    -q quiet
-    -t preserve modification times
-    --progress
-    */
 trait ClonerComponentImpl extends ClonerComponent {
   this: ProcessorComponent with ManipulatorComponent =>
 
@@ -43,8 +38,9 @@ trait ClonerComponentImpl extends ClonerComponent {
       transaction {
         // todo fix with better comprehension
         for {
-          src <- job.artifact.flatMap(_.localPath)
-          dest <- job.forCultist.flatMap(_.destination).map(_.clonesPath)
+          destFileName <- job.artifact.map(_.fileName)
+          dest <- job.forCultist.flatMap(_.destination).map(_.clonesPath).map(new File(_, destFileName).getPath)
+          src = job.artifactId.toString
         } yield ("cloner" :: escapeString(src) :: escapeString(dest) ::  Nil)
       } match {
         case Some(command) =>
@@ -60,7 +56,7 @@ trait ClonerComponentImpl extends ClonerComponent {
     }
 
     def attempted(c: Clone, result: Result) {
-      logger.debug("Process result " + result)
+      logger.debug("Cloner result " + result)
       c.state = if (result.success) CloneState.cloned else CloneState.awaiting
       c.attempts = c.attempts + 1
       c.duration = result.duration

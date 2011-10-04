@@ -16,7 +16,7 @@ class Presence extends MythosObject {
 }
 
 object Presence {
-  def create(artifactId: Long, state: PresenceState.Value): Presence = {
+  def create(artifactId: Long, state: PresenceState.Value = PresenceState.called): Presence = {
     val x = new Presence
     x.artifactId = artifactId
     x.state = state
@@ -28,6 +28,7 @@ object PresenceState extends Enumeration {
   type PresenceState = Value
 
   val called = Value("Called")
+  val presenting = Value("Presenting")
   val present = Value("Present")
   val released = Value("Released")
 }

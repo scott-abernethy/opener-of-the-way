@@ -11,7 +11,7 @@ import net.liftweb.common._
 import org.squeryl.Query
 import org.squeryl.PrimitiveTypeMode._
 import code.util.{Maintainer, Maintain}
-
+import code.gate.Watcher._
 case object Wake
 case class Warn(invalid: Clone)
 case object Withdraw
@@ -22,18 +22,26 @@ trait ManipulatorComponent {
 }
 
 trait ManipulatorComponentImpl extends ManipulatorComponent {
-  this: ClonerComponent =>
+  this: ClonerComponent with PresenterComponent =>
 
-  // TODO can this not be made from the same queries as used in Watcher?
-  val waitings: Query[Clone] = from(clones)(c =>
-              where(
-                (c.state === CloneState.awaiting) and
-                (c.forCultistId in from(Gateway.viableDestinations)(g => select(g.cultistId))) and
-                (c.artifactId in from(Artifact.viableSources)(a => select(a.id)))
-              )
-              select(c)
-              orderBy(c.attempts asc, c.id asc)
-            )
+  def waitingPresences(): List[Clone] = {
+    transaction(
+      sourcesQuery()
+        .toList
+        .filter(x => !x._3.exists(_.state == PresenceState.presenting) && x._2.state == GateState.open)
+        .map(_._1)
+    )
+  }
+
+  def waitingClones(): List[Clone] = {
+    transaction(
+      sinksQuery()
+        .toList
+        .filter(x => x._1.state == CloneState.awaiting && x._2.state == GateState.open)
+        .map(_._1)
+    )
+  }
+
   val manipulator = new Manipulator with Loggable {
     val maintainer = new Maintainer(this, 1 * 60 * 1000L).start
     def act() {
@@ -43,28 +51,49 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             // has the current cloner timed out?
             // get random(?) waiting clone
             // todo is this actually in another thread?
-            if (cloner.currently.isEmpty) {
-              val cs = for {
-                c <- transaction(waitings.toList)
-                if c.attempts == 0 || c.attempted.before(T.ago((c.attempts * c.attempts) * 60 * 1000L))
-              } yield c
-              cs.headOption.foreach{ c => cloner.start(c) }
+
+            val presences: List[Clone] = waitingPresences()
+            logger.debug("Manipulator WAITING presences: " + presences)
+            if (presenter.currently.isEmpty) {
+              presences.headOption.foreach{ p => presenter.start(p) }
             }
-          case Warn(invalid) => if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
+            val clones: List[Clone] = waitingClones()
+            logger.debug("Manipulator WAITING clones: " + clones)
+            if (cloner.currently.isEmpty) {
+              clones.headOption.foreach{ c => cloner.start(c) }
+            }
+
+          case Warn(invalid) =>
+            if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
+          
           case Withdraw =>
             maintainer ! Destroy
+            presenter.cancel
             cloner.cancel
             exit
+
           case Ping => reply(Pong)
-          case Activate => maintainer ! Activate
-          case Maintain => self ! Wake
+
+          case Activate =>
+            maintainer ! Activate
+
+          case Maintain =>
+            self ! Wake
+
           case 'Flush =>
+            // TODO actually, destroy all presences on Flush (as tmp directory might be gone anyway).
+            if (presenter.currently.isEmpty) {
+              transaction ( update(presences)(p =>
+                setAll(p.state := PresenceState.released))
+              )
+            }
             if (cloner.currently.isEmpty) {
               transaction ( update(clones)(c =>
                 where(c.state === CloneState.cloning)
                 set(c.state := CloneState.awaiting))
               )
             }
+
           case _ =>
         }
       }

@@ -13,26 +13,32 @@ case class PresenceFailed(p: Presence)
 
 object Watcher {
 
-  // TODO should also include check for reattempt timeout, as Manipulator does... can't be added to query.
+  // TODO presences need to be non repeatable within a time period also. Reuse clone for all this?
+  // TODO split ready into readyPresences and readyClones.
+
   def readyClonesQuery(): Query[Clone] = join(clones, artifacts)( (c, a) =>
     where(c.state <> CloneState.cloned and
+      (c.attempts === 0 or c.attempted < T.ago(Clone.nonRepeatableBefore)) and
       a.witnessed > T.ago(Artifact.lostAfter) and
       a.discovered < T.ago(Artifact.immatureBefore))
     select(c)
+    orderBy(c.attempts asc, c.id asc)
     on(c.artifactId === a.id)
   )
 
-  // TODO change to Query[Clone, Gateway] for use in Manipulator etc
-
-  def sourcesQuery(): Query[Gateway] = join(clones, artifacts, gateways, presences.leftOuter)( (c, a, g, p) =>
+  // TODO remove sourcing for released Presences.
+  
+  def sourcesQuery(): Query[(Clone,Gateway,Option[Presence])] = join(clones, artifacts, gateways, presences.leftOuter)( (c, a, g, p) =>
     where((c.id in from(readyClonesQuery())(c => select(c.id))) and (p.map(_.state).~.isNull or p.map(_.state).~ <> Some(PresenceState.present)))
-    select(g)
+    select((c,g,p))
+    orderBy(c.attempts asc, c.id asc)
     on(c.artifactId === a.id, a.gatewayId === g.id, c.artifactId === p.map(_.artifactId))
   )
   
-  def sinksQuery(): Query[Gateway] = join(clones, cultists, gateways, presences.leftOuter)( (cl, cu, g, p) =>
+  def sinksQuery(): Query[(Clone,Gateway,Option[Presence])] = join(clones, cultists, gateways, presences.leftOuter)( (cl, cu, g, p) =>
     where(cl.id in from(readyClonesQuery())(c => select(c.id)) and g.mode === GateMode.sink and p.map(_.state) === Some(PresenceState.present))
-    select(g)
+    select((cl,g,p))
+    orderBy(cl.attempts asc, cl.id asc)
     on(cl.forCultistId === cu.id, cu.id === g.cultistId, cl.artifactId === p.map(_.artifactId))
   )
 
@@ -61,8 +67,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
   def receive = {
     case 'Wake => {
       val (toOpen, toClose) = transaction {
-        val sources = sourcesQuery().toList.distinct
-        val sinks = sinksQuery.toList.distinct
+        val sources = sourcesQuery().toList.map(_._2).distinct
+        val sinks = sinksQuery.toList.map(_._2).distinct
         val scour = scourQuery.toList.distinct
         val open = openQuery.toList.distinct
         val transient = transientQuery.toSet
@@ -75,6 +81,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         logger.info("Watcher CLOSE transient: " + transient)
 
         val toOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
+        // TODO don't close gateways involved in presence either!!!
         var toClose = if (isCloning) Set.empty[Gateway] else transient
         val toTransient = (open.toSet -- toOpen) -- transient
 

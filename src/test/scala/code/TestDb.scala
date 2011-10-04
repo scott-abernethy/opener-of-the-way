@@ -40,7 +40,7 @@ class TestDb extends Db {
       val sheep = gateways.insert(g3)
 
       val now = new java.sql.Timestamp(new java.util.Date().getTime)
-      val glue = artifacts.insert(new Artifact(cow.id, "glue", T.ago(15*60*1000), now))
+      val glue = artifacts.insert(new Artifact(cow.id, "more/glue.txt", T.ago(15*60*1000), now))
       val paper = artifacts.insert(new Artifact(cow.id, "stock foo/paper part p", T.ago(15*60*1000), now))
     }
   }

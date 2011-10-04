@@ -12,6 +12,7 @@ object Environment
   extends LurkerComponentImpl
   with FileSystemComponentImpl
   with ClonerComponentImpl
+  with PresenterComponentImpl
   with ManipulatorComponentImpl
   with ProcessorComponentImpl
   with Loggable

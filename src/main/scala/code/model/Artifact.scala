@@ -24,6 +24,8 @@ class Artifact(
 
   def localPath: Option[String] = gateway.headOption.map(g => new File(g.localPath, path).getPath)
 
+  def fileName: String = new File(path).getName
+  
   def available = true
 
   def owner: Option[Cultist] = inTransaction(gateway.headOption.flatMap(_.cultist.headOption))

@@ -28,7 +28,7 @@ object ClonerTestSpecs extends Specification with Mockito {
       x.processor.process(any[List[String]]) returns(processing)
       processing.waitFor returns(Result(true, "hlhhklhlkjhkjhlkjhlh" :: Nil, -1))
       x.cloner.start(job)
-      there was one(x.processor).process("cloner" :: "/tmp/cache/gate/cow/glue" :: "/tmp/cache/gate/goat/clones" :: Nil)
+      there was one(x.processor).process("cloner" :: "1" :: "/tmp/cache/gate/goat/clones/glue.txt" :: Nil)
     }
   }
 

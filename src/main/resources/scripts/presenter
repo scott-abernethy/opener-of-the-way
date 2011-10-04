@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO merge with presenter
+# TODO merge with cloner
 
 function print_usage {
   script_name=$(basename $0)
@@ -19,12 +19,12 @@ function abort_check {
   fi
 }
 
-src_id=$1
-src_file=/tmp/presences/$src_id
-dest_file=$2
+src_file=$1
+dest_id=$2
+dest_file=/tmp/presences/$dest_id
 dest_dir=$(dirname "$dest_file")
 
-echo "clone: $src_file -> $dest_file"
+echo "present: $src_file -> $dest_file"
 mkdir -p "$dest_dir"
 
 # TODO check src exists?
