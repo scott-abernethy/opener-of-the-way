@@ -64,28 +64,37 @@ trait LurkerComponentImpl extends LurkerComponent {
     private def scourGateway(g: Gateway, lp: String): Unit = {
       logger.debug("WayScoured " + lp)
       val now = T.now
-      val filesFound = fileSystem.find(lp).filterNot(_.matches("^/?(clones|System Volume Information|Recycled)/.*")).toSet
-      transaction {
-        // TODO do this in Watcher instead.
-        updateGate(g, x => {
-          x.scoured = now
-          x
-        })
-        // todo (when) do we remove missing files?
-        filesFound.foreach {
-          f =>
-            val q = from(g.artifacts)(a => where(a.path === f) select (a))
-            if (q.isEmpty) {
-              val created = artifacts.insert(new Artifact(g.id, f, now, now))
-              ArtifactServer ! ArtifactCreated(created)
-            } else {
-              q.toList.foreach {
-                a =>
-                  a.witnessed = now
-                  artifacts.update(a)
-              }
+      val filesFound = fileSystem.find(lp).filterNot(_._1.matches("^/?(clones|System Volume Information|Recycled)/.*"))
+      // TODO (when) do we remove missing files?
+      filesFound.foreach { i =>
+        val path = i._1
+        val length = i._2
+        transaction {
+          from(g.artifacts)(a => where(a.path === path) select(a)).headOption match {
+            case Some(a) => {
+              a.witnessed = now
+              a.length = length
+              artifacts.update(a)
+              // TODO update ArtifactServer?
             }
+            case None => {
+              val a = new Artifact
+              a.gatewayId = g.id
+              a.path = path
+              a.discovered = now
+              a.witnessed = now
+              a.length = length
+              ArtifactServer ! ArtifactCreated(artifacts.insert(a))
+            }
+          }
         }
+      }
+      transaction {
+        // TODO do this in Watcher instead?
+        update(gateways)(x =>
+          where(x.id === g.id)
+          set(x.scoured := now)
+        )
       }
     }
 

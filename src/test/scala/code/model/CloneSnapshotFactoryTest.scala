@@ -19,11 +19,11 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
       val time1 = T.at(2011, 3, 20, 1, 2, 3)
       val time2 = T.at(2011, 3, 22, 1, 2, 3)
       artifacts.delete(from(artifacts)(a => select(a)))
-      artifacts.insert(new Artifact(1L, "a/b/c", time1, T.now))
-      artifacts.insert(new Artifact(2L, "fudge", time1, T.now))
-      artifacts.insert(new Artifact(1L, "d/e/f", time2, T.now))
-      artifacts.insert(new Artifact(2L, "sugar", time2, T.now))
-      artifacts.insert(new Artifact(2L, "chocolate", time2, T.now))
+      artifacts.insert(Artifact.create(1L, "a/b/c", time1, T.now))
+      artifacts.insert(Artifact.create(2L, "fudge", time1, T.now))
+      artifacts.insert(Artifact.create(1L, "d/e/f", time2, T.now))
+      artifacts.insert(Artifact.create(2L, "sugar", time2, T.now))
+      artifacts.insert(Artifact.create(2L, "chocolate", time2, T.now))
     }
   }
 
@@ -69,11 +69,11 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
     "ordered by non-completes by request date, then completes by completion date" >> {
       inTransaction {
 //        artifacts.delete(from(artifacts)(a => select(a)))
-        val a1 = artifacts.insert(new Artifact(1L, "aa", T.now, T.now))
-        val a2 = artifacts.insert(new Artifact(1L, "bb", T.now, T.now))
-        val a3 = artifacts.insert(new Artifact(1L, "cc", T.now, T.now))
-        val a4 = artifacts.insert(new Artifact(1L, "dd", T.now, T.now))
-        val a5 = artifacts.insert(new Artifact(1L, "ee", T.now, T.now))
+        val a1 = artifacts.insert(Artifact.create(1L, "aa", T.now, T.now))
+        val a2 = artifacts.insert(Artifact.create(1L, "bb", T.now, T.now))
+        val a3 = artifacts.insert(Artifact.create(1L, "cc", T.now, T.now))
+        val a4 = artifacts.insert(Artifact.create(1L, "dd", T.now, T.now))
+        val a5 = artifacts.insert(Artifact.create(1L, "ee", T.now, T.now))
 
         clones.delete(from(clones)(c => select(c)))
         clones.insert(Clone.fake(a3.id, 2L, CloneState.awaiting, new Timestamp(600000), T.yesterday))

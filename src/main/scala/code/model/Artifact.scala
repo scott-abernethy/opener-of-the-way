@@ -10,13 +10,12 @@ import code.gate.T
 import collection.immutable.TreeMap
 import xml.Node
 
-class Artifact(
-  var gatewayId: Long, 
-  var path: String, 
-  var discovered: Timestamp, 
-  var witnessed: Timestamp
-) extends MythosObject {
-  def this() = this(0, "", T.now, T.now)
+class Artifact extends MythosObject {
+  var gatewayId: Long = 0
+  var path: String = ""
+  var discovered: Timestamp = T.now
+  var witnessed: Timestamp = T.now
+  var length: Long = -1
 
   def description = path
 
@@ -89,6 +88,15 @@ object Artifact {
     where(a.gatewayId === g.id and g.state === GateState.open)
     select(a)
   )
+
+  def create(gatewayId: Long, path: String, discovered: Timestamp, witnessed: Timestamp) = {
+    val x = new Artifact
+    x.gatewayId = gatewayId
+    x.path = path
+    x.discovered = discovered
+    x.witnessed = witnessed
+    x
+  }
 
   lazy val immatureBefore = 10 * 60 * 1000L
 
