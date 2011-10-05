@@ -13,30 +13,26 @@ case class PresenceFailed(p: Presence)
 
 object Watcher {
 
-  // TODO presences need to be non repeatable within a time period also. Reuse clone for all this?
-  // TODO split ready into readyPresences and readyClones.
-
-  def readyClonesQuery(): Query[Clone] = join(clones, artifacts)( (c, a) =>
-    where(c.state <> CloneState.cloned and
-      (c.attempts === 0 or c.attempted < T.ago(Clone.nonRepeatableBefore)) and
-      a.witnessed > T.ago(Artifact.lostAfter) and
-      a.discovered < T.ago(Artifact.immatureBefore))
-    select(c)
-    orderBy(c.attempts asc, c.id asc)
-    on(c.artifactId === a.id)
-  )
-
-  // TODO remove sourcing for released Presences.
-  
   def sourcesQuery(): Query[(Clone,Gateway,Option[Presence])] = join(clones, artifacts, gateways, presences.leftOuter)( (c, a, g, p) =>
-    where((c.id in from(readyClonesQuery())(c => select(c.id))) and (p.map(_.state).~.isNull or p.map(_.state).~ <> Some(PresenceState.present)))
+    where(
+      c.state <> CloneState.cloned and
+      (p.map(_.state).~.isNull or p.get.state === PresenceState.called or p.get.state === PresenceState.presenting) and
+      (p.map(_.attempts).~.isNull or p.get.attempts === 0 or p.get.attempted < T.ago(Clone.nonRepeatableBefore)) and
+      a.witnessed > T.ago(Artifact.lostAfter) and
+      a.discovered < T.ago(Artifact.immatureBefore)
+    )
     select((c,g,p))
     orderBy(c.attempts asc, c.id asc)
     on(c.artifactId === a.id, a.gatewayId === g.id, c.artifactId === p.map(_.artifactId))
   )
   
   def sinksQuery(): Query[(Clone,Gateway,Option[Presence])] = join(clones, cultists, gateways, presences.leftOuter)( (cl, cu, g, p) =>
-    where(cl.id in from(readyClonesQuery())(c => select(c.id)) and g.mode === GateMode.sink and p.map(_.state) === Some(PresenceState.present))
+    where(
+      cl.state <> CloneState.cloned and
+      (cl.attempts === 0 or cl.attempted < T.ago(Clone.nonRepeatableBefore)) and
+      g.mode === GateMode.sink and
+      p.map(_.state) === Some(PresenceState.present)
+    )
     select((cl,g,p))
     orderBy(cl.attempts asc, cl.id asc)
     on(cl.forCultistId === cu.id, cu.id === g.cultistId, cl.artifactId === p.map(_.artifactId))

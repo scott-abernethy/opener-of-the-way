@@ -30,5 +30,6 @@ object PresenceState extends Enumeration {
   val called = Value("Called")
   val presenting = Value("Presenting")
   val present = Value("Present")
+  val unknown = Value("Unknown")
   val released = Value("Released")
 }

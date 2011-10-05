@@ -38,11 +38,11 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.clones.insert(c)
       }
 
-      val x = transaction(Watcher.readyClonesQuery().toList)
+      val x = transaction(Watcher.sourcesQuery().toList)
       x must beEmpty
     }
 
-    "clone is not ready if very recently attempted (simplified rule)" >> {
+    "sink is not ready if very recently attempted (simplified rule)" >> {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
@@ -56,6 +56,10 @@ object WatcherTest extends Specification with Mockito with TestKit {
         db.c1ga1.discovered = T.yesterday
         db.c1ga1.witnessed = T.now
         Mythos.artifacts.update(db.c1ga1)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.present
+        Mythos.presences.insert(p)
         val c = new Clone()
         c.artifactId = db.c1ga1.id
         c.forCultistId = db.c2.id
@@ -65,7 +69,39 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.clones.insert(c)
       }
 
-      val x = transaction(Watcher.readyClonesQuery().toList)
+      val x = transaction(Watcher.sinksQuery().toList)
+      x must beEmpty
+    }
+
+    "source is not ready if very recently attempted (simplified rule)" >> {
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        db.c1ga1.discovered = T.yesterday
+        db.c1ga1.witnessed = T.now
+        Mythos.artifacts.update(db.c1ga1)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.called
+        p.attempts = 1
+        p.attempted = T.ago(1000L * 60 * 29)
+        Mythos.presences.insert(p)
+        val c = new Clone()
+        c.artifactId = db.c1ga1.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+      }
+
+      val x = transaction(Watcher.sourcesQuery().toList)
       x must beEmpty
     }
 
