@@ -119,10 +119,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
 
     case CloneFailed(c) =>
       val sink = transaction {
-//        val source = for {
-//          artifact <- c.artifact
-//          gateway <- artifact.gateway.headOption
-//        } yield gateway
         for {
           requester <- c.forCultist
           gateway <- requester.destination

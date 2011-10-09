@@ -3,6 +3,8 @@ package code.model
 import Mythos._
 import java.sql.Timestamp
 import code.gate.T
+import org.squeryl.Query
+import org.squeryl.PrimitiveTypeMode._
 
 class Presence extends MythosObject {
   var artifactId: Long = 0
@@ -22,6 +24,16 @@ object Presence {
     x.state = state
     x
   }
+
+  def forArtifact(artifactId: Long): Query[Presence] = {
+    from(Mythos.presences)(p =>
+      where( p.artifactId === artifactId )
+      select( p )
+    )
+  }
+
+  // Set this in properties file?
+  lazy val maxPresenceLength = 1024L * 1024 * 1024 * 50 // 50GB
 }
 
 object PresenceState extends Enumeration {

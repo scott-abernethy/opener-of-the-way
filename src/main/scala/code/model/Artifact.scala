@@ -89,12 +89,13 @@ object Artifact {
     select(a)
   )
 
-  def create(gatewayId: Long, path: String, discovered: Timestamp, witnessed: Timestamp) = {
+  def create(gatewayId: Long, path: String, discovered: Timestamp, witnessed: Timestamp, length: Long = -1) = {
     val x = new Artifact
     x.gatewayId = gatewayId
     x.path = path
     x.discovered = discovered
     x.witnessed = witnessed
+    x.length = length
     x
   }
 
