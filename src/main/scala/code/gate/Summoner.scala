@@ -85,6 +85,7 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
             presences.insert(p)
           }
         }
+        // TODO notify manipulator?
       }
       releaseIfNecessary()
     }

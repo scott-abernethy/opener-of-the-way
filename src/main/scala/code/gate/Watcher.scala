@@ -39,7 +39,7 @@ object Watcher {
 
   val scourQuery: Query[Gateway] = gateways.where(g =>
     g.mode === GateMode.source and
-    g.scoured < T.ago(3 * 60 * 60 * 1000)
+    g.scoured < T.ago(Gateway.scourPeriod)
   )
 
   val openQuery: Query[Gateway] = gateways.where(g =>

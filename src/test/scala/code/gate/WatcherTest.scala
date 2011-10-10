@@ -221,7 +221,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       transaction {
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.closed
-        db.c1g.scoured = T.ago((3 * 60 * 60 * 1000) + 5000)
+        db.c1g.scoured = T.ago((1 * 60 * 60 * 1000L) + 5000)
         db.c2g.mode = GateMode.source
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
