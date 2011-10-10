@@ -36,7 +36,7 @@ trait StreamGraphComet {
 
   def createSeries(discovered: List[(Double, Double)], requested: List[(Double, Double)], uniqueRequested: List[(Double, Double)]): List[FlotSerie] = {
     val glimpsedSeries = new FlotSerie {
-      override def data = filterOutZeroSamples(discovered)
+      override def data = discovered
       override def color = Full(Right(4))
       override def lines = Full(new FlotLinesOptions {
         override def show = Full(true)
