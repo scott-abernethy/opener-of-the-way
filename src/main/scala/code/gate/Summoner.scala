@@ -6,10 +6,13 @@ import code.model._
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
+import java.io.File
 
 case class Summon(artifactId: Long)
 
 object Summoner {
+
+  // TODO Merge with Watcher sources query?
   def requestedPresences(): Query[Clone] = {
     join(clones, presences.leftOuter)( (c, p) =>
       where(
@@ -24,7 +27,7 @@ object Summoner {
   def presentByPurge(): Query[(Presence, Artifact, Option[Clone])] = {
     join(presences, artifacts, clones.leftOuter)( (p, a, c) =>
       where(
-        (p.state === PresenceState.present or p.state === PresenceState.unknown)
+        (p.state === PresenceState.present or p.state === PresenceState.unknown or p.state === PresenceState.released)
       )
       select( (p, a, c) )
       orderBy( a.discovered asc, a.id asc )
@@ -44,13 +47,25 @@ object Summoner {
     }
 
   }
+
+  def presenceToClean(): Query[Presence] = {
+    from(presences)( p =>
+      where( p.state === PresenceState.released )
+      select( p )
+    )
+  }
 }
 
 class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
   import Summoner._
 
   def receive = {
+
+    // TODO don't add / summon it if no room.
+
     case 'Wake => {
+      // TODO waking should be a backup mechanism for doing this. Do on demand.
+      clean()
       for ( clone <- transaction( requestedPresences().toList ) ) {
         self ! Summon(clone.artifactId)
       }
@@ -81,20 +96,40 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
   private def releaseIfNecessary() {
     transaction {
       val ps = presentByPurgeCombined()
-      val length = ps.foldLeft(0L)( (sum,i) => sum + i._2.length )
-      if (length > Presence.maxPresenceLength) {
-        val release = ps.filter(i => !isAwaiting(i._3)).headOption match {
-          case Some((presence, _, _)) =>
-            presence.state = PresenceState.released
-            presences.update( presence )
-          case _ =>
-        }
+      var length = ps.foldLeft(0L)( (sum,i) => sum + i._2.length )
+      logger.debug("Summoner LENGTH: " + length + " = " + toGiB(length))
+      
+      val releasable = ps.filter( i => !isAwaiting(i._3) ).filter( i => i._1.state != PresenceState.released )
+
+      val release = releasable.takeWhile{ i =>
+        val take = length > Presence.maxPresenceLength
+        length = length - i._2.length
+        take
       }
-      // TODO delete more than one at a time?
+
+      release.foreach { i =>
+        val presence = i._1
+        presence.state = PresenceState.released
+        presences.update( presence )
+      }
     }
   }
 
   private def isAwaiting(clone: List[Clone]): Boolean = {
     clone.map(_.state).exists(s => s == CloneState.awaiting || s == CloneState.cloning)
+  }
+
+  private def clean() {
+    for (p <- transaction( presenceToClean().toList )) {
+      // TODO do this in separate thread...
+      val localFile = new File(p.localPath)
+      if ( !localFile.exists() || localFile.delete() ) {
+        transaction( presences.deleteWhere( x => x.id === p.id ) )
+      }
+    }
+  }
+
+  private def toGiB(length: Long): String = {
+    (length / Presence.gigaByteLength) + " GiB"
   }
 }

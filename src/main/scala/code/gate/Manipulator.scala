@@ -24,11 +24,11 @@ trait ManipulatorComponent {
 trait ManipulatorComponentImpl extends ManipulatorComponent {
   this: ClonerComponent with PresenterComponent =>
 
-  def waitingPresences(): List[Clone] = {
+  def waitingPresences(): List[Presence] = {
     transaction(
       sourcesQuery()
         .toList
-        .filter(x => !x._3.exists(_.state == PresenceState.presenting) && x._2.state == GateState.open)
+        .filter(x => x._1.state == PresenceState.called && x._2.state == GateState.open)
         .map(_._1)
     )
   }
@@ -48,11 +48,14 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
       loop {
         react {
           case Wake =>
+            // TODO waking should be a backup mechanism for doing this. Do on demand.
+
             // has the current cloner timed out?
             // get random(?) waiting clone
-            // todo is this actually in another thread?
+            // TODO is this actually in another thread?
 
-            val presences: List[Clone] = waitingPresences()
+            // TODO don't present if no space available!! get summoner to ensure, message goes via them.
+            val presences: List[Presence] = waitingPresences()
             logger.debug("Manipulator WAITING presences: " + presences)
             if (presenter.currently.isEmpty) {
               presences.headOption.foreach{ p => presenter.start(p) }
@@ -84,7 +87,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             // TODO actually, destroy all presences on Flush (as tmp directory might be gone anyway).
             if (presenter.currently.isEmpty) {
               transaction ( update(presences)(p =>
-                setAll(p.state := PresenceState.released))
+                setAll(p.state := PresenceState.unknown))
               )
             }
             if (cloner.currently.isEmpty) {

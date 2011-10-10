@@ -124,7 +124,7 @@ object ManipulatorTestSpecs extends Specification with Mockito {
       x.manipulator.start
       x.manipulator ! Withdraw
       x.manipulator !? (1000, Ping)
-      there was no(x.presenter).start(any[Clone])
+      there was no(x.presenter).start(any[Presence])
       there was no(x.cloner).start(any[Clone])
       there was one(x.presenter).cancel
       there was one(x.cloner).cancel

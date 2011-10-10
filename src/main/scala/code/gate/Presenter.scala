@@ -11,7 +11,7 @@ import code.model._
 
 trait Presenter {
   def currently: Option[Presence]
-  def start(job: Clone)
+  def start(job: Presence)
   def cancel
 }
 
@@ -27,15 +27,7 @@ trait PresenterComponentImpl extends PresenterComponent {
 
     def currently = cur
 
-    def start(clone: Clone) {
-      // TODO work of presence table only, ignore clones table.
-      
-      val presence = transaction {
-        from(presences)(p =>
-          where(p.artifactId === clone.artifactId)
-          select(p)
-        ).headOption.getOrElse(Presence.create(clone.artifactId))
-      }
+    def start(presence: Presence) {
 
       presence.state = PresenceState.presenting
       presence.attempted = T.now

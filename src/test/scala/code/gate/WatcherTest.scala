@@ -105,9 +105,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x must beEmpty
     }
 
-    "cloned artifacts not present will be sourced" >> {
+    "cloned artifacts with no presence will not be sourced" >> {
       db.reset
-      val c = transaction {
+      transaction {
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
@@ -124,16 +124,39 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.clones.insert(c)
       }
       val x = transaction(Watcher.sourcesQuery().toList)
-      x must haveSize(1)
-      x(0) must be_==((c, db.c1g, None))
+      x must beEmpty
 
       val y = transaction(Watcher.sinksQuery().toList)
       y must beEmpty
     }
 
-    "cloned artifacts already present do not need to be sourced" >> {
+    "called presence will be sourced" >> {
       db.reset
-      val (c,p) = transaction {
+      val p = transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.now
+        db.c2g.mode = GateMode.sink
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.called
+        Mythos.presences.insert(p)
+      }
+      val x = transaction(Watcher.sourcesQuery().toList)
+      x must haveSize(1)
+      x(0) must be_==((p, db.c1g))
+
+      val y = transaction(Watcher.sinksQuery().toList)
+      y must beEmpty
+    }
+
+    "presence does not need to be sourced" >> {
+      db.reset
+      val p = transaction {
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
@@ -145,24 +168,18 @@ object WatcherTest extends Specification with Mockito with TestKit {
         val p = new Presence()
         p.artifactId = db.c1ga1.id
         p.state = PresenceState.present
-        val c = new Clone()
-        c.artifactId = db.c1ga1.id
-        c.forCultistId = db.c2.id
-        c.state = CloneState.awaiting
-        c.attempts = 0
-        (Mythos.clones.insert(c), Mythos.presences.insert(p))
+        Mythos.presences.insert(p)
       }
       val x = transaction(Watcher.sourcesQuery().toList)
       x must beEmpty
 
       val y = transaction(Watcher.sinksQuery().toList)
-      y must haveSize(1)
-      y(0) must be_==((c, db.c2g, Some(p)))
+      y must beEmpty
     }
 
-    "cloned artifacts already called are still needing to be sourced" >> {
+    "cloned artifacts called again are still needing to be sourced" >> {
       db.reset
-      val (c,p) = transaction {
+      val p = transaction {
         db.c1g.mode = GateMode.source
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
@@ -177,13 +194,13 @@ object WatcherTest extends Specification with Mockito with TestKit {
         val c = new Clone()
         c.artifactId = db.c1ga1.id
         c.forCultistId = db.c2.id
-        c.state = CloneState.awaiting
-        c.attempts = 0
-        (Mythos.clones.insert(c), Mythos.presences.insert(p))
+        c.state = CloneState.cloned
+        c.attempts = 1
+        Mythos.presences.insert(p)
       }
       val x = transaction(Watcher.sourcesQuery().toList)
       x must haveSize(1)
-      x(0) must be_==((c, db.c1g, Some(p)))
+      x(0) must be_==((p, db.c1g))
 
       val y = transaction(Watcher.sinksQuery().toList)
       y must beEmpty
@@ -224,7 +241,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
-    "open source gateways required for presences, when no presence record exists" >> {
+    "open source gateways required for presences called" >> {
       db.reset
       transaction {
         db.c1g.mode = GateMode.source
@@ -235,12 +252,11 @@ object WatcherTest extends Specification with Mockito with TestKit {
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
-        val c = new Clone()
-        c.artifactId = db.c1ga1.id
-        c.forCultistId = db.c2.id
-        c.state = CloneState.awaiting
-        c.attempts = 0
-        Mythos.clones.insert(c)
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.called
+        p.attempts = 0
+        Mythos.presences.insert(p)
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(900 millis) {

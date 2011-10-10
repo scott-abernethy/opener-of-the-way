@@ -13,17 +13,16 @@ case class PresenceFailed(p: Presence)
 
 object Watcher {
 
-  def sourcesQuery(): Query[(Clone,Gateway,Option[Presence])] = join(clones, artifacts, gateways, presences.leftOuter)( (c, a, g, p) =>
+  def sourcesQuery(): Query[(Presence,Gateway)] = join(presences, artifacts, gateways)( (p, a, g) =>
     where(
-      c.state <> CloneState.cloned and
-      (p.map(_.state).~.isNull or p.get.state === PresenceState.called or p.get.state === PresenceState.presenting) and
-      (p.map(_.attempts).~.isNull or p.get.attempts === 0 or p.get.attempted < T.ago(Clone.nonRepeatableBefore)) and
+      (p.state === PresenceState.called or p.state === PresenceState.presenting) and
+      (p.attempts === 0 or p.attempted < T.ago(Clone.nonRepeatableBefore)) and
       a.witnessed > T.ago(Artifact.lostAfter) and
       a.discovered < T.ago(Artifact.immatureBefore)
     )
-    select((c,g,p))
-    orderBy(c.attempts asc, c.id asc)
-    on(c.artifactId === a.id, a.gatewayId === g.id, c.artifactId === p.map(_.artifactId))
+    select((p,g))
+    orderBy(p.attempts asc, p.id asc)
+    on(p.artifactId === a.id, a.gatewayId === g.id)
   )
   
   def sinksQuery(): Query[(Clone,Gateway,Option[Presence])] = join(clones, cultists, gateways, presences.leftOuter)( (cl, cu, g, p) =>
@@ -51,6 +50,10 @@ object Watcher {
     g.state === GateState.transient
   )
 
+  val presentingQuery: Query[Presence] = presences.where(p =>
+    p.state === PresenceState.presenting
+  )
+
   val cloningQuery: Query[Clone] = clones.where(c =>
     c.state === CloneState.cloning
   )
@@ -62,12 +65,14 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
 
   def receive = {
     case 'Wake => {
+      // TODO waking should be a backup mechanism for doing this. Do on demand.
       val (toOpen, toClose) = transaction {
         val sources = sourcesQuery().toList.map(_._2).distinct
         val sinks = sinksQuery.toList.map(_._2).distinct
         val scour = scourQuery.toList.distinct
         val open = openQuery.toList.distinct
         val transient = transientQuery.toSet
+        val isPresenting = presentingQuery.toList.size > 0
         val isCloning = cloningQuery.toList.size > 0
 
         logger.info("Watcher OPEN: " + open)
@@ -77,8 +82,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         logger.info("Watcher CLOSE transient: " + transient)
 
         val toOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
-        // TODO don't close gateways involved in presence either!!!
-        var toClose = if (isCloning) Set.empty[Gateway] else transient
+        // TODO optimize closing while busy
+        var toClose = if (isPresenting || isCloning) Set.empty[Gateway] else transient
         val toTransient = (open.toSet -- toOpen) -- transient
 
         for (t <- toTransient) {

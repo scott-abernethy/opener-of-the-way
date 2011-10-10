@@ -19,6 +19,7 @@ object Environment
 {
   var threshold: ActorRef = _
   var watcher: ActorRef = _
+  var summoner: ActorRef = _
 
   def start {
     logger.info("Environment start")
@@ -26,6 +27,8 @@ object Environment
     threshold = actorOf(new Threshold(processor)).start
     watcher = actorOf(new Watcher(threshold, lurker)).start
     Scheduler.schedule(watcher, 'Wake, 1, 5, TimeUnit.MINUTES)
+    summoner = actorOf(new Summoner(lurker)).start
+    Scheduler.schedule(summoner, 'Wake, 3, 5, TimeUnit.MINUTES)
     lurker.start
     lurker ! 'Flush
     manipulator.start
@@ -39,5 +42,6 @@ object Environment
     manipulator ! Withdraw
     threshold.stop()
     watcher.stop()
+    summoner.stop()
   }
 }

@@ -27,7 +27,7 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
       logger.debug("Artifact updated " + id)
       updateListeners(msg)
     case msg @ ArtifactCloned(id) =>
-      logger.debug("Artifact cloned")
+      logger.debug("Artifact clone requested")
       updateListeners(msg)
     case _ => 
   }

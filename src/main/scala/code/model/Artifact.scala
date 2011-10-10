@@ -77,6 +77,8 @@ class Artifact extends MythosObject {
       case _ => false
     }
   }
+
+  override def toString = "Artifact[" + id + "; " + path + "; " + length + "]"
 }
 
 object Artifact {

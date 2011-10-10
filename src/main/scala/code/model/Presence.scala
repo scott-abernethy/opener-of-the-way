@@ -15,6 +15,9 @@ class Presence extends MythosObject {
   var duration: Long = -2
 
   def artifact: Option[Artifact] = artifactToPresences.right(this).headOption
+
+  // TODO refactor local path stuff in bash scripts.
+  def localPath: String = "/tmp/presences/" + artifactId
 }
 
 object Presence {
@@ -33,7 +36,8 @@ object Presence {
   }
 
   // Set this in properties file?
-  lazy val maxPresenceLength = 1024L * 1024 * 1024 * 50 // 50GB
+  lazy val gigaByteLength = 1024L * 1024 * 1024;
+  lazy val maxPresenceLength = gigaByteLength * 50
 }
 
 object PresenceState extends Enumeration {
