@@ -27,6 +27,11 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
     }
   }
 
+  def clearTransactions() {
+    inTransaction(presences.delete(from(presences)(p => select(p))))
+    inTransaction(clones.delete(from(clones)(c => select(c))))
+  }
+
   "ArtifactCloneSnapshot" should {
 
     "load all artifacts" >> {
@@ -46,7 +51,7 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
     }
 
     "default state to mine or available if no clones exist" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
+      clearTransactions()
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
@@ -59,7 +64,7 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
     }
 
     "reflect clone state" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
+      clearTransactions()
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
       val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloning)))
@@ -84,8 +89,41 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
     }
 
+    "reflect presence state" >> {
+      clearTransactions()
+      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
+      inTransaction(presences.insert(Presence.create(i, PresenceState.present)))
+
+      val x = new ArtifactCloneSnapshot
+      x.reload(2L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.present, 0))
+      x.reload(1L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 0))
+
+      val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
+
+      x.reload(2L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaitingPresent, 1))
+      x.reload(1L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
+
+      myClone.state = CloneState.cloning
+      inTransaction(clones.update(myClone))
+      x.reload(2L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloning, 1))
+      x.reload(1L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
+
+      myClone.state = CloneState.cloned
+      inTransaction(clones.update(myClone))
+      x.reload(2L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloned, 1))
+      x.reload(1L)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
+    }
+
     "allow artifacts to be updated" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
+      clearTransactions()
       val x = new ArtifactCloneSnapshot
       x.reload(2)
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L

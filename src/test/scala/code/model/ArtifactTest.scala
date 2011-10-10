@@ -128,38 +128,45 @@ object ArtifactTest extends Specification with Mockito {
       val x = new Artifact
       x.witnessed = now
       val clone = new Clone
+      val present = Some(Presence.create(x.id, PresenceState.present))
 
-      x.stateFor(45L, 45L, None, now) must beSome(ArtifactState.proffered)
-      x.stateFor(4L, 4L, None, threeDaysFromNow) must beSome(ArtifactState.proffered)
-      x.stateFor(4L, 4L, None, fourDaysFromNow) must beSome(ArtifactState.proffered)
-      x.stateFor(4L, 4L, None, fourDaysOneSecondFromNow) must beSome(ArtifactState.profferedLost)
-      x.stateFor(4L, 4L, None, fiveDaysFromNow) must beSome(ArtifactState.profferedLost)
+      x.stateFor(45L, 45L, None, now, None) must beSome(ArtifactState.proffered)
+      x.stateFor(45L, 45L, None, now, present) must beSome(ArtifactState.profferedPresent)
+      x.stateFor(4L, 4L, None, threeDaysFromNow, None) must beSome(ArtifactState.proffered)
+      x.stateFor(4L, 4L, None, fourDaysFromNow, None) must beSome(ArtifactState.proffered)
+      x.stateFor(4L, 4L, None, fourDaysOneSecondFromNow, None) must beSome(ArtifactState.profferedLost)
+      x.stateFor(4L, 4L, None, fiveDaysFromNow, None) must beSome(ArtifactState.profferedLost)
 
-      x.stateFor(1L, 2L, None, now) must beSome(ArtifactState.glimpsed)
-      x.stateFor(1L, 2L, None, threeDaysFromNow) must beSome(ArtifactState.glimpsed)
-      x.stateFor(1L, 2L, None, fourDaysFromNow) must beSome(ArtifactState.glimpsed)
-      x.stateFor(1L, 2L, None, fourDaysOneSecondFromNow) must beSome(ArtifactState.lost)
-      x.stateFor(1L, 2L, None, fiveDaysFromNow) must beSome(ArtifactState.lost)
+      x.stateFor(1L, 2L, None, now, None) must beSome(ArtifactState.glimpsed)
+      x.stateFor(1L, 2L, None, threeDaysFromNow, None) must beSome(ArtifactState.glimpsed)
+      x.stateFor(1L, 2L, None, fourDaysFromNow, None) must beSome(ArtifactState.glimpsed)
+      x.stateFor(1L, 2L, None, fourDaysOneSecondFromNow, None) must beSome(ArtifactState.lost)
+      x.stateFor(1L, 2L, None, fiveDaysFromNow, None) must beSome(ArtifactState.lost)
 
       clone.state = CloneState.awaiting
-      x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
-      x.stateFor(4L, 45L, Some(clone), now) must beSome(ArtifactState.awaiting)
-      x.stateFor(4L, 45L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.awaiting)
-      x.stateFor(4L, 45L, Some(clone), fourDaysFromNow) must beSome(ArtifactState.awaiting)
-      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.awaitingLost)
-      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.awaitingLost)
+      x.stateFor(45L, 45L, Some(clone), now, None) must beSome(ArtifactState.proffered)
+      x.stateFor(45L, 45L, Some(clone), now, present) must beSome(ArtifactState.profferedPresent)
+      x.stateFor(4L, 45L, Some(clone), now, None) must beSome(ArtifactState.awaiting)
+      x.stateFor(4L, 45L, Some(clone), now, present) must beSome(ArtifactState.awaitingPresent)
+      x.stateFor(4L, 45L, Some(clone), threeDaysFromNow, None) must beSome(ArtifactState.awaiting)
+      x.stateFor(4L, 45L, Some(clone), fourDaysFromNow, None) must beSome(ArtifactState.awaiting)
+      x.stateFor(4L, 45L, Some(clone), fourDaysOneSecondFromNow, None) must beSome(ArtifactState.awaitingLost)
+      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow, None) must beSome(ArtifactState.awaitingLost)
+      x.stateFor(4L, 45L, Some(clone), fiveDaysFromNow, present) must beSome(ArtifactState.awaitingPresent)
 
       clone.state = CloneState.cloning
-      x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
-      x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloning)
-      x.stateFor(45L, 13L, Some(clone), threeDaysFromNow) must beSome(ArtifactState.cloning)
-      x.stateFor(45L, 13L, Some(clone), fourDaysFromNow) must beSome(ArtifactState.cloning)
-      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow) must beSome(ArtifactState.cloning)
-      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 45L, Some(clone), now, None) must beSome(ArtifactState.proffered)
+      x.stateFor(45L, 13L, Some(clone), now, None) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), threeDaysFromNow, None) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fourDaysFromNow, None) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fourDaysOneSecondFromNow, None) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow, None) must beSome(ArtifactState.cloning)
+      x.stateFor(45L, 13L, Some(clone), fiveDaysFromNow, present) must beSome(ArtifactState.cloning)
 
       clone.state = CloneState.cloned
-      x.stateFor(45L, 45L, Some(clone), now) must beSome(ArtifactState.proffered)
-      x.stateFor(45L, 13L, Some(clone), now) must beSome(ArtifactState.cloned)
+      x.stateFor(45L, 45L, Some(clone), now, None) must beSome(ArtifactState.proffered)
+      x.stateFor(45L, 13L, Some(clone), now, None) must beSome(ArtifactState.cloned)
+      x.stateFor(45L, 13L, Some(clone), now, present) must beSome(ArtifactState.cloned)
     }
   }
 

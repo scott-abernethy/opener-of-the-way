@@ -44,32 +44,36 @@ class ArtifactCloneSnapshot {
   var items: TreeMap[String, List[Artifact]] = new TreeMap[String, List[Artifact]]
   var states: Map[Long, ArtifactCloneInfo] = _
 
-  def stateFor(artifactId: Long): Option[ArtifactState.Value] = states.get(artifactId).map(_.state)
+  def stateFor(artifactId: Long): Option[ArtifactState.Value] = {
+    states.get(artifactId).map(_.state)
+  }
 
-  def clonesFor(artifactId: Long): Option[Int] = states.get(artifactId).map(_.clones)
+  def clonesFor(artifactId: Long): Option[Int] = {
+    states.get(artifactId).map(_.clones)
+  }
 
   def reload(cultistId: Long) {
     currentCultistId = cultistId
     items = new TreeMap[String, List[Artifact]]
     states = new HashMap[Long, ArtifactCloneInfo]
-    val results: List[(Artifact, Long, Option[Clone])] = inTransaction(join(artifacts, gateways, clones.leftOuter)((a, g, c) =>
+    val results: List[(Artifact, Long, Option[Clone], Option[Presence])] = inTransaction(join(artifacts, gateways, clones.leftOuter, presences.leftOuter)((a, g, c, p) =>
       where(a.witnessed > T.ago(Artifact.goneAfter))
-      select((a, g.cultistId, c))
+      select((a, g.cultistId, c, p))
       orderBy(a.discovered desc, a.path desc)
-      on(a.gatewayId === g.id, a.id === c.map(_.artifactId))
+      on(a.gatewayId === g.id, a.id === c.map(_.artifactId), a.id === p.map(_.artifactId))
     ).toList)
-    val combined: Seq[(Artifact, Long, List[Clone])] = results.foldRight(List.empty[(Artifact, Long, List[Clone])]){ (in: (Artifact, Long, Option[Clone]), out: List[(Artifact, Long, List[Clone])]) =>
+    val combined: Seq[(Artifact, Long, List[Clone], Option[Presence])] = results.foldRight(List.empty[(Artifact, Long, List[Clone], Option[Presence])]){ (in: (Artifact, Long, Option[Clone], Option[Presence]), out: List[(Artifact, Long, List[Clone], Option[Presence])]) =>
       out match {
         case head :: tail if (head._1 == in._1) =>
-          ((in._1, in._2, in._3.toList ::: head._3)) :: tail
+          ((in._1, in._2, in._3.toList ::: head._3, in._4)) :: tail
         case list =>
-          ((in._1, in._2, in._3.toList)) :: list
+          ((in._1, in._2, in._3.toList, in._4)) :: list
       }
     }
     combined.foreach{ i =>
       val artifact: Artifact = i._1
       items = insertItem(items, artifact)
-      parseState(artifact, cultistId, i._2, i._3).foreach(s =>
+      parseState(artifact, cultistId, i._2, i._3, i._4).foreach(s =>
         states = states + ((artifact.id, ArtifactCloneInfo(s, i._3.size)))
       )
     }
@@ -83,7 +87,8 @@ class ArtifactCloneSnapshot {
     inTransaction(Artifact.find(artifact).flatMap(a => Cultist.find(currentCultistId).map((a, _))) match {
       case Some((a, c)) =>
         a.stateFor(c) match {
-          case Some(state) => states = states + ((a.id, ArtifactCloneInfo(state, 0)))
+          case Some(state) =>
+            states = states + ((a.id, ArtifactCloneInfo(state, 0)))
           case None => states = states - a.id
         }
       case _ =>
@@ -106,8 +111,8 @@ class ArtifactCloneSnapshot {
     }
   }
 
-  private def parseState(artifact: Artifact, cultistId: Long, ownerId: Long, clones: Seq[Clone]) = {
+  private def parseState(artifact: Artifact, cultistId: Long, ownerId: Long, clones: Seq[Clone], presence: Option[Presence]) = {
     val clone: Option[Clone] = clones.find(_.forCultistId == cultistId)
-    artifact.stateFor(cultistId, ownerId, clone, T.now)
+    artifact.stateFor(cultistId, ownerId, clone, T.now, presence)
   }
 }

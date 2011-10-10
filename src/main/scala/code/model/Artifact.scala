@@ -29,13 +29,13 @@ class Artifact extends MythosObject {
 
   def owner: Option[Cultist] = inTransaction(gateway.headOption.flatMap(_.cultist.headOption))
 
-  def stateFor(cultistId: Long, ownerId: Long, clone: Option[Clone], now: Timestamp): Option[ArtifactState.Value] = {
+  def stateFor(cultistId: Long, ownerId: Long, clone: Option[Clone], now: Timestamp, presence: Option[Presence]): Option[ArtifactState.Value] = {
     if (ownerId == cultistId) {
-      missingOr(now)(ArtifactState.proffered, ArtifactState.profferedLost)
+      presentLostOrOther(presence, now)(ArtifactState.profferedPresent, ArtifactState.profferedLost, ArtifactState.proffered)
     } else {
       clone.map(_.state) match {
-        case None => missingOr(now)(ArtifactState.glimpsed, ArtifactState.lost)
-        case Some(CloneState.awaiting) => missingOr(now)(ArtifactState.awaiting, ArtifactState.awaitingLost)
+        case None => presentLostOrOther(presence, now)(ArtifactState.present, ArtifactState.lost, ArtifactState.glimpsed)
+        case Some(CloneState.awaiting) => presentLostOrOther(presence, now)(ArtifactState.awaitingPresent, ArtifactState.awaitingLost, ArtifactState.awaiting)
         case Some(CloneState.cloning) => Some(ArtifactState.cloning)
         case Some(CloneState.cloned) => Some(ArtifactState.cloned)
         case _ => None
@@ -44,18 +44,30 @@ class Artifact extends MythosObject {
   }
 
   def stateFor(cultist: Cultist): Option[ArtifactState.Value] = {
-    val cultistsClone = inTransaction(from(clones)(x => where(x.artifactId === id and x.forCultistId === cultist.id) select(x)).headOption)
+    val cultistsClone = inTransaction(
+      join(artifacts, clones.leftOuter, presences.leftOuter)( (a, c, p) =>
+        where( a.id === id and
+          (c.map(_.forCultistId).~.isNull or c.get.forCultistId === cultist.id)
+        )
+        select(c, p)
+        on( a.id === c.map(_.artifactId), a.id === p.map(_.artifactId) )
+      ).headOption
+    )
     owner.map(_.id) match {
-      case Some(ownerId) => stateFor(cultist.id, ownerId, cultistsClone, T.now)
+      case Some(ownerId) => stateFor(cultist.id, ownerId, cultistsClone.flatMap(_._1), T.now, cultistsClone.flatMap(_._2))
       case _ => None
     }
   }
 
-  private def missingOr(now: Timestamp)(state: ArtifactState.Value, missing: ArtifactState.Value): Option[ArtifactState.Value] = {
+  private def presentLostOrOther(presence: Option[Presence], now: Timestamp)(present: ArtifactState.Value, missing: ArtifactState.Value, other: ArtifactState.Value): Option[ArtifactState.Value] = {
+    if (presence.exists(_.state == PresenceState.present)) {
+      return Some(present)
+    }
     if (witnessed.before(T.agoFrom(now, Artifact.lostAfter))) {
       Some(missing)
-    } else {
-      Some(state)
+    }
+    else {
+      Some(other)
     }
   }
 
@@ -78,7 +90,7 @@ class Artifact extends MythosObject {
     }
   }
 
-  override def toString = "Artifact[" + id + "; " + path + "; " + length + "]"
+  override def toString = "Artifact[" + id + ";" + path + ";" + length + "]"
 }
 
 object Artifact {
@@ -110,22 +122,28 @@ object Artifact {
 
 object ArtifactState extends Enumeration {
   type ArtifactState = Value
-  val proffered = Value("proffered")
-  val profferedLost = Value("proffered, lost")
-  val glimpsed = Value("glimpsed")
-  val lost = Value("lost")
-  val awaiting = Value("awaiting")
-  val awaitingLost = Value("awaiting, lost")
-  val cloning = Value("cloning")
-  val cloned = Value("cloned")
+  val proffered = Value("Proffered")
+  val profferedLost = Value("Proffered, lost")
+  val profferedPresent = Value("Proffered, present")
+  val glimpsed = Value("Glimpsed")
+  val present = Value("Present")
+  val lost = Value("Lost")
+  val awaiting = Value("Awaiting")
+  val awaitingLost = Value("Awaiting, lost")
+  val awaitingPresent = Value("Awaiting, present")
+  val cloning = Value("Cloning")
+  val cloned = Value("Cloned")
 
   def symbol(s: ArtifactState.Value): Option[Node] = s match {
     case ArtifactState.proffered => Some(<img src="/static/c_proffered.png" title="Proffered"/>)
     case ArtifactState.profferedLost => Some(<img src="/static/c_proffered_lost.png" title="Proffered, lost"/>)
+    case ArtifactState.profferedPresent => Some(<img src="/static/c_proffered_present.png" title="Proffered, present"/>)
     case ArtifactState.awaiting => Some(<img src="/static/c_awaiting.png" title="Awaiting"/>)
     case ArtifactState.awaitingLost => Some(<img src="/static/c_awaiting_lost.png" title="Awaiting, lost"/>)
+    case ArtifactState.awaitingPresent => Some(<img src="/static/c_awaiting_present.png" title="Awaiting, present"/>)
     case ArtifactState.glimpsed => Some(<img src="/static/c_glimpsed.png" title="Glimpsed"/>)
     case ArtifactState.lost => Some(<img src="/static/c_glimpsed_lost.png" title="Glimpsed, lost"/>)
+    case ArtifactState.present => Some(<img src="/static/c_glimpsed_present.png" title="Present"/>)
     case ArtifactState.cloning => Some(<img src="/static/c_cloning.gif" title="Cloning..."/>)
     case ArtifactState.cloned => Some(<img src="/static/c_cloned.png" title="Cloned"/>)
     case _ => None
@@ -133,11 +151,11 @@ object ArtifactState extends Enumeration {
 
   val unknownSymbol: Node = <img src="/static/c_unknown.png" title="?"/>
   
-  def awaiting_?(s: ArtifactState.Value): Boolean = s == ArtifactState.awaiting || s ==  ArtifactState.awaitingLost || s == ArtifactState.cloning
+  def awaiting_?(s: ArtifactState.Value): Boolean = s == ArtifactState.awaiting || s ==  ArtifactState.awaitingLost || s == ArtifactState.awaitingPresent || s == ArtifactState.cloning
 
-  def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost
+  def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost || s == ArtifactState.present
 
-  def proffered_?(s: ArtifactState.Value): Boolean = s == ArtifactState.proffered || s == ArtifactState.profferedLost
+  def proffered_?(s: ArtifactState.Value): Boolean = s == ArtifactState.proffered || s == ArtifactState.profferedLost || s == ArtifactState.profferedPresent
 }
 
 /*

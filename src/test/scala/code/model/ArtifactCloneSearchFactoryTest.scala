@@ -1,17 +1,9 @@
 package code.model
 
-import org.specs.runner.{ConsoleRunner, JUnit4}
 import org.specs.Specification
 import org.specs.mock.Mockito
-import code.TestDb
-import code.model.Mythos._
-import code.gate.T
-import org.squeryl.PrimitiveTypeMode._
-import java.sql.Timestamp
 
-class ArtifactCloneSearchFactoryTestSpecsAsTest extends JUnit4(ArtifactCloneSearchFactoryTestSpecs)
-object ArtifactCloneSearchFactoryTestSpecsRunner extends ConsoleRunner(ArtifactCloneSearchFactoryTestSpecs)
-object ArtifactCloneSearchFactoryTestSpecs extends Specification with Mockito {
+object ArtifactCloneSearchFactoryTest extends Specification with Mockito {
   "ArtifactCloneSearchFactory" should {
     "format search input" >> {
       val x = new ArtifactCloneSearchFactory

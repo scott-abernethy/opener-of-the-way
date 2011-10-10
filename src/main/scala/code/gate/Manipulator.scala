@@ -84,7 +84,6 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             self ! Wake
 
           case 'Flush =>
-            // TODO actually, destroy all presences on Flush (as tmp directory might be gone anyway).
             if (presenter.currently.isEmpty) {
               transaction ( update(presences)(p =>
                 setAll(p.state := PresenceState.unknown))
