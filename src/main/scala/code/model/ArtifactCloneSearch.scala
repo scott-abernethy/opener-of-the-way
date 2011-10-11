@@ -11,7 +11,7 @@ class ArtifactCloneSearchFactory {
   def create(cultistId: Long, search: String): Seq[(Artifact, Option[ArtifactState.Value])] = {
     val formattedSearch = formatSearch(search)
     val results: List[(Artifact, Long, Option[Clone], Option[Presence])] = inTransaction(join(artifacts, gateways, clones.leftOuter, presences.leftOuter)((a, g, c, p) =>
-      where(a.path like formattedSearch)
+      where((a.witnessed > T.ago(Artifact.goneAfter)) and (a.path like formattedSearch))
       select((a, g.cultistId, c, p))
       orderBy(a.path asc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId), a.id === p.map(_.artifactId))
