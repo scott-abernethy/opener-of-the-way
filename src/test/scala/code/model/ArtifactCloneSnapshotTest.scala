@@ -122,7 +122,7 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
     }
 
-    "allow artifacts to be updated" >> {
+    "allow artifacts to be updated (including bug with present)" >> {
       clearTransactions()
       val x = new ArtifactCloneSnapshot
       x.reload(2)
@@ -130,12 +130,21 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
 
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
+      val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloned)))
       x.update(i)
-      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaiting, 0))
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaiting, 2))
+
+      val presence = inTransaction(presences.insert(Presence.create(i, PresenceState.present)))
+      x.update(i)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaitingPresent, 2))
+      
+      inTransaction( clones.deleteWhere(c => c.id === myClone.id) )
+      x.update(i)
+      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.present, 1))
     }
 
     "not exclude items cloned by others (bug)" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
+      clearTransactions()
 
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
 

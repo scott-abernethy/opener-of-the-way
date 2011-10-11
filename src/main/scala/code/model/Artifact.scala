@@ -44,17 +44,14 @@ class Artifact extends MythosObject {
   }
 
   def stateFor(cultist: Cultist): Option[ArtifactState.Value] = {
-    val cultistsClone = inTransaction(
-      join(artifacts, clones.leftOuter, presences.leftOuter)( (a, c, p) =>
-        where( a.id === id and
-          (c.map(_.forCultistId).~.isNull or c.get.forCultistId === cultist.id)
-        )
-        select(c, p)
-        on( a.id === c.map(_.artifactId), a.id === p.map(_.artifactId) )
-      ).headOption
-    )
+    val (cultistsClone, present) = inTransaction {
+      val cultistsClone = from(clones)(x => where(x.artifactId === id and x.forCultistId === cultist.id) select(x)).headOption
+      val present = from(presences)(p => where(p.artifactId === id) select(p)).headOption
+      (cultistsClone, present)
+    }
+
     owner.map(_.id) match {
-      case Some(ownerId) => stateFor(cultist.id, ownerId, cultistsClone.flatMap(_._1), T.now, cultistsClone.flatMap(_._2))
+      case Some(ownerId) => stateFor(cultist.id, ownerId, cultistsClone, T.now, present)
       case _ => None
     }
   }

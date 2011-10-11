@@ -88,7 +88,8 @@ class ArtifactCloneSnapshot {
       case Some((a, c)) =>
         a.stateFor(c) match {
           case Some(state) =>
-            states = states + ((a.id, ArtifactCloneInfo(state, 0)))
+            val cloneCount = from(clones)(c => where(c.artifactId === artifact) select(c)).toList.size
+            states = states + ((a.id, ArtifactCloneInfo(state, cloneCount.toInt)))
           case None => states = states - a.id
         }
       case _ =>
