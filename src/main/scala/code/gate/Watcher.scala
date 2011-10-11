@@ -37,7 +37,7 @@ object Watcher {
     on(cl.forCultistId === cu.id, cu.id === g.cultistId, cl.artifactId === p.map(_.artifactId))
   )
 
-  val scourQuery: Query[Gateway] = gateways.where(g =>
+  def scourQuery(): Query[Gateway] = gateways.where(g =>
     g.mode === GateMode.source and
     g.scoured < T.ago(Gateway.scourPeriod)
   )
@@ -68,13 +68,16 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       // TODO waking should be a backup mechanism for doing this. Do on demand.
       val (toOpen, toClose) = transaction {
         val sources = sourcesQuery().toList.map(_._2).distinct
-        val sinks = sinksQuery.toList.map(_._2).distinct
-        val scour = scourQuery.toList.distinct
+        val sinks = sinksQuery().toList.map(_._2).distinct
+        val scour = scourQuery().toList.distinct
         val open = openQuery.toList.distinct
         val transient = transientQuery.toSet
         val isPresenting = presentingQuery.toList.size > 0
         val isCloning = cloningQuery.toList.size > 0
 
+        // TODO don't reopen, instead note failures to scour, clone, present.
+        // TODO much of the system latency is due to the 5 min Wake cycle.
+        
         logger.info("Watcher OPEN: " + open)
         logger.info("Watcher WANT source: " + sources)
         logger.info("Watcher WANT sink " + sinks)

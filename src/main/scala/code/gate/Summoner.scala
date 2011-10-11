@@ -65,6 +65,7 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
 
     case 'Wake => {
       // TODO waking should be a backup mechanism for doing this. Do on demand.
+      // TODO do called yet not needed and not possible presences ever get released? Don't think so.
       clean()
       for ( clone <- transaction( requestedPresences().toList ) ) {
         self ! Summon(clone.artifactId)
