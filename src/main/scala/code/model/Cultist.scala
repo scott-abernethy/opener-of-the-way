@@ -47,6 +47,7 @@ object Cultist {
   object attending extends SessionVar[Box[Cultist]](checkForCookie)
   def attending_? = !attending.is.isEmpty
   def isAttending_?(cultist: Cultist) = attending.is.map(_ == cultist) getOrElse false
+
   def approach(cultist: Cultist, password: String): Option[Cultist] = {
     if (cultist.password == password) {
       attending(Full(cultist))
@@ -55,7 +56,11 @@ object Cultist {
       None
     }
   }
-  def withdraw() = attending(Empty)
+
+  def withdraw() {
+    attending(Empty)
+    S.session.foreach(_.destroySession())
+  }
 
   def forEmail(email: String): Box[Cultist] = {
     inTransaction(cultists.where(c => c.email === email).toList) match {
