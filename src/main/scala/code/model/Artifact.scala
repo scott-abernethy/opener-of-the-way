@@ -17,7 +17,7 @@ class Artifact extends MythosObject {
   var witnessed: Timestamp = T.now
   var length: Long = -1
 
-  def description = path
+  def description = if (path.isEmpty) "-" else path.substring(1) // Path is currently prefixed with '/'
 
   lazy val gateway: ManyToOne[Gateway] = gatewayToArtifacts.right(this)
 
