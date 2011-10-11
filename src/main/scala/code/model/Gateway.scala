@@ -39,7 +39,7 @@ object Gateway {
       g.state === GateState.open)
   }
 
-  lazy val scourPeriod = 1 * 60 * 60 * 1000L // 1 hour
+  lazy val scourPeriod = 2 * 60 * 60 * 1000L // 2 hours
   
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
   lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
