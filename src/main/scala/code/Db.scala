@@ -17,8 +17,9 @@ trait Db {
   lazy val url = Props.get("db.url") openOr "jdbc:h2:test"
   lazy val user = Props.get("db.user") openOr ""
   lazy val password = Props.get("db.password") openOr ""
+
   lazy val pool = {
-    // Setup connection pooling with c3p0
+    // Connection pooling with c3p0
     val pool = new ComboPooledDataSource
     pool.setDriverClass(driver)
     pool.setJdbcUrl(url)
@@ -27,6 +28,12 @@ trait Db {
     pool.setMinPoolSize(3)
     pool.setAcquireIncrement(1)
     pool.setMaxPoolSize(10)
+
+    // Work around MySQL connection timeouts.
+    pool.setMaxIdleTimeExcessConnections(30 * 60) // 30 mins
+    pool.setMaxConnectionAge(4 * 60 * 60) // 4 hours
+    pool.setIdleConnectionTestPeriod(1 * 60 * 60) // 1 hour
+
     pool
   }
 
