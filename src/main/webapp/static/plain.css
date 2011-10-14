@@ -1,0 +1,43 @@
+.notice-notice {
+  color: #859900;
+}
+.notice-warning {
+  color: #cb4b16;
+}
+.notice-error {
+  color: #d33682;
+}
+body {
+  margin: 0;
+  background: #ffffff;
+  color: #586e75;
+}
+.roundbox {
+  border: thin solid #bf96b8;
+  background: #e8eed5;
+  padding: 2em 2em 2em 2em;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+}
+.prepend-top-more {
+  margin-top: 4em;
+}
+h2 {
+  color: #657b83;
+  font-size: 2em;
+}
+h3 {
+  color: #586e75;
+  font-weight: bold;
+  font-size: 1em;
+  margin-top: 1.2em;
+  margin-bottom: 0.2em;
+}
+input[type="text"], input[type="password"] {
+  width: 100%;
+  height: 2em;
+  padding-left: 0.5em;
+}
+input[type="submit"] {
+  margin-top: 1.2em;
+}
