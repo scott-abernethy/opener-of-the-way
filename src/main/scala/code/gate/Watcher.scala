@@ -66,7 +66,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
   def receive = {
     case 'Wake => {
       // TODO waking should be a backup mechanism for doing this. Do on demand.
-      val (toOpen, toClose) = transaction {
+      // TODO split into multiple methods, open / close / transient / source / sink
+      transaction {
         val sources = sourcesQuery().toList.map(_._2).distinct
         val sinks = sinksQuery().toList.map(_._2).distinct
         val scour = scourQuery().toList.distinct
@@ -74,6 +75,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val transient = transientQuery.toSet
         val isPresenting = presentingQuery.toList.size > 0
         val isCloning = cloningQuery.toList.size > 0
+        val nonReopenableBefore = T.ago(Gateway.nonReopenableBefore)
+        val dontReopen = open.filter(g => g.transitioned.after(nonReopenableBefore))
 
         // TODO don't reopen, instead note failures to scour, clone, present.
         // TODO much of the system latency is due to the 5 min Wake cycle.
@@ -84,23 +87,31 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         logger.info("Watcher WANT scour: " + scour)
         logger.info("Watcher CLOSE transient: " + transient)
 
-        val toOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
-        // TODO optimize closing while busy
+        val keepOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
+        val toOpen = keepOpen -- dontReopen
+        // TODO optimize closing while busy, as cloning / presenting can keep many gateways transient for ages
         var toClose = if (isPresenting || isCloning) Set.empty[Gateway] else transient
-        val toTransient = (open.toSet -- toOpen) -- transient
+        val toTransient = (open.toSet -- keepOpen) -- transient
 
+        val now = T.now
         for (t <- toTransient) {
           Mythos.gateways.update(g =>
             where(g.id === t.id)
-            set(g.state := GateState.transient)
+            set(g.state := GateState.transient,
+              g.transitioned := now)
+          )
+        }
+        // won't work unless state goes open too! maybe?
+        for (o <- toOpen) {
+          Mythos.gateways.update(g =>
+            where(g.id === o.id)
+            set(g.transitioned := now)
           )
         }
 
-        (toOpen, toClose)
+        toOpen.foreach( threshold ! OpenGateway(_) )
+        toClose.foreach( threshold ! CloseGateway(_) )
       }
-
-      toOpen.foreach( threshold ! OpenGateway(_) )
-      toClose.foreach( threshold ! CloseGateway(_) )
     }
 
     case OpenGateSuccess(g, lp) =>
@@ -144,9 +155,11 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     logger.debug("WayFound " + g)
     transaction {
       updateGate(g, x => {
-        x.seen = T.now
+        val now = T.now
+        x.seen = now
         x.state = GateState.open
         x.localPath = lp
+        x.transitioned = now
         x
       })
     }
@@ -158,17 +171,20 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     transaction {
       gateways.update(g =>
         where(g.id === transient.id and g.state === GateState.open)
-        set(g.state := GateState.transient)
+        set(g.state := GateState.transient,
+          g.transitioned := T.now)
       )
     }
     GatewayServer ! 'WayTransient
   }
 
   def markClosed(g: Gateway) {
+    // TODO is this the only way a gate can go lost? wrong if so.
     logger.debug("WayLost " + g)
     transaction {
       updateGate(g, x => {
         x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.closed
+        x.transitioned = T.now
         x
       })
     }

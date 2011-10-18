@@ -232,6 +232,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c2g)
         Mythos.gateways.update(db.c3g)
       }
+      val justBefore = T.now
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(900 millis) {
         x ! 'Wake
@@ -239,6 +240,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
+      transaction {
+        Mythos.gateways.lookup(db.c1g.id).map(_.transitioned.getTime).getOrElse(0L) must be_>=(justBefore.getTime)
+      }
     }
 
     "open source gateways required for presences called" >> {
@@ -298,6 +302,49 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
+    "don't reopen recenlty opened gateways, even if needed for scour, scour, or sink" >> {
+      db.reset
+      transaction {
+        db.c1g.mode = GateMode.source
+        db.c1g.state = GateState.open
+        db.c1g.scoured = T.ago((2 * 60 * 60 * 1000L) + 5000)
+        db.c1g.transitioned = T.ago(13 * 60 * 1000L)
+        db.c2g.mode = GateMode.source
+        db.c2g.state = GateState.open
+        db.c2g.scoured = T.now
+        db.c2g.transitioned = T.ago(14 * 60 * 1000L)
+        db.c3g.mode = GateMode.sink
+        db.c3g.state = GateState.closed
+        db.c3g.scoured = T.yesterday
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        Mythos.gateways.update(db.c3g)
+
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.called
+        p.attempts = 0
+        Mythos.presences.insert(p)
+
+        val c = new Clone()
+        c.artifactId = db.c1ga2.id
+        c.forCultistId = db.c2.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+        val p2 = new Presence()
+        p2.artifactId = db.c1ga2.id
+        p2.state = PresenceState.present
+        Mythos.presences.insert(p2)
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      within(900 millis) {
+        x ! 'Wake
+        expectNoMsg
+      }
+      x.getMailboxSize() must be_==(0)
+    }
+
     "open gateways required for clones, but not if the artifact is lost" >> {
       db.reset
       transaction {
@@ -336,6 +383,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
       }
+      val justBefore = T.now
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
       within(900 millis) {
         x ! 'Wake
@@ -343,12 +391,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
-      transaction ( Mythos.gateways.where(g => g.id === db.c2g.id).head.state ) must be_==(GateState.transient)
+      transaction {
+        val g = Mythos.gateways.where(g => g.id === db.c2g.id).head
+        g.state must be_==(GateState.transient)
+        g.transitioned.getTime must be_>=(justBefore.getTime)
+      }
     }
-
-//    "check open gateways are still open" >> {
-//
-//    }
 
     "close transient gateways" >> {
       db.reset
@@ -495,6 +543,18 @@ object WatcherTest extends Specification with Mockito with TestKit {
         g3.state must be_==(GateState.transient)
       }
       x.getMailboxSize() must be_==(0)
+    }
+
+    "open source directly following cultist request" >> {
+      // Is this just a wake?
+    }
+
+    "open sink directly following presence detection" >> {
+      // Is this just a wake?
+    }
+
+    "close faster via transient somehow?" >> {
+      // Schedule regular transient flush, plus schedule once after making a gate transient
     }
   }
 }

@@ -21,6 +21,7 @@ class Gateway extends MythosObject {
   var stateDesc: String = ""
   var scoured: Timestamp = T.yesterday
   var seen: Timestamp = T.yesterday
+  var transitioned: Timestamp = T.yesterday
 
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
@@ -40,7 +41,9 @@ object Gateway {
   }
 
   lazy val scourPeriod = 2 * 60 * 60 * 1000L // 2 hours
-  
+
+  lazy val nonReopenableBefore = 15 * 60 * 1000L // 15 mins
+
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
   lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
   lazy val symbolExclamation = <img src="/static/g_exclamation.png" title="Are you crazy?!!"/>
