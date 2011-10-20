@@ -5,14 +5,15 @@
     <title>Home</title>
   </head>
   <body class="lift:content_id=main">
-    <div id="main" class="lift:surround?with=default;at=content span-14">
-      <form class="lift:snippet?type=Cultist.approach">
+    <div id="main" class="lift:surround?with=plain;at=content prepend-8 span-8 prepend-top-more">
+      <form class="lift:snippet?type=Cultist.approach roundbox">
         <h2>Who approaches?!</h2>
-        <table>
-            <tr><td>Email:</td><td><input class="approach:email" value="gone@insane.yet" /></td></tr>
-            <tr><td>Password:</td><td><input type="password" class="approach:password" value="" /></td></tr>
-            <tr><td></td><td><input value="Submit" type="submit" id="approach:submit" /></td></tr>
-        </table>
+        <h3>Email</h3>
+        <input class="approach:email" value="gone@insane.yet" />
+        <h3>Password</h3>
+        <input type="password" class="approach:password" value="" />
+        <div><span class="lift:Msg?id=approach-messages&errorClass=notice-error&warningClass=notice-warning&noticeClass=notice-notice"></span></div>
+        <input value="Submit" type="submit" id="approach:submit" />
       </form>
     </div>
   </body>

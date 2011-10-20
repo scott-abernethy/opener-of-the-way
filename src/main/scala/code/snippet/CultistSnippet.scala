@@ -12,7 +12,7 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import code.comet.GatewayServer
 
-class Cultist {
+class Cultist extends Loggable {
   val emailHint = "gone@insane.yet"
   object email extends RequestVar[Option[String]](Some(emailHint))
   object password extends RequestVar[Option[String]](None)
@@ -49,14 +49,15 @@ class Cultist {
     var submittedPassword = password.is.getOrElse("")
 
     if (submittedEmail == emailHint) {
-      S.error("Open your mouth, unworthy parrot!")
+      S.error("approach-messages", "Open your mouth, unworthy parrot!")
     } else { 
       Cultist.forEmail(submittedEmail).toOption.flatMap(Cultist.approach(_, submittedPassword)) match {
         case Some(c) =>
           S.notice("Proceed with care '" + c.sign + "'.")
           S.redirectTo("/", () => (Cultist.saveCookie))
         case _ =>
-          S.warning("Unfumble your mind, unworthy worm!")
+          S.warning("approach-messages", "Unfumble your mind, unworthy worm!")
+          logger.info("Approach rejected for: '" + submittedEmail + "'")
           S.redirectTo("approach", () => email(Some(submittedEmail)))
       }
     }
@@ -64,8 +65,10 @@ class Cultist {
 
   def withdraw = {
     Cultist.withdraw()
-    S.notice("Never return, or else...")
-    S.redirectTo("approach", () => (Cultist.saveCookie))
+    S.redirectTo("approach", () => {
+      Cultist.saveCookie
+      S.notice("approach-messages", "Never return, or else...")
+    })
   }
 
   def profile = {
