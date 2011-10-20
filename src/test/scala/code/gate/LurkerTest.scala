@@ -59,7 +59,7 @@ object LurkerTest extends Specification with Mockito {
       "ignore silly files" >> {
         transaction { Mythos.artifacts.delete(from(Mythos.artifacts)(a => select(a))) }
         transaction { update(Mythos.gateways)(g => setAll(g.scoured := T.yesterday)) }
-        fileSystem.find("/srv/g") returns(("/System Volume Information/xx", 1L) :: ("System Volume Information/xy", 2L) :: ("/Recycled/yx", 1L) :: ("Recycled/yy", 4L) :: ("folder/sub/another-file.txt", 7654L) :: Nil)
+        fileSystem.find("/srv/g") returns(("/System Volume Information/xx", 1L) :: ("System Volume Information/xy", 2L) :: ("/Recycled/yx", 1L) :: ("Recycled/yy", 4L) :: ("folder/sub/another-file.txt", 7654L) :: ("/.Trash-52342343/foobarbaz.qux", 151412L) :: Nil)
         var g = queryG(1L)
         x ! WayFound(g, "/srv/g")
         x !? (5000, Ping)

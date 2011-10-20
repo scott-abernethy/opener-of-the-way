@@ -64,7 +64,7 @@ trait LurkerComponentImpl extends LurkerComponent {
     private def scourGateway(g: Gateway, lp: String): Unit = {
       logger.debug("WayScoured " + lp)
       val now = T.now
-      val filesFound = fileSystem.find(lp).filterNot(_._1.matches("^/?(clones|System Volume Information|Recycled)/.*"))
+      val filesFound = fileSystem.find(lp).filterNot(_._1.matches("^/?(clones/|System Volume Information/|Recycled/|\\.Trash-).*"))
       // TODO (when) do we remove missing files?
       filesFound.foreach { i =>
         val path = i._1
