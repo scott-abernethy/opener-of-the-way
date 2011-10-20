@@ -10,6 +10,7 @@ import code.model._
 import Helpers._
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
+import code.comet.GatewayServer
 
 class Cultist {
   val emailHint = "gone@insane.yet"
@@ -84,8 +85,16 @@ class Cultist {
 
   def bindGateway(in: NodeSeq, g: code.model.Gateway): NodeSeq = {
     ClearClearable &
+    ".about:gateway [id]" #> ("g" + g.id) &
     ".gateway:state *" #> <span>{ GateState.symbol(g.state) } { g.state.toString }</span> &
     ".gateway:description *" #> g.description &
-    ".gateway:mode *" #> <span>{ GateMode.symbol(g.mode) } { g.mode.toString }</span>
+    ".gateway:mode *" #> <span>{ GateMode.symbol(g.mode) } { g.mode.toString }</span> &
+    ".gateway-action *" #> (if (g.mode == GateMode.sink) SHtml.ajaxButton("Remove", () => removeGateway(g)) else Text(" "))
   }.apply(in)
+
+  def removeGateway(gateway: code.model.Gateway): JsCmd = {
+    transaction( Gateway.remove(gateway) )
+    GatewayServer ! 'WayChanged
+    JsCmds.Replace("g" + gateway.id, NodeSeq.Empty)
+  }
 }

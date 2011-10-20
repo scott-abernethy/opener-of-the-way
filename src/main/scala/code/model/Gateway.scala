@@ -39,6 +39,10 @@ object Gateway {
       g.state === GateState.open)
   }
 
+  def remove(gateway: Gateway) {
+    Mythos.gateways.deleteWhere(x => x.id === gateway.id and x.mode === GateMode.sink)
+  }
+
   lazy val scourPeriod = 2 * 60 * 60 * 1000L // 2 hours
   
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>

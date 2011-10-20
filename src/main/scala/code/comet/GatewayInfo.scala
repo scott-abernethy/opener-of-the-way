@@ -55,12 +55,12 @@ class GatewayInfo extends CometActor with CometListener {
     if (sources > 1) {
       warnings = (Gateway.symbolQuestion, <span>You have multiple source gateways, which is abnormal but acceptable.</span>) :: warnings
     } else if (sources == 0) {
-      warnings = (Gateway.symbolQuestion, <span>You do not have a source gateway, thus you can not profer artifacts to fellow cultists.</span>) :: warnings
+      warnings = (Gateway.symbolQuestion, <span>You do not have a source gateway, thus you can not profer artifacts to fellow cultists. <a href="/gateway/add">Add Gateway</a></span>) :: warnings
     }
     if (sinks > 1) {
-          warnings = (Gateway.symbolExclamation, <span>You have multiple sink gateways; only one will be accept clones.</span>) :: warnings
+          warnings = (Gateway.symbolExclamation, <span>You have multiple sink gateways; only one will accept clones. <a href="/cultist/profile">Manage Gateways</a></span>) :: warnings
     } else if (sinks == 0) {
-      warnings = (Gateway.symbolWarning, <span>You do not have a sink gateway, which means you can not clone artifacts - any artifacts you do select for cloning will stay awaiting until a sink is created.</span>) :: warnings
+      warnings = (Gateway.symbolWarning, <span>You do not have a sink gateway, which means you can not clone artifacts - any artifacts you do select for cloning will stay awaiting until a sink is created. <a href="/gateway/add">Add Gateway</a></span>) :: warnings
     }
 
     warnings.flatMap(w =>
