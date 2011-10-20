@@ -33,7 +33,7 @@ class Spurt extends CometActor with CometListener with StreamGraphComet {
   }
 
   def series(): List[FlotSerie] = {
-    createSeries(discovered(), requested(), uniqueRequested())
+    createSeries(discovered(), requested())
   }
 
   def discovered(): List[(Double, Double)] = {
@@ -78,35 +78,6 @@ class Spurt extends CometActor with CometListener with StreamGraphComet {
     val cal = Calendar.getInstance()
     for (c <- cs)
     {
-      cal.setTime(c.requested)
-      val d: Double = cal.get(Calendar.HOUR_OF_DAY)
-      range.get(d) match {
-        case Some(sample) =>
-          range = range + (d -> sample.incr)
-        case _ =>
-      }
-    }
-
-    range.values.toList.sortWith(Sample.order).map(sample => (sample.index, sample.count))
-  }
-
-  def uniqueRequested(): List[(Double, Double)] = {
-    val startDate = agoStartOfDay()
-
-    val cs = transaction(
-      from(Mythos.clones)(c =>
-        where(c.requested > startDate)
-        select(c)
-      ).toList
-    )
-
-    var range: Map[Double, Sample] = lastDay()
-
-    var artifacts = Set.empty[Long]
-    val cal = Calendar.getInstance()
-    for (c <- cs if !artifacts.contains(c.artifactId))
-    {
-      artifacts = artifacts + c.artifactId
       cal.setTime(c.requested)
       val d: Double = cal.get(Calendar.HOUR_OF_DAY)
       range.get(d) match {

@@ -34,7 +34,7 @@ trait StreamGraphComet {
     in.filter(_._2 > 0)
   }
 
-  def createSeries(discovered: List[(Double, Double)], requested: List[(Double, Double)], uniqueRequested: List[(Double, Double)]): List[FlotSerie] = {
+  def createSeries(discovered: List[(Double, Double)], requested: List[(Double, Double)]): List[FlotSerie] = {
     val glimpsedSeries = new FlotSerie {
       override def data = discovered
       override def color = Full(Right(4))
@@ -53,15 +53,7 @@ trait StreamGraphComet {
       })
       override def label = Full("Requested")
     }
-    val uniqueSeries = new FlotSerie {
-      override def data = filterOutZeroSamples(uniqueRequested)
-      override def color = Full(Right(2))
-      override def points = Full(new FlotPointsOptions {
-        override def show = Full(true)
-      })
-      override def label = Full("Requested (Unique)")
-    }
-    List(glimpsedSeries, requestedSeries, uniqueSeries)
+    List(glimpsedSeries, requestedSeries)
   }
 }
 
@@ -87,7 +79,7 @@ class Flow extends CometActor with CometListener with StreamGraphComet {
   }
 
   def series(): List[FlotSerie] = {
-    createSeries(discovered(), requested(), uniqueRequested())
+    createSeries(discovered(), requested())
   }
 
   def discovered(): List[(Double, Double)] = {
@@ -133,36 +125,6 @@ class Flow extends CometActor with CometListener with StreamGraphComet {
     val cal = Calendar.getInstance()
     for (c <- cs)
     {
-      cal.setTime(c.requested)
-      val d: Double = cal.get(Calendar.DAY_OF_YEAR)
-      val y: Double = cal.get(Calendar.YEAR)
-      range.get((d,y)) match {
-        case Some(sample) =>
-          range = range + ((d,y) -> sample.incr)
-        case _ =>
-      }
-    }
-
-    range.values.toList.sortWith(Sample.order).map(sample => (sample.index, sample.count))
-  }
-
-  def uniqueRequested(): List[(Double, Double)] = {
-    val startDate = ago30Days()
-
-    val cs = transaction(
-      from(Mythos.clones)(c =>
-        where(c.requested > startDate)
-        select(c)
-      ).toList
-    )
-
-    var range: Map[(Double, Double), Sample] = last30Days()
-
-    var artifacts = Set.empty[Long]
-    val cal = Calendar.getInstance()
-    for (c <- cs if !artifacts.contains(c.artifactId))
-    {
-      artifacts = artifacts + c.artifactId
       cal.setTime(c.requested)
       val d: Double = cal.get(Calendar.DAY_OF_YEAR)
       val y: Double = cal.get(Calendar.YEAR)
