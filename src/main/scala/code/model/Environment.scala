@@ -27,7 +27,7 @@ object Environment
     threshold = actorOf(new Threshold(processor)).start
     watcher = actorOf(new Watcher(threshold, lurker)).start
     Scheduler.schedule(watcher, 'Wake, 1, 5, TimeUnit.MINUTES)
-    summoner = actorOf(new Summoner(lurker)).start
+    summoner = actorOf(new Summoner(lurker, watcher)).start
     Scheduler.schedule(summoner, 'Wake, 3, 5, TimeUnit.MINUTES)
     lurker.start
     lurker ! 'Flush

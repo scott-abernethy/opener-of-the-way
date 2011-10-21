@@ -56,7 +56,7 @@ object Summoner {
   }
 }
 
-class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
+class Summoner(lurker: scala.actors.Actor, watcher: ActorRef) extends Actor with Loggable {
   import Summoner._
 
   def receive = {
@@ -68,26 +68,12 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
       // TODO do called yet not needed and not possible presences ever get released? Don't think so.
       clean()
       for ( clone <- transaction( requestedPresences().toList ) ) {
-        self ! Summon(clone.artifactId)
+        call(clone.artifactId)
       }
       releaseIfNecessary()
     }
     case Summon(artifactId) => {
-      transaction {
-        Presence.forArtifact(artifactId).headOption match {
-          case Some(presence) => {
-            presence.state = PresenceState.called
-            presences.update(presence)
-          }
-          case None => {
-            val p = new Presence()
-            p.artifactId = artifactId
-            p.state = PresenceState.called
-            presences.insert(p)
-          }
-        }
-        // TODO notify manipulator?
-      }
+      call(artifactId)
       releaseIfNecessary()
     }
     case 'Ping => {
@@ -95,12 +81,38 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
     }
   }
 
+  private def call(artifactId: Long) {
+    transaction {
+      Presence.forArtifact(artifactId).headOption match {
+        case Some(presence) if presence.state == PresenceState.unknown => {
+          presence.state = PresenceState.called
+          presences.update(presence)
+          logSummonerInfo()
+          watcher ! 'Source
+          // TODO notify manipulator?
+        }
+        case Some(presence) if presence.state == PresenceState.present => {
+          watcher ! 'Sink
+        }
+        case None => {
+          val p = new Presence()
+          p.artifactId = artifactId
+          p.state = PresenceState.called
+          presences.insert(p)
+          logSummonerInfo()
+          watcher ! 'Source
+          // TODO notify manipulator?
+        }
+      }
+      // TODO in Akka what happens to messages not handled?
+    }
+  }
+
   private def releaseIfNecessary() {
     transaction {
       val ps = presentByPurgeCombined()
       var length = ps.foldLeft(0L)( (sum,i) => sum + i._2.length )
-      logger.debug("Summoner LENGTH: " + length + " = " + toGiB(length))
-      
+
       val releasable = ps.filter( i => !isAwaiting(i._3) ).filter( i => i._1.state != PresenceState.released )
 
       val release = releasable.takeWhile{ i =>
@@ -114,6 +126,8 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
         presence.state = PresenceState.released
         presences.update( presence )
       }
+
+      if (release.size > 0) logSummonerInfo()
     }
   }
 
@@ -129,6 +143,12 @@ class Summoner(lurker: scala.actors.Actor) extends Actor with Loggable {
         transaction( presences.deleteWhere( x => x.id === p.id ) )
       }
     }
+  }
+
+  private def logSummonerInfo() {
+    val ps = presentByPurgeCombined()
+    var length = ps.foldLeft(0L)( (sum,i) => sum + i._2.length )
+    logger.debug("Summoner LENGTH: " + length + " = " + toGiB(length))
   }
 
   private def toGiB(length: Long): String = {

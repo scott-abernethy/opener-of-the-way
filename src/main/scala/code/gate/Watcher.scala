@@ -64,6 +64,14 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
   import Watcher._
 
   def receive = {
+    case 'Source => {
+      // Dummy implementation initally
+      self ! 'Wake
+    }
+    case 'Sink => {
+      // Dummy implementation initally
+      self ! 'Wake
+    }
     case 'Wake => {
       // TODO waking should be a backup mechanism for doing this. Do on demand.
       // TODO split into multiple methods, open / close / transient / source / sink
@@ -78,8 +86,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
         val dontReopen = open.filter(g => g.seen.after(reopenTimestamp))
 
-        // TODO don't rerequest a failed open.
-        // TODO don't reopen, instead note failures to scour, clone, present.
         // TODO much of the system latency is due to the 5 min Wake cycle.
         
         logger.info("Watcher OPEN: " + open)
@@ -103,7 +109,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
             set(g.state := GateState.transient)
           )
         }
-        // won't work unless state goes open too! maybe?
         for (o <- toOpen) {
           Mythos.gateways.update(g =>
             where(g.id === o.id)
@@ -149,8 +154,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
 
     case 'Ping =>
       self.reply( 'Pong )
-      
-    case _ =>
   }
 
   def markOpen(g: Gateway, lp: String) {

@@ -47,43 +47,50 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
     def act() {
       loop {
         react {
-          case Wake =>
+          case Wake => {
             // TODO waking should be a backup mechanism for doing this. Do on demand.
-
             // has the current cloner timed out?
             // get random(?) waiting clone
             // TODO is this actually in another thread?
-
             // TODO don't present if no space available!! get summoner to ensure, message goes via them.
-            val presences: List[Presence] = waitingPresences()
-            logger.debug("Manipulator WAITING presences: " + presences)
-            if (presenter.currently.isEmpty) {
-              presences.headOption.foreach{ p => presenter.start(p) }
+            waitingPresences() match {
+              case p :: ps => {
+                logger.debug("Manipulator WAITING presences: " + (p :: ps))
+                if (presenter.currently.isEmpty) {
+                  presenter.start(p)
+                }
+              }
+              case Nil =>
             }
-            val clones: List[Clone] = waitingClones()
-            logger.debug("Manipulator WAITING clones: " + clones)
-            if (cloner.currently.isEmpty) {
-              clones.headOption.foreach{ c => cloner.start(c) }
+            waitingClones() match {
+              case c :: cs => {
+                logger.debug("Manipulator WAITING clones: " + (c :: cs))
+                if (cloner.currently.isEmpty) {
+                  cloner.start(c)
+                }
+              }
+              case Nil =>
             }
-
-          case Warn(invalid) =>
+          }
+          case Warn(invalid) => {
             if (cloner.currently.filter(_ == invalid).isDefined) cloner.cancel
-          
-          case Withdraw =>
+          }
+          case Withdraw => {
             maintainer ! Destroy
             presenter.cancel
             cloner.cancel
             exit
-
-          case Ping => reply(Pong)
-
-          case Activate =>
+          }
+          case Ping => {
+            reply(Pong)
+          }
+          case Activate => {
             maintainer ! Activate
-
-          case Maintain =>
+          }
+          case Maintain => {
             self ! Wake
-
-          case 'Flush =>
+          }
+          case 'Flush => {
             if (presenter.currently.isEmpty) {
               transaction ( update(presences)(p =>
                 setAll(p.state := PresenceState.unknown))
@@ -95,7 +102,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
                 set(c.state := CloneState.awaiting))
               )
             }
-
+          }
           case _ =>
         }
       }

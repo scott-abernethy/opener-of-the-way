@@ -210,10 +210,13 @@ object WatcherTest extends Specification with Mockito with TestKit {
 
   "Watcher" should {
 
-    "handle wake" >> {
+    "handle wake, source, sink" >> {
       db.reset
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{}))
       x.isDefinedAt('Wake) must be (true)
+      x.isDefinedAt('Source) must be (true)
+      x.isDefinedAt('Sink) must be (true)
+      x.isDefinedAt('Random) must be (false)
     }
 
     "open gateways that need to be scoured" >> {
