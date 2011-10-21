@@ -62,7 +62,11 @@ trait PresenterComponentImpl extends PresenterComponent {
       p.duration = result.duration
       transaction { presences.update(p) }
       cur = None
-      if (!result.success) Environment.watcher ! PresenceFailed(p)
+      if (result.success) {
+        Environment.watcher ! 'Sink
+      } else {
+        Environment.watcher ! PresenceFailed(p)
+      }
       ArtifactServer ! ArtifactUpdated(p.artifactId)
       manipulator ! Wake
     }

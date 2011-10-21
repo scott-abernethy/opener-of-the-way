@@ -2,10 +2,11 @@ package code.comet
 
 import net.liftweb.util._
 import net.liftweb.util.Helpers._
-import code.model.{Cultist, ArtifactState, Artifact}
 import net.liftweb.http.js.{JsCmds, JsCmd}
 import net.liftweb.http.SHtml
 import xml.{Unparsed, NodeSeq}
+import code.model.{Environment, Cultist, ArtifactState, Artifact}
+import code.gate.Summon
 
 trait ArtifactBinding {
 
@@ -32,6 +33,7 @@ trait ArtifactBinding {
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
       case Some(newStatus) =>
         ArtifactServer ! ArtifactCloned(id)
+        Environment.summoner ! Summon(id)
         JsCmds.Noop
       case _ =>
         JsCmds.Noop
