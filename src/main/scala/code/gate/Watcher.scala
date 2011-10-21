@@ -75,9 +75,10 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val transient = transientQuery.toSet
         val isPresenting = presentingQuery.toList.size > 0
         val isCloning = cloningQuery.toList.size > 0
-        val nonReopenableBefore = T.ago(Gateway.nonReopenableBefore)
-        val dontReopen = open.filter(g => g.transitioned.after(nonReopenableBefore))
+        val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
+        val dontReopen = open.filter(g => g.seen.after(reopenTimestamp))
 
+        // TODO don't rerequest a failed open.
         // TODO don't reopen, instead note failures to scour, clone, present.
         // TODO much of the system latency is due to the 5 min Wake cycle.
         
@@ -88,7 +89,9 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         logger.info("Watcher CLOSE transient: " + transient)
 
         val keepOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
-        val toOpen = keepOpen -- dontReopen
+        val rerequestTimeStamp = T.ago(Gateway.rerequestableAfter)
+        val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp))
+        
         // TODO optimize closing while busy, as cloning / presenting can keep many gateways transient for ages
         var toClose = if (isPresenting || isCloning) Set.empty[Gateway] else transient
         val toTransient = (open.toSet -- keepOpen) -- transient
@@ -97,15 +100,14 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         for (t <- toTransient) {
           Mythos.gateways.update(g =>
             where(g.id === t.id)
-            set(g.state := GateState.transient,
-              g.transitioned := now)
+            set(g.state := GateState.transient)
           )
         }
         // won't work unless state goes open too! maybe?
         for (o <- toOpen) {
           Mythos.gateways.update(g =>
             where(g.id === o.id)
-            set(g.transitioned := now)
+            set(g.requested := now)
           )
         }
 
@@ -159,7 +161,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         x.seen = now
         x.state = GateState.open
         x.localPath = lp
-        x.transitioned = now
         x
       })
     }
@@ -171,8 +172,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     transaction {
       gateways.update(g =>
         where(g.id === transient.id and g.state === GateState.open)
-        set(g.state := GateState.transient,
-          g.transitioned := T.now)
+        set(g.state := GateState.transient)
       )
     }
     GatewayServer ! 'WayTransient
@@ -184,7 +184,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     transaction {
       updateGate(g, x => {
         x.state = if (g.seen.before(T.ago(4*24*60*60*1000))) GateState.lost else GateState.closed
-        x.transitioned = T.now
         x
       })
     }
