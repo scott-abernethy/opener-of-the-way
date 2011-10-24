@@ -32,4 +32,6 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) with IdeaPr
     "mysql" % "mysql-connector-java" % "5.1.9",
     "com.h2database" % "h2" % "1.2.147"
   ) ++ super.libraryDependencies
+
+  override def jettyPort = 9333
 }
