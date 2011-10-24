@@ -103,6 +103,7 @@ class Summoner(lurker: scala.actors.Actor, watcher: ActorRef) extends Actor with
           watcher ! 'Source
           // TODO notify manipulator?
         }
+        case _ =>
       }
       // TODO in Akka what happens to messages not handled?
     }

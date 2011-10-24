@@ -216,6 +216,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.isDefinedAt('Wake) must be (true)
       x.isDefinedAt('Source) must be (true)
       x.isDefinedAt('Sink) must be (true)
+      x.isDefinedAt('Close) must be (true)
       x.isDefinedAt('Random) must be (false)
     }
 
@@ -460,7 +461,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
       within(900 millis) {
-        x ! 'Wake
+        x ! 'Close
         expectMsg(CloseGateway(db.c1g))
         expectNoMsg
       }
@@ -489,7 +490,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
       within(900 millis) {
-        x ! 'Wake
+        x ! 'Close
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)

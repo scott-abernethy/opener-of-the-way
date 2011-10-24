@@ -1,15 +1,16 @@
 package code.gate
 
-import akka.actor.{ActorRef, Actor}
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import net.liftweb.common.Loggable
 import code.model._
 import code.comet.GatewayServer
+import akka.actor.{Scheduler, ActorRef, Actor}
 
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
+case class FlushAndClose(gatewayId: Long)
 
 object Watcher {
 
@@ -50,12 +51,18 @@ object Watcher {
     g.state === GateState.transient
   )
 
-  val presentingQuery: Query[Presence] = presences.where(p =>
-    p.state === PresenceState.presenting
+  val gatewaysPresenting: Query[Gateway] = join(presences, artifacts, gateways)( (p, a, g) =>
+    where(p.state === PresenceState.presenting and
+      g.mode === GateMode.source)
+    select(g)
+    on(p.artifactId === a.id, a.gatewayId === g.id)
   )
 
-  val cloningQuery: Query[Clone] = clones.where(c =>
-    c.state === CloneState.cloning
+  val gatewaysCloning: Query[Gateway] = join(clones, gateways.leftOuter)( (c, g) =>
+    where(c.state === CloneState.cloning and
+      g.map(_.mode) === Some(GateMode.sink))
+    select(g.get)
+    on(c.forCultistId === g.map(_.cultistId))
   )
 }
 
@@ -80,9 +87,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val sinks = sinksQuery().toList.map(_._2).distinct
         val scour = scourQuery().toList.distinct
         val open = openQuery.toList.distinct
-        val transient = transientQuery.toSet
-        val isPresenting = presentingQuery.toList.size > 0
-        val isCloning = cloningQuery.toList.size > 0
         val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
         val dontReopen = open.filter(g => g.seen.after(reopenTimestamp))
 
@@ -92,15 +96,12 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         logger.info("Watcher WANT source: " + sources)
         logger.info("Watcher WANT sink " + sinks)
         logger.info("Watcher WANT scour: " + scour)
-        logger.info("Watcher CLOSE transient: " + transient)
 
-        val keepOpen = (sources ::: sinks ::: scour).distinct.toSet -- transient // don't open transient.
+        val keepOpen = (sources ::: sinks ::: scour).distinct.toSet.filter(_.state != GateState.transient) // don't open transient.
         val rerequestTimeStamp = T.ago(Gateway.rerequestableAfter)
         val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp))
         
-        // TODO optimize closing while busy, as cloning / presenting can keep many gateways transient for ages
-        var toClose = if (isPresenting || isCloning) Set.empty[Gateway] else transient
-        val toTransient = (open.toSet -- keepOpen) -- transient
+        val toTransient = open.toSet -- keepOpen
 
         val now = T.now
         for (t <- toTransient) {
@@ -117,7 +118,19 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         }
 
         toOpen.foreach( threshold ! OpenGateway(_) )
-        toClose.foreach( threshold ! CloseGateway(_) )
+      }
+    }
+    case 'Close => {
+      transaction {
+        transientQuery.toList match {
+          case Nil => // Do nothing
+          case transient => {
+            val inUse = gatewaysPresenting.toSet ++ gatewaysCloning.toSet
+            var toClose = transient.toSet -- inUse
+            toClose.foreach( threshold ! CloseGateway(_) )
+          }
+        }
+
       }
     }
 
