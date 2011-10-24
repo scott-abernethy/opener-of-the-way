@@ -7,10 +7,11 @@ import net.liftweb.common.Loggable
 import code.model._
 import code.comet.GatewayServer
 import akka.actor.{Scheduler, ActorRef, Actor}
+import java.util.concurrent.TimeUnit
 
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
-case class FlushAndClose(gatewayId: Long)
+case class Flush(gatewayId: Long)
 
 object Watcher {
 
@@ -80,8 +81,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       self ! 'Wake
     }
     case 'Wake => {
-      // TODO waking should be a backup mechanism for doing this. Do on demand.
-      // TODO split into multiple methods, open / close / transient / source / sink
       transaction {
         val sources = sourcesQuery().toList.map(_._2).distinct
         val sinks = sinksQuery().toList.map(_._2).distinct
@@ -90,18 +89,14 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
         val dontReopen = open.filter(g => g.seen.after(reopenTimestamp))
 
-        // TODO much of the system latency is due to the 5 min Wake cycle.
-        
-        logger.info("Watcher OPEN: " + open)
-        logger.info("Watcher WANT source: " + sources)
-        logger.info("Watcher WANT sink " + sinks)
-        logger.info("Watcher WANT scour: " + scour)
+        logger.info("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
 
         val keepOpen = (sources ::: sinks ::: scour).distinct.toSet.filter(_.state != GateState.transient) // don't open transient.
         val rerequestTimeStamp = T.ago(Gateway.rerequestableAfter)
         val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp))
-        
         val toTransient = open.toSet -- keepOpen
+
+        logger.info("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
 
         val now = T.now
         for (t <- toTransient) {
@@ -110,10 +105,12 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
             set(g.state := GateState.transient)
           )
         }
+        if (toTransient.size > 0) { GatewayServer ! 'Hmmmmm }
+
         for (o <- toOpen) {
           Mythos.gateways.update(g =>
-            where(g.id === o.id)
-            set(g.requested := now)
+              where(g.id === o.id)
+          set(g.requested := now)
           )
         }
 
@@ -121,16 +118,24 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       }
     }
     case 'Close => {
+      val watcher = self
       transaction {
-        transientQuery.toList match {
-          case Nil => // Do nothing
-          case transient => {
-            val inUse = gatewaysPresenting.toSet ++ gatewaysCloning.toSet
-            var toClose = transient.toSet -- inUse
-            toClose.foreach( threshold ! CloseGateway(_) )
-          }
+        transientQuery.toList.foreach { g =>
+          Scheduler.scheduleOnce(() => watcher ! Flush(g.id), 30L, TimeUnit.SECONDS)
         }
-
+      }
+    }
+    case Flush(gatewayId) => {
+      transaction {
+        gateways.lookup(gatewayId) match {
+          case Some(gateway) if (gateway.state == GateState.transient) => {
+            val inUse = gatewaysPresenting.toSet ++ gatewaysCloning.toSet
+            if (!inUse.contains(gateway)) {
+              threshold ! CloseGateway(gateway)
+            }
+          }
+          case _ => // Do nothing
+        }
       }
     }
 

@@ -461,7 +461,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
       within(900 millis) {
-        x ! 'Close
+        x ! Flush(db.c1g.id)
         expectMsg(CloseGateway(db.c1g))
         expectNoMsg
       }
@@ -490,7 +490,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
       }
       val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
       within(900 millis) {
-        x ! 'Close
+        x ! Flush(db.c1g.id)
         expectNoMsg
       }
       x.getMailboxSize() must be_==(0)
