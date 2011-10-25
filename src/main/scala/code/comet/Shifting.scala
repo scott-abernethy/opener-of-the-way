@@ -33,6 +33,7 @@ class Shifting extends CometActor with CometListener {
       from(Mythos.clones)(c =>
         where(c.state === CloneState.cloned)
         select(c)
+        orderBy(c.attempted desc)
       ).page(0, 100).toList
     }
 
