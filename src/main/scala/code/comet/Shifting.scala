@@ -3,11 +3,40 @@ package code.comet
 import net.liftweb.actor.LiftActor
 import net.liftweb.http.{ListenerManager, CometActor, CometListener}
 import org.squeryl.PrimitiveTypeMode._
-import code.model.{CloneState, Mythos}
 import net.liftweb.util.ClearClearable
 import code.util.DatePresentation
+import code.model.{Clone, CloneState, Mythos}
 
 // TODO optimise, shifting data is identical for all sessions
+
+object Shifting {
+  def durationOf(clone: Clone): Long = {
+    val lag = clone.attempted.getTime - clone.requested.getTime
+    if (lag > 0) {
+      lag + clone.duration
+    } else {
+      // Weird
+      clone.duration
+    }
+  }
+
+  def calculateMedian(in: List[Clone]): Long = {
+    val durations = in.map(durationOf(_))
+    if (durations.size > 0) {
+      durations.sorted.apply(durations.size / 2)
+    } else {
+      0L
+    }
+  }
+
+  def calculateMean(in: List[Clone]): Long = {
+    val total = in.foldLeft(0L){ (sum, clone) =>
+      sum + durationOf(clone)
+    }
+
+    if (in.size > 0) total / in.size else 0L;
+  }
+}
 
 class Shifting extends CometActor with CometListener {
 
@@ -18,7 +47,7 @@ class Shifting extends CometActor with CometListener {
   override def lowPriority = {
     // TODO better classification of artifact change required here would allow for calculating a rolling average
     case _ => {
-      average = calculate()
+      average = Shifting.calculateMedian(recentlyCompleted())
       reRender(true)
     }
   }
@@ -27,26 +56,14 @@ class Shifting extends CometActor with CometListener {
     ClearClearable &
     ".shifting-average" #> DatePresentation.duration(average)
   }
-  
-  def calculate(): Long = {
-    val completed = transaction {
+
+  def recentlyCompleted(): List[Clone] = {
+    transaction {
       from(Mythos.clones)(c =>
         where(c.state === CloneState.cloned)
         select(c)
         orderBy(c.attempted desc)
       ).page(0, 100).toList
     }
-
-    val total = completed.foldLeft(0L){ (sum, clone) =>
-      val lag = clone.attempted.getTime - clone.requested.getTime
-      if (lag > 0) {
-        sum + lag + clone.duration
-      } else {
-        // Weird
-        sum + clone.duration
-      }
-    }
-
-    if (completed.size > 0) total / completed.size else 0L;
   }
 }
