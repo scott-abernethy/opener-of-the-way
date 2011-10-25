@@ -91,11 +91,6 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             self ! Wake
           }
           case 'Flush => {
-            if (presenter.currently.isEmpty) {
-              transaction ( update(presences)(p =>
-                setAll(p.state := PresenceState.unknown))
-              )
-            }
             if (cloner.currently.isEmpty) {
               transaction ( update(clones)(c =>
                 where(c.state === CloneState.cloning)

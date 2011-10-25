@@ -16,7 +16,7 @@ class Shifting extends CometActor with CometListener {
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    // TODO better classification of artifact change required here
+    // TODO better classification of artifact change required here would allow for calculating a rolling average
     case _ => {
       average = calculate()
       reRender(true)

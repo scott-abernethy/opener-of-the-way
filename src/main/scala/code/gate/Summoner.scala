@@ -45,7 +45,6 @@ object Summoner {
           ((in._1, in._2, in._3.toList)) :: list
       }
     }
-
   }
 
   def presenceToClean(): Query[Presence] = {
@@ -64,7 +63,6 @@ class Summoner(lurker: scala.actors.Actor, watcher: ActorRef) extends Actor with
     // TODO don't add / summon it if no room.
 
     case 'Wake => {
-      // TODO waking should be a backup mechanism for doing this. Do on demand.
       // TODO do called yet not needed and not possible presences ever get released? Don't think so.
       clean()
       for ( clone <- transaction( requestedPresences().toList ) ) {
@@ -75,6 +73,30 @@ class Summoner(lurker: scala.actors.Actor, watcher: ActorRef) extends Actor with
     case Summon(artifactId) => {
       call(artifactId)
       releaseIfNecessary()
+    }
+    case 'Check => {
+      // called > ...
+      // presenting > called
+      // present > [check]
+      // unknown > ...
+      // released > ...
+      transaction {
+        update(presences)(p =>
+          where(p.state === PresenceState.presenting)
+          set(p.state := PresenceState.called)
+        )
+        from(presences)(p =>
+          where(p.state === PresenceState.present)
+          select(p)
+        ).toList.foreach { p =>
+          val localFile = new File(p.localPath)
+          // TODO check against artifact size also
+          if ( !localFile.exists() ) {
+            // Assume the presence is gone
+            presences.deleteWhere( x => x.id === p.id )
+          }
+        }
+      }
     }
     case 'Ping => {
       self.reply( 'Pong )

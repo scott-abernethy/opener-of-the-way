@@ -29,6 +29,7 @@ object Environment
     Scheduler.schedule(watcher, 'Wake, 1, 2, TimeUnit.MINUTES)
     Scheduler.schedule(watcher, 'Close, 2, 2, TimeUnit.MINUTES)
     summoner = actorOf(new Summoner(lurker, watcher)).start
+    summoner !! ('Check, 60*1000L)
     Scheduler.schedule(summoner, 'Wake, 3, 5, TimeUnit.MINUTES)
     lurker.start
     lurker ! 'Flush

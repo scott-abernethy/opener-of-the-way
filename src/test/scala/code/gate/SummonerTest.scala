@@ -156,6 +156,7 @@ object SummonerTest extends Specification with Mockito with TestKit {
 
     "remove filesystem presence when released" >> {}
 
+    "check stuff" >> {}
   }
 
   def presentAt(a: Artifact) = {
