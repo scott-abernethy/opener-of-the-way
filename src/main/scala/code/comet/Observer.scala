@@ -51,7 +51,7 @@ class Observer extends CometActor with CometListener {
     ".item-for *" #> name.getOrElse("?") &
     ".item-from *" #> fromCultist.sign &
     ".item-completed *" #> DatePresentation.ago(clone.attempted.getTime) &
-    ".item-elapsed *" #> DatePresentation.duration(clone.attempted.getTime - clone.requested.getTime) &
+    ".item-elapsed *" #> DatePresentation.duration(Shifting.durationOf(clone)) &
     ".item-duration *" #> formatDurationSeconds(clone.duration) &
     ".item-attempts *" #> formatAttempts(clone.attempts) apply(in)
   }
