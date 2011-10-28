@@ -97,6 +97,7 @@ class Summoner(lurker: scala.actors.Actor, watcher: ActorRef) extends Actor with
           }
         }
       }
+      self.reply( 'CheckComplete )
     }
     case 'Ping => {
       self.reply( 'Pong )
