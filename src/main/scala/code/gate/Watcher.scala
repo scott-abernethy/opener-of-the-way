@@ -32,7 +32,7 @@ object Watcher {
       cl.state <> CloneState.cloned and
       (cl.attempts === 0 or cl.attempted < T.ago(Clone.nonRepeatableBefore)) and
       g.mode === GateMode.sink and
-      p.map(_.state) === Some(PresenceState.present)
+      (p.map(_.state) === Some(PresenceState.present) or p.map(_.state) === Some(PresenceState.presenting))
     )
     select((cl,g,p))
     orderBy(cl.attempts asc, cl.id asc)

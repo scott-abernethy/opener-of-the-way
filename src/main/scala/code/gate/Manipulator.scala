@@ -37,7 +37,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
     transaction(
       sinksQuery()
         .toList
-        .filter(x => x._1.state == CloneState.awaiting && x._2.state == GateState.open)
+        .filter(x => x._1.state == CloneState.awaiting && x._2.state == GateState.open && x._3.map(_.state) == Some(PresenceState.present))
         .map(_._1)
     )
   }
