@@ -142,10 +142,18 @@ h4 {
 	padding-bottom: 1px;
   border-top: 1px #e8eed5 solid;
 }
-.coffin h4 {
-  color: #93a1a1;
-  margin-top: 1em;
-  margin-bottom: 0.6em;
+.coffin-pad {
+  margin: 0;
+	padding-top: 2px;
+	padding-bottom: 1px;
+  border-top: 1px #cccccc solid;
+  background: #cccccc;
+  color: #ffffff;
+}
+.coffin-pad h4 {
+  color: #ffffff;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
 }
 .prepend-h {
   padding-left: 20px;
