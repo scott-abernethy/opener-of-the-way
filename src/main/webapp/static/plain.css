@@ -9,12 +9,12 @@
 }
 body {
   margin: 0;
-  background: #ffffff;
+  background: #e8eed5;
   color: #586e75;
 }
 .roundbox {
   border: thin solid #bf96b8;
-  background: #e8eed5;
+  background: #ffffff;
   padding: 2em 2em 2em 2em;
   -moz-border-radius: 6px;
   border-radius: 6px;

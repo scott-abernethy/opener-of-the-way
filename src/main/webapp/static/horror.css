@@ -47,20 +47,8 @@ tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
 	margin:0;
 	padding:0;
 }
-.artifacts ol {
-	margin: 0;
-	padding: 0;
-    list-style:none;
-}
-.artifacts ol li {
-    margin: 0;
-    padding: 0;
-}
 .artifacts img {
     margin-top: 1px;
-}
-.sep-bottom {
-    margin-bottom: 0.4em;
 }
 h1 {
     color: #93a1a1;
@@ -72,6 +60,9 @@ h3 {
     color: #93a1a1;
     margin-top: 1em;
     margin-bottom: 0.6em;
+}
+h4 {
+    color: #93a1a1;
 }
 .stripmenu ul {
     display: inline;
@@ -113,9 +104,58 @@ h3 {
 .no-margin input {
   margin: 0;
 }
+.coffin-top {
+  -moz-border-top-left-radius: 5px;
+  -moz-border-top-right-radius: 5px;
+  -webkit-border-top-left-radius: 5px;
+  -webkit-border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  border: 1px solid #bf96b8;
+  border-bottom-width: 0;
+  /*background: #e8eed5;*/
+  background: #bf96b8;
+}
+.coffin-top h2 {
+  color: #ffffff;
+  margin: 6px 10px;
+}
+.coffin-top h3 {
+  color: #ffffff;
+  margin: 6px 10px;
+}
+.coffin {
+  -moz-border-bottom-left-radius: 5px;
+  -moz-border-bottom-right-radius: 5px;
+  -webkit-border-bottom-left-radius: 5px;
+  -webkit-border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border: 1px solid #bf96b8;
+  border-top-width: 0;
+  margin-bottom: 1em;
+  background: #ffffff;
+}
+.coffin-item {
+  margin: 0;
+	padding-top: 2px;
+	padding-bottom: 1px;
+  border-top: 1px #e8eed5 solid;
+}
+.coffin h4 {
+  color: #93a1a1;
+  margin-top: 1em;
+  margin-bottom: 0.6em;
+}
+.prepend-h {
+  padding-left: 20px;
+}
+.append-h {
+  padding-right: 20px;
+}
 .roundbox {
-  -moz-border-radius: 10px;
-  border-radius: 10px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
 }
 .warning-surround {
   /*border: #999999 solid thin;*/
@@ -123,8 +163,8 @@ h3 {
   margin-top: 0.4em;
   margin-bottom: 0.4em;
   padding: 0.5em 0.5em 0.5em 0.8em;
-  -moz-border-radius: 10px;
-  border-radius: 10px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
 }
 .warning-symbol {
   display: inline;
@@ -138,20 +178,21 @@ h3 {
 }
 /**
  * http://ethanschoonover.com/solarized
- * $base03:    #002b36;
- * $base02:    #073642;
- * $base01:    #586e75; 
- * $base00:    #657b83; normal text
- * $base0:     #839496; heading text
- * $base1:     #93a1a1;
- * $base2:     #eee8d5;
- * $base3:     #fdf6e3; background
- * $yellow:    #b58900;
- * $orange:    #cb4b16;
- * $red:       #dc322f;
- * $magenta:   #d33682;
- * $violet:    #6c71c4;
- * $blue:      #268bd2;
- * $cyan:      #2aa198;
- * $green:     #859900;
  */
+.solarized-base03 { color: #002b36; }
+.solarized-base02 { color: #073642; }
+.solarized-base01 { color: #586e75; }
+.solarized-base00 { color: #657b83; }
+.solarized-base0 { color: #839496; }
+.solarized-base1 { color: #93a1a1; }
+.solarized-base2 { color: #eee8d5; }
+.solarized-base3 { color: #fdf6e3; }
+.solarized-yellow { color: #b58900; }
+.solarized-orange { color: #cb4b16; }
+.solarized-red { color: #dc322f; }
+.solarized-magenta { color: #d33682; }
+.solarized-violet { color: #6c71c4; }
+.solarized-blue { color: #268bd2; }
+.solarized-cyan { color: #2aa198; }
+.solarized-green { color: #859900; }
+
