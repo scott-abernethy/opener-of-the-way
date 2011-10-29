@@ -111,10 +111,10 @@ h4 {
   -webkit-border-top-right-radius: 5px;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
-  border: 1px solid #bf96b8;
+  border: 1px solid #A3BF95;
   border-bottom-width: 0;
   /*background: #e8eed5;*/
-  background: #bf96b8;
+  background: #A3BF95;
 }
 .coffin-top h2 {
   color: #ffffff;
@@ -131,7 +131,7 @@ h4 {
   -webkit-border-bottom-right-radius: 5px;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
-  border: 1px solid #bf96b8;
+  border: 1px solid #A3BF95;
   border-top-width: 0;
   margin-bottom: 1em;
   background: #ffffff;
@@ -196,3 +196,18 @@ h4 {
 .solarized-cyan { color: #2aa198; }
 .solarized-green { color: #859900; }
 
+/*
+ from bf96b8
+ white: F8F5F8
+ darker: 74476D
+ gray: aaaaaa
+
+ E5D5E2
+
+ tri, with B8BF95 and 95B8BF
+
+coffin now...
+A3BF95
+95BF9C
+95BFB1
+ */

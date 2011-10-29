@@ -3,11 +3,11 @@ package code.comet
 import net.liftweb.actor.LiftActor
 import net.liftweb.http.{ListenerManager, CometActor, CometListener}
 import net.liftweb.http.ListenerManager._
-import net.liftweb.util.ClearClearable
 import net.liftweb.common.{Full, Loggable}
 import org.squeryl.PrimitiveTypeMode._
 import code.model.{Gateway, GateMode, GateState, Cultist}
 import xml.{Node, Unparsed, NodeSeq}
+import net.liftweb.util.{CssSel, ClearClearable}
 
 class GatewayInfo extends CometActor with CometListener {
 
@@ -21,9 +21,16 @@ class GatewayInfo extends CometActor with CometListener {
     Cultist.attending.is match {
       case Full(cultist) =>
         val gateways = transaction ( cultist.gateways.toList )
-        ClearClearable &
-        ".gateway-item" #> bindItems(gateways) _ &
-        ".gateway-warning" #> bindWarnings(gateways) _
+        if (gateways.size > 0) {
+          ClearClearable &
+          ".empty" #> NodeSeq.Empty &
+          ".gateway-item" #> bindItems(gateways) _ &
+          ".gateway-warning" #> bindWarnings(gateways) _
+        } else {
+          ClearClearable &
+          ".gateway-item" #> NodeSeq.Empty &
+          ".gateway-warning" #> bindWarnings(gateways) _
+        }
       case _ =>
         ClearClearable &
         ".gateway-item" #> NodeSeq.Empty &
