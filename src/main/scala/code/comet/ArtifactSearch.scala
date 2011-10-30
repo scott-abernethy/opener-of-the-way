@@ -30,11 +30,11 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
     val items = new ArtifactCloneSearchFactory().create(Cultist.attending.is.map(_.id).getOrElse(-1), searchFor)
     if (items.size > 0) {
       ClearClearable &
-        ".search-desc *" #> ("Found " + items.size + " matches") &
+        ".search-desc *" #> ("Found " + items.size + " matches for '" + searchFor + "'") &
         ".search:item" #> (bindItems(items) _)
     } else {
       ClearClearable &
-        ".search-desc *" #> "Found nothing" &
+        ".search-desc *" #> ("Found nothing matching '" + searchFor + "'") &
         ".search:item" #> NodeSeq.Empty
     }
   }
