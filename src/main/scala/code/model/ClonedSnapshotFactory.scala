@@ -4,25 +4,14 @@ import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
 import code.gate.T
 
-class CloneSnapshot(
-  val awaiting: List[(Artifact, Option[ArtifactState.Value])],
+class ClonedSnapshot(
   val cloned: List[(Artifact, Option[ArtifactState.Value])]
 )
 
-class CloneSnapshotFactory {
-  def create(cultistId: Long): CloneSnapshot = {
-    // TODO compute in parallel...
-    val (as, cs) = inTransaction((awaiting(cultistId), cloned(cultistId)))
-    new CloneSnapshot(stateOf(cultistId, as), stateOf(cultistId, cs))
-  }
-
-  def awaiting(cultistId: Long) = {
-    join(clones, artifacts, presences.leftOuter)((c, a, p) =>
-      where(c.forCultistId === cultistId and (c.state === CloneState.awaiting or c.state === CloneState.cloning))
-        select((c, a, p))
-        orderBy(c.requested desc)
-        on(c.artifactId === a.id, c.artifactId === p.map(_.artifactId))
-    ).toList
+class ClonedSnapshotFactory {
+  def create(cultistId: Long): ClonedSnapshot = {
+    val cs = inTransaction(cloned(cultistId))
+    new ClonedSnapshot(stateOf(cultistId, cs))
   }
 
   def cloned(cultistId: Long) = {

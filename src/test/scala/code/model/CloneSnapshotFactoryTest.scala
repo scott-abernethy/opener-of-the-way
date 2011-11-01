@@ -31,7 +31,7 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
 
     "be empty for no clones" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
-      val x = new CloneSnapshotFactory
+      val x = new ClonedSnapshotFactory
       val xx = x.create(2)
       xx.awaiting must beEmpty
       xx.cloned must beEmpty
@@ -42,7 +42,7 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
       val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloning)))
-      val x = new CloneSnapshotFactory
+      val x = new ClonedSnapshotFactory
       val xx = x.create(2)
       xx.awaiting must haveSize(1)
       xx.cloned must haveSize(0)
@@ -60,7 +60,7 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
         clones.insert(myOldClone)
       }
 
-      val x = new CloneSnapshotFactory
+      val x = new ClonedSnapshotFactory
       val xx = x.create(2)
       xx.awaiting must haveSize(0)
       xx.cloned must haveSize(1)
@@ -82,7 +82,7 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
         clones.insert(Clone.fake(a4.id, 2L, CloneState.awaiting, new Timestamp(610000), T.yesterday))
         clones.insert(Clone.fake(a1.id, 2L, CloneState.cloned, new Timestamp(800000), T.ago(4 * 24 * 60 * 60 * 1000)))
 
-        val x = new CloneSnapshotFactory
+        val x = new ClonedSnapshotFactory
         val xx = x.create(2)
         xx.awaiting must haveSize(3)
         xx.awaiting(0)._1 must be_==(a2)

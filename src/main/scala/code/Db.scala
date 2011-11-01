@@ -132,14 +132,23 @@ trait Db {
 
           Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: Nil)
 
-//          val clone1 = new Clone
-//          clone1.artifactId = 1
-//          clone1.forCultistId = foo.id
-//          clone1.state = CloneState.cloning
-//          clone1.requested = T.yesterday
-//          clone1.attempted = T.yesterday
-//          clone1.attempts = 5
-//          Mythos.clones.insert(clone1)
+          val clone1 = new Clone
+          clone1.artifactId = 1
+          clone1.forCultistId = foo.id
+          clone1.state = CloneState.awaiting
+          clone1.requested = T.now
+          clone1.attempted = T.now
+          clone1.attempts = 5
+          Mythos.clones.insert(clone1)
+
+          val clone3 = new Clone
+          clone3.artifactId = 2
+          clone3.forCultistId = foo.id
+          clone3.state = CloneState.awaiting
+          clone3.requested = T.yesterday
+          clone3.attempted = T.now
+          clone3.attempts = 1
+          Mythos.clones.insert(clone3)
 
           val clone2 = new Clone
           clone2.artifactId = 3
