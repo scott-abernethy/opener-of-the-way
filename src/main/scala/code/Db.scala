@@ -129,8 +129,13 @@ trait Db {
           i.path = "mee/nurfnurf"
           i.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
           i.discovered = T.ago(5 * 24 * 60 * 60 * 1000L)
+          val j = new Artifact
+          j.gatewayId = g3.id
+          j.path = "/fake"
+          j.discovered = T.yesterday
+          j.witnessed = T.now
 
-          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: Nil)
+          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: j :: Nil)
 
           val clone1 = new Clone
           clone1.artifactId = 1
@@ -140,6 +145,23 @@ trait Db {
           clone1.attempted = T.now
           clone1.attempts = 5
           Mythos.clones.insert(clone1)
+
+          val clone4 = new Clone
+          clone4.artifactId = 10
+          clone4.forCultistId = foo.id
+          clone4.state = CloneState.awaiting
+          clone4.requested = T.yesterday
+          clone4.attempted = T.yesterday
+          clone4.attempts = 0
+          Mythos.clones.insert(clone4)
+
+          val presence4 = new Presence
+          presence4.artifactId = 10
+          presence4.state = PresenceState.called
+          presence4.requested = T.yesterday
+          presence4.attempted = T.yesterday
+          presence4.attempts = 0
+          Mythos.presences.insert(presence4)
 
           val clone3 = new Clone
           clone3.artifactId = 2

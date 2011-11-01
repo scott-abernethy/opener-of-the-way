@@ -13,23 +13,19 @@ import org.squeryl.PrimitiveTypeMode._
 
 case object Subscribed
 
-case class ArtifactCreated(artifact: Artifact)
-case class ArtifactUpdated(artifactId: Long)
-case class ArtifactCloned(artifactId: Long)
+sealed class ArtifactChange
+case object ArtifactCreated extends ArtifactChange
+case object ArtifactUpdated extends ArtifactChange
+case object ArtifactAwaiting extends ArtifactChange
+case object ArtifactUnawaiting extends ArtifactChange
+case class ArtifactTouched(change: ArtifactChange, artifactId: Long)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore"
   override def lowPriority = {
-    case msg @ ArtifactCreated(a) =>
-      logger.debug("Artifact created " + a)
+    case msg =>
+      logger.debug(msg.toString)
       updateListeners(msg)
-    case msg @ ArtifactUpdated(id) =>
-      logger.debug("Artifact updated " + id)
-      updateListeners(msg)
-    case msg @ ArtifactCloned(id) =>
-      logger.debug("Artifact clone requested")
-      updateListeners(msg)
-    case _ => 
   }
 }
 
@@ -40,18 +36,14 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactCreated(a) =>
+    case ArtifactTouched(ArtifactCreated, _) =>
 //      snapshot.add(a)
       // todo partialUpdate, though this rerender is good at the mo as it allows missing artifacts to be highlighted.
       snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
       reRender
-    case ArtifactUpdated(a) =>
+    case ArtifactTouched(_, a) =>
       snapshot.update(a)
       partialUpdate(renderUpdate(a))
-    case ArtifactCloned(a) =>
-      snapshot.update(a)
-      partialUpdate(renderUpdate(a))
-    case _ =>
   }
 
   def render = {

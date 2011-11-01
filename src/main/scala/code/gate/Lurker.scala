@@ -84,7 +84,7 @@ trait LurkerComponentImpl extends LurkerComponent {
               a.discovered = now
               a.witnessed = now
               a.length = length
-              ArtifactServer ! ArtifactCreated(artifacts.insert(a))
+              ArtifactServer ! ArtifactTouched(ArtifactCreated, artifacts.insert(a).id)
             }
           }
         }

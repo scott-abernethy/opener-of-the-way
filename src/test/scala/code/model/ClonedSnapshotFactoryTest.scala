@@ -9,7 +9,7 @@ import code.gate.T
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 
-object CloneSnapshotFactoryTest extends Specification with Mockito {
+object ClonedSnapshotFactoryTest extends Specification with Mockito {
   val db = new TestDb
   db.init
 
@@ -27,13 +27,12 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
     }
   }
 
-  "CloneSnapshotFactory" should {
+  "ClonedSnapshotFactory" should {
 
     "be empty for no clones" >> {
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val x = new ClonedSnapshotFactory
       val xx = x.create(2)
-      xx.awaiting must beEmpty
       xx.cloned must beEmpty
     }
 
@@ -44,7 +43,6 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
       val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloning)))
       val x = new ClonedSnapshotFactory
       val xx = x.create(2)
-      xx.awaiting must haveSize(1)
       xx.cloned must haveSize(0)
     }
 
@@ -62,7 +60,6 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
 
       val x = new ClonedSnapshotFactory
       val xx = x.create(2)
-      xx.awaiting must haveSize(0)
       xx.cloned must haveSize(1)
     }
 
@@ -84,10 +81,6 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
 
         val x = new ClonedSnapshotFactory
         val xx = x.create(2)
-        xx.awaiting must haveSize(3)
-        xx.awaiting(0)._1 must be_==(a2)
-        xx.awaiting(1)._1 must be_==(a4)
-        xx.awaiting(2)._1 must be_==(a3)
 
         xx.cloned must haveSize(2)
         xx.cloned(0)._1 must be_==(a5)
@@ -95,74 +88,6 @@ object CloneSnapshotFactoryTest extends Specification with Mockito {
       }
     }
 
-    /*
-    "default state to mine or available if no clones exist" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
-      val x = new CloneSnapshotFactory
-      x.reload(2)
-      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 1) must beSome(ArtifactState.proffered)
-      x.states.get(i + 2) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 3) must beSome(ArtifactState.proffered)
-      x.states.get(i + 4) must beSome(ArtifactState.proffered)
-      x.states.get(i + 5) must beNone
-    }
-    "reflect clone state" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
-      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
-      val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloning)))
-      val x = new CloneSnapshotFactory
-      x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.awaiting)
-      x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.proffered)
-
-      myClone.state = CloneState.cloning
-      inTransaction(clones.update(myClone))
-      x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.cloning)
-      x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.proffered)
-
-      myClone.state = CloneState.cloned
-      inTransaction(clones.update(myClone))
-      x.reload(2L)
-      x.states.get(i) must beSome(ArtifactState.cloned)
-      x.reload(1L)
-      x.states.get(i) must beSome(ArtifactState.proffered)
-    }
-    "allow artifacts to be updated" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
-      val x = new CloneSnapshotFactory
-      x.reload(2)
-      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactState.glimpsed)
-
-      val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
-      x.update(i)
-      x.states.get(i) must beSome(ArtifactState.awaiting)
-    }
-    "not exclude items cloned by others (bug)" >> {
-      inTransaction(clones.delete(from(clones)(c => select(c))))
-
-      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-
-      inTransaction(clones.insert(Clone.create(i + 2, 3L, CloneState.cloning)))
-      inTransaction(clones.insert(Clone.create(i + 3, 3L, CloneState.awaiting)))
-
-      val x = new CloneSnapshotFactory
-      x.reload(2)
-      
-      x.states.get(i) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 1) must beSome(ArtifactState.proffered)
-      x.states.get(i + 2) must beSome(ArtifactState.glimpsed)
-      x.states.get(i + 3) must beSome(ArtifactState.proffered)
-      x.states.get(i + 4) must beSome(ArtifactState.proffered)
-      x.states.get(i + 5) must beNone
-    }
-    */
   }
 
   doAfter {

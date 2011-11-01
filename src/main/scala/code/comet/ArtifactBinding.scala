@@ -32,7 +32,7 @@ trait ArtifactBinding {
     // todo return faster?
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
       case Some(newStatus) =>
-        ArtifactServer ! ArtifactCloned(id)
+        ArtifactServer ! ArtifactTouched(ArtifactAwaiting, id)
         Environment.summoner ! Summon(id)
         JsCmds.Noop
       case _ =>
@@ -44,7 +44,7 @@ trait ArtifactBinding {
     // todo return faster?
     Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
       case Some(newStatus) =>
-        ArtifactServer ! ArtifactCloned(id)
+        ArtifactServer ! ArtifactTouched(ArtifactUnawaiting, id)
         JsCmds.Noop
       case _ =>
         JsCmds.Noop

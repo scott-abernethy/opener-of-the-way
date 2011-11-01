@@ -13,15 +13,7 @@ class Cloned extends CometActor with CometListener with ArtifactBinding {
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactCreated(a) =>
-      // todo partialUpdate for all of this...
-      snapshot = factory.create(Cultist.attending.is.map(_.id).getOrElse(-1))
-      reRender
-    case ArtifactUpdated(a) =>
-      // todo partialUpdate for all of this...
-      snapshot = factory.create(Cultist.attending.is.map(_.id).getOrElse(-1))
-      reRender
-    case ArtifactCloned(a) =>
+    case ArtifactTouched(_, a) =>
       // todo partialUpdate for all of this...
       snapshot = factory.create(Cultist.attending.is.map(_.id).getOrElse(-1))
       reRender

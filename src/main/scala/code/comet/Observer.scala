@@ -11,23 +11,24 @@ import code.gate.T
 
 class Observer extends CometActor with CometListener {
   def registerWith = ArtifactServer
+
   override def lowPriority = {
-    case ArtifactUpdated(a) =>
-      //partialUpdate(renderUpdate(a))
-      reRender
-    case ArtifactCloned(a) =>
+    case ArtifactTouched(_, _) =>
       //partialUpdate(renderUpdate(a))
       reRender
     case _ =>
   }
+
   def render = {
     ClearClearable &
     ".incomplete-item" #> bindIncomplete _ &
     ".complete-item" #> bindComplete _
   }
+
   def bindIncomplete(in: NodeSeq): NodeSeq = {
     incomplete.flatMap(i => bindIncompleteItem(i._1, i._2, i._3)(in))
   }
+
   def bindIncompleteItem(clone: Clone, forCultist: Option[Cultist], fromCultist: Cultist)(in: NodeSeq): NodeSeq = {
     val name = for (c <- forCultist) yield c.sign
     ClearClearable &
@@ -40,9 +41,11 @@ class Observer extends CometActor with CometListener {
     ".item-state *" #> clone.state.toString &
     ".item-attempts *" #> formatAttempts(clone.attempts) apply(in)
   }
+
   def bindComplete(in: NodeSeq): NodeSeq = {
     complete.flatMap(i => bindCompleteItem(i._1, i._2, i._3)(in))
   }
+
   def bindCompleteItem(clone: Clone, forCultist: Option[Cultist], fromCultist: Cultist)(in: NodeSeq): NodeSeq = {
     val name = for (c <- forCultist) yield c.sign
     ClearClearable &
@@ -55,7 +58,9 @@ class Observer extends CometActor with CometListener {
     ".item-duration *" #> formatDurationSeconds(clone.duration) &
     ".item-attempts *" #> formatAttempts(clone.attempts) apply(in)
   }
+
   def idFor(id: Long): String = "i" + id
+
   def incomplete = inTransaction(
     join(clones, cultists.leftOuter, artifacts, gateways, cultists)((c, f, a, g, p) =>
       where(c.state === CloneState.awaiting or c.state === CloneState.cloning)
@@ -64,6 +69,7 @@ class Observer extends CometActor with CometListener {
       on(c.forCultistId === f.map(_.id), c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === p.id)
     ).toList
   )
+
   def complete = inTransaction(
     join(clones, cultists.leftOuter, artifacts, gateways, cultists)((c, f, a, g, p) =>
       where(c.state === CloneState.cloned and c.attempted > T.ago(7 * 24 * 60 * 60 * 1000))
@@ -72,9 +78,11 @@ class Observer extends CometActor with CometListener {
       on(c.forCultistId === f.map(_.id), c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === p.id)
     ).toList
   )
+
   def formatAttempts(attempts: Long): String = {
     if (attempts == 0) "" else attempts.toString + "x"
   }
+
   def formatDurationSeconds(duration: Long): String = {
     if (duration > 0) (duration / 1000) + " sec" else "?"
   }
