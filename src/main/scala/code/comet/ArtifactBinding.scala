@@ -18,6 +18,7 @@ trait ArtifactBinding {
     {
       ClearClearable &
       ".log:item [id]" #> idFor(artifact.id) &
+      ".awaiting:item [id]" #> ("a" + artifact.id) &
       ".item:select *" #> selectOption(artifact, artifactState, clones) &
       ".item:status *" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
       ".item:description *" #> artifact.description

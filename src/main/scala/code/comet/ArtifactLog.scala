@@ -29,6 +29,8 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   }
 }
 
+// TODO much of the work here is common across user sessions... scale
+
 class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   val snapshot = new ArtifactCloneSnapshot
   snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))

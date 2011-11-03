@@ -134,8 +134,13 @@ trait Db {
           j.path = "/fake"
           j.discovered = T.yesterday
           j.witnessed = T.now
+          val k = new Artifact
+          k.gatewayId = g3.id
+          k.path = "/big.file"
+          k.discovered = T.yesterday
+          k.witnessed = T.now
 
-          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: j :: Nil)
+          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: j :: k :: Nil)
 
           val clone1 = new Clone
           clone1.artifactId = 1
