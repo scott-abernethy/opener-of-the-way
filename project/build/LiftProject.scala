@@ -9,7 +9,7 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) with IdeaPr
 
   // If you're using JRebel for Lift development, uncomment
   // this line
-  // override def scanDirectories = Nil
+  override def scanDirectories = Nil
 
   //override def jettyWebappPath = webappPath
   lazy val JavaNet = "Java.net Maven2 Repository" at "http://download.java.net/maven/2/"
