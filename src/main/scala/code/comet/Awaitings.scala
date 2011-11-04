@@ -7,6 +7,8 @@ import js.JsCmds
 import net.liftweb.util._
 import code.model._
 import scala.xml._
+import code.js.JquiJsCmds
+import util.Helpers._
 
 class Awaitings extends CometActor with CometListener with ArtifactBinding {
   val cultistId = Cultist.attending.is.map(_.id).getOrElse(-1L)
@@ -21,22 +23,16 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding {
         val c = i._3
         val (snapshot2, action) = snapshot.update(a, s, c)
         snapshot = snapshot2
-        val aid: String = "a" + a.id
+        val id: String = "a" + a.id
         val update = action match {
           case Add =>
-            val out: NodeSeq = (".awaiting:item ^^" #> "notused" andThen ".awaiting:item" #> bindItems((a, s, c.get) :: Nil) _ ).apply(defaultHtml)
-            JqJsCmds.Hide("awaiting-empty") & JqJsCmds.AppendHtml("awaitings", out )
+            val out: NodeSeq = (".awaiting:item ^^" #> "notused" andThen ".awaiting:item" #> bindItems((a, s, c.get) :: Nil) _ andThen ".awaiting:item [class+]" #> "hidden").apply(defaultHtml)
+            JqJsCmds.AppendHtml("awaitings", out ) & JquiJsCmds.BlindInFast(id)
           case Update =>
             val out: NodeSeq = (".awaiting:item ^^" #> "notused" andThen ".awaiting:item" #> bindItems((a, s, c.get) :: Nil) _).apply(defaultHtml)
-            JsCmds.Replace(aid, out )
+            JsCmds.Replace(id, out )
           case _ =>
-            if (snapshot.awaiting.isEmpty) {
-              JsCmds.Replace(aid, NodeSeq.Empty) & JqJsCmds.Show("awaiting-empty")
-            }
-            else {
-              JsCmds.Replace(aid, NodeSeq.Empty)
-            }
-
+            JquiJsCmds.BlindOutFast(id) & JsCmds.After(1 second, JsCmds.Replace(id, NodeSeq.Empty))
         }
         partialUpdate(update)
       }
@@ -46,6 +42,7 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding {
   def render = {
     if (snapshot.awaiting.isEmpty) {
       ClearClearable &
+      "#awaiting-empty [class+]" #> "hidden" &
       ".awaiting:item" #> NodeSeq.Empty
     } else {
       ClearClearable &
