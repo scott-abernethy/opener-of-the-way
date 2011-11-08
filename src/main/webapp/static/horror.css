@@ -101,6 +101,11 @@ h4 {
    color: #93a1a1;
    margin-left: 0.5em;
 }
+.item-size {
+   font-size: 0.8em;
+   color: #93a1a1;
+  text-align: right;
+}
 .no-margin input {
   margin: 0;
 }
