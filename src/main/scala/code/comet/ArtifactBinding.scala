@@ -7,6 +7,7 @@ import net.liftweb.http.SHtml
 import xml.{Unparsed, NodeSeq}
 import code.model.{Environment, Cultist, ArtifactState, Artifact}
 import code.gate.Summon
+import code.util.Size
 
 trait ArtifactBinding {
 
@@ -21,7 +22,8 @@ trait ArtifactBinding {
       ".awaiting:item [id]" #> ("a" + artifact.id) &
       ".item:select *" #> selectOption(artifact, artifactState, clones) &
       ".item:status *" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
-      ".item:description *" #> artifact.description
+      ".item:description *" #> artifact.description &
+      ".item-size *" #> Size.short(artifact.length)
     }.apply(in)
   }
 
