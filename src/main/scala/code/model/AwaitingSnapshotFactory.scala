@@ -11,9 +11,10 @@ import xml.NodeSeq
 // TODO have servers and filtered comets for this stuff. It's not scaling well. Even just a single thing that does the db query for artifact to clones...?
 
 abstract class SnapshotAction
-case object Add extends SnapshotAction
-case object Update extends SnapshotAction
-case object Remove extends SnapshotAction
+case class Add(cloneId: Long) extends SnapshotAction
+case class Update(cloneId: Long) extends SnapshotAction
+case class Remove(cloneId: Long) extends SnapshotAction
+case object Other extends SnapshotAction
 
 class AwaitingSnapshot(
   val awaiting: List[(Artifact, Option[ArtifactState.Value], Clone)]
@@ -23,8 +24,7 @@ class AwaitingSnapshot(
 
   def update(artifact: Artifact, state: Option[ArtifactState.Value], clone: Option[Clone]): (AwaitingSnapshot, SnapshotAction) = {
 
-    val filtered = awaiting.filterNot( i => i._1.id == artifact.id )
-    val existed = filtered.size < awaiting.size
+    val (removed, filtered) = awaiting.partition( i => i._1.id == artifact.id )
 
     // TODO should remove be done with a remove method
     val include = (state, clone) match {
@@ -38,10 +38,11 @@ class AwaitingSnapshot(
     val s = new AwaitingSnapshot( sorted )
 
     // TODO update should take into account whether UI will change...?
-    (existed, include) match {
-      case (_, Nil) => ( s, Remove )
-      case (true, _) => ( s, Update )
-      case (false, _) => ( s, Add )
+    (removed, include) match {
+      case (List(existing), Nil) => ( s, Remove(existing._3.id) )
+      case (List(existing), List(update)) => ( s, Update(update._3.id) )
+      case (Nil, List(update)) => ( s, Add(update._3.id) )
+      case _ => ( s, Other )
     }
   }
 }

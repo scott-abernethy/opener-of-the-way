@@ -37,6 +37,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       a1.length = 9999L
 
       val c1 = new Clone()
+      c1.id = 33
       c1.artifactId = a1.id
       c1.forCultistId = 1
       c1.state = CloneState.awaiting
@@ -49,7 +50,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       x.awaiting must haveSize(0)
       snapshot.awaiting must haveSize(1)
       snapshot.awaiting(0) must be_==( (a1, Some(ArtifactState.awaiting), c1) )
-      action must be_==( Add )
+      action must be_==( Add(c1.id) )
 
       val a2 = new Artifact()
       a2.id = 67
@@ -58,6 +59,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       a2.length = 9876531L
 
       val c2 = new Clone()
+      c2.id = 89
       c2.artifactId = a2.id
       c2.forCultistId = 1
       c2.state = CloneState.cloning
@@ -68,7 +70,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       snapshot2.awaiting must haveSize(2)
       snapshot2.awaiting(0) must be_==( (a1, Some(ArtifactState.awaiting), c1) )
       snapshot2.awaiting(1) must be_==( (a2, Some(ArtifactState.cloning), c2) )
-      action2 must be_==( Add )
+      action2 must be_==( Add(c2.id) )
     }
 
     "update artifact state" >> {
@@ -85,12 +87,14 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       a1prime.length = 11L
 
       val c1 = new Clone()
+      c1.id = 8
       c1.artifactId = a1.id
       c1.forCultistId = 1
       c1.state = CloneState.awaiting
       c1.requested = T.ago(90000L)
 
       val c1prime = new Clone()
+      c1prime.id = 8
       c1prime.artifactId = a1.id
       c1prime.forCultistId = 1
       c1prime.state = CloneState.cloning
@@ -103,6 +107,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       a2.length = 9876531L
 
       val c2 = new Clone()
+      c2.id = 10
       c2.artifactId = a2.id
       c2.forCultistId = 1
       c2.state = CloneState.cloning
@@ -116,7 +121,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       snapshot.awaiting must haveSize(2)
       snapshot.awaiting(0) must be_==( (a1prime, Some(ArtifactState.cloning), c1prime) )
       snapshot.awaiting(1) must be_==( (a2, Some(ArtifactState.cloning), c2) )
-      action must be_==( Update )
+      action must be_==( Update(c1prime.id) )
     }
 
     "remove cloned artifacts" >> {
@@ -127,6 +132,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       a1.length = 9999L
 
       val c1 = new Clone()
+      c1.id = 98
       c1.artifactId = a1.id
       c1.forCultistId = 1
       c1.state = CloneState.awaiting
@@ -145,12 +151,14 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       a2prime.length = 9876531L
 
       val c2 = new Clone()
+      c2.id = 12
       c2.artifactId = a2.id
       c2.forCultistId = 1
       c2.state = CloneState.cloning
       c2.requested = T.ago(20000L)
 
       val c2prime = new Clone()
+      c2prime.id = 12
       c2prime.artifactId = a2.id
       c2prime.forCultistId = 1
       c2prime.state = CloneState.cloned
@@ -162,7 +170,7 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       val (snapshot, action) = x.update(a2prime, Some(ArtifactState.cloned), Some(c2prime))
       snapshot.awaiting must haveSize(1)
       snapshot.awaiting(0) must be_==( (a1, Some(ArtifactState.awaiting), c1) )
-      action must be_==( Remove )
+      action must be_==( Remove(c2prime.id) )
     }
   }
 

@@ -23,37 +23,40 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding {
         val c = i._3
         val (snapshot2, action) = snapshot.update(a, s, c)
         snapshot = snapshot2
-        val id: String = "a" + a.id
+
         val update = action match {
-          case Add =>
+          case Add(cid) => {
             val out: NodeSeq = (".awaiting:item ^^" #> "notused" andThen ".awaiting:item" #> bindItems((a, s, c.get) :: Nil) _ andThen ".awaiting:item [class+]" #> "hidden").apply(defaultHtml)
-            JqJsCmds.AppendHtml("awaitings", out ) & JquiJsCmds.BlindInFast(id)
-          case Update =>
+            partialUpdate( JqJsCmds.AppendHtml("awaitings", out ) & JquiJsCmds.BlindInFast(idOf(cid)) )
+          }
+          case Update(cid) => {
             val out: NodeSeq = (".awaiting:item ^^" #> "notused" andThen ".awaiting:item" #> bindItems((a, s, c.get) :: Nil) _).apply(defaultHtml)
-            JsCmds.Replace(id, out )
-          case _ =>
-            JquiJsCmds.BlindOutFast(id) & JsCmds.After(1 second, JsCmds.Replace(id, NodeSeq.Empty))
+            partialUpdate( JsCmds.Replace(idOf(cid), out ) )
+          }
+          case Remove(cid) => {
+            partialUpdate( JquiJsCmds.BlindOutFast(idOf(cid)) & JsCmds.After(1 second, JsCmds.Replace(idOf(cid), NodeSeq.Empty)) )
+          }
+          case Other => {
+            reRender()
+          }
         }
-        partialUpdate(update)
       }
     case _ =>
   }
 
+  def idOf(cloneId: Long) = { "aw" + cloneId }
+
   def render = {
-    if (snapshot.awaiting.isEmpty) {
-      ClearClearable &
-      "#awaiting-empty [class+]" #> "hidden" &
-      ".awaiting:item" #> NodeSeq.Empty
-    } else {
-      ClearClearable &
-      "#awaiting-empty [class+]" #> "hidden" &
-      ".awaiting:item" #> bindItems(snapshot.awaiting) _
-    }
+    ClearClearable &
+    ".awaiting:item" #> bindItems(snapshot.awaiting) _
   }
 
   def bindItems(xs: List[(Artifact, Option[ArtifactState.Value], Clone)])(in: NodeSeq): NodeSeq = {
     xs.flatMap( i =>
-      awaitingMessage(i._3).apply( bindItem(in, i._1, i._2, None) )
+      (
+        ".awaiting:item [id]" #> idOf(i._3.id) &
+        awaitingMessage(i._3)
+      ).apply( bindItem(in, i._1, i._2, None) )
     )
   }
 
