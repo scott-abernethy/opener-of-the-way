@@ -39,6 +39,7 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding {
           case Other => {
             reRender()
           }
+          case _ =>
         }
       }
     case _ =>

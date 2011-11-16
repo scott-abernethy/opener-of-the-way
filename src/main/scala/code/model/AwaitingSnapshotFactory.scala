@@ -14,6 +14,7 @@ abstract class SnapshotAction
 case class Add(cloneId: Long) extends SnapshotAction
 case class Update(cloneId: Long) extends SnapshotAction
 case class Remove(cloneId: Long) extends SnapshotAction
+case object Nothing extends SnapshotAction
 case object Other extends SnapshotAction
 
 class AwaitingSnapshot(
@@ -39,6 +40,7 @@ class AwaitingSnapshot(
 
     // TODO update should take into account whether UI will change...?
     (removed, include) match {
+      case (Nil, Nil) => ( s, Nothing )
       case (List(existing), Nil) => ( s, Remove(existing._3.id) )
       case (List(existing), List(update)) => ( s, Update(update._3.id) )
       case (Nil, List(update)) => ( s, Add(update._3.id) )
