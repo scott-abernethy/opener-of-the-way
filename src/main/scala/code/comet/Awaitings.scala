@@ -63,8 +63,7 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding {
 
   def awaitingMessage(clone: Clone): CssSel = {
     if (clone.attempts > 2) {
-      ".awaiting:item [class+]" #> "warning-shade" &
-      ".item-message *" #> <b>{"Attempted " + clone.attempts + "x without success. Check sink disk usage."}</b>
+      ".item-message *" #> <span><span class="label warning">OH NO</span>{" Attempted " + clone.attempts + "x without success. Check sink disk usage."}</span>
     } else {
       ".item-message" #> NodeSeq.Empty
     }
