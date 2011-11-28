@@ -1,6 +1,7 @@
 package code.comet
 
 import net.liftweb._
+import common.Loggable
 import net.liftweb.http._
 import js.jquery.JqJsCmds
 import js.JsCmds
@@ -10,19 +11,23 @@ import scala.xml._
 import code.js.JquiJsCmds
 import util.Helpers._
 
-class Awaitings extends CometActor with CometListener with ArtifactBinding {
+class Awaitings extends CometActor with CometListener with ArtifactBinding with Loggable {
   val cultistId = Cultist.attending.is.map(_.id).getOrElse(-1L)
   val factory = new AwaitingSnapshotFactory
   var snapshot = factory.create(cultistId)
+
   def registerWith = ArtifactServer
+
   override def lowPriority = {
     case ArtifactTouched(_, a) =>
+      logger.info("touched " + a)
       factory.stateOf(cultistId, a).foreach { i =>
         val a = i._1
         val s = i._2
         val c = i._3
         val (snapshot2, action) = snapshot.update(a, s, c)
         snapshot = snapshot2
+        logger.info("do " + List(action, a, s, c))
 
         val update = action match {
           case Add(cid) => {
