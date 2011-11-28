@@ -1,0 +1,4 @@
+#!/bin/bash
+/etc/init.d/jetty stop
+truecrypt -d
+mount | grep '/fs ' | awk '{print $3}' | xargs umount
