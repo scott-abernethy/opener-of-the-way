@@ -8,6 +8,7 @@ import xml.{Unparsed, NodeSeq}
 import code.model.{Environment, Cultist, ArtifactState, Artifact}
 import code.gate.Summon
 import code.util.Size
+import code.js.JqConfirmationDialog
 
 trait ArtifactBinding {
 
@@ -27,19 +28,16 @@ trait ArtifactBinding {
   }
 
   def itemSelected(id: Long): JsCmd = {
-//    for {
-//      c <- Cultist.attending.is.toOption
-//      a <- Artifact.find(id)
-//    } yield a.clone(c)
+    val result = for {
+      c <- Cultist.attending.is.toOption
+      a <- Artifact.find(id)
+    } yield a.clone(c)
     // todo return faster?
-    Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.clone(c))) match {
-      case Some(newStatus) =>
-        ArtifactServer ! ArtifactTouched(ArtifactAwaiting, id)
-        Environment.summoner ! Summon(id)
-        JsCmds.Noop
-      case _ =>
-        JsCmds.Noop
+    result.filter(_ == true).foreach { i =>
+      ArtifactServer ! ArtifactTouched(ArtifactAwaiting, id)
+      Environment.summoner ! Summon(id)
     }
+    JsCmds.Noop
   }
 
   def itemDeselected(id: Long): JsCmd = {
@@ -53,19 +51,28 @@ trait ArtifactBinding {
     }
   }
 
-  def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value], clones: Option[Int]): NodeSeq = artifactState match {
-    case Some(state) if ArtifactState.possible_?(state) =>
-      selectCheckbox(artifact, false)
-    case Some(state) if ArtifactState.awaiting_?(state) =>
-      selectCheckbox(artifact, true)
-    case Some(state) if ArtifactState.proffered_?(state) =>
-      <span class="clone-count">{ clones.map(_ + "x").getOrElse("") }</span>
-    case _ => Unparsed("&nbsp;")
-  }
-  
-  def selectCheckbox(artifact: Artifact, defaultSelected: Boolean): NodeSeq = {
-    SHtml.ajaxCheckbox(defaultSelected, (s: Boolean) => if (s) itemSelected(artifact.id) else itemDeselected(artifact.id))
+  def itemRefresh(id: Long): JsCmd = {
+    ArtifactServer ! ArtifactTouched(ArtifactUpdated, id)
+    JsCmds.Noop
   }
 
+  def selectOption(artifact: Artifact, artifactState: Option[ArtifactState.Value], clones: Option[Int]): NodeSeq = artifactState match {
+    case Some(ArtifactState.cloned) => {
+      SHtml.ajaxCheckbox(false, (s: Boolean) => JqConfirmationDialog("Again?", "Are you sure you want to clone this artifact AGAIN?", () => itemSelected(artifact.id), () => itemRefresh(artifact.id)))
+    }
+    case Some(state) if ArtifactState.possible_?(state) => {
+      SHtml.ajaxCheckbox(false, (s: Boolean) => itemSelected(artifact.id))
+    }
+    case Some(state) if ArtifactState.awaiting_?(state) => {
+      SHtml.ajaxCheckbox(true, (s: Boolean) => itemDeselected(artifact.id))
+    }
+    case Some(state) if ArtifactState.proffered_?(state) => {
+      <span class="clone-count">{ clones.map(_.toString + "x").getOrElse("") }</span>
+    }
+    case _ => {
+      Unparsed("&nbsp;")
+    }
+  }
+  
   def idFor(id: Long): String = "artifact" + id
 }

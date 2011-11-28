@@ -70,6 +70,14 @@ class Artifact extends MythosObject {
 
   def clone(cultist: Cultist): Boolean = {
     stateFor(cultist) match {
+      case Some(ArtifactState.cloned) =>
+        inTransaction{
+          clones.update(c =>
+            where(c.artifactId === id and c.forCultistId === cultist.id)
+            set(c.state := CloneState.awaiting, c.requested := T.now)
+          )
+        }
+        true
       case Some(s) if ArtifactState.possible_?(s) =>
         val clone = Clone.create(id, cultist.id, CloneState.awaiting)
         inTransaction(clones.insert(clone))
@@ -150,7 +158,7 @@ object ArtifactState extends Enumeration {
   
   def awaiting_?(s: ArtifactState.Value): Boolean = s == ArtifactState.awaiting || s ==  ArtifactState.awaitingLost || s == ArtifactState.awaitingPresent || s == ArtifactState.cloning
 
-  def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost || s == ArtifactState.present
+  def possible_?(s: ArtifactState.Value): Boolean = s == ArtifactState.glimpsed || s == ArtifactState.lost || s == ArtifactState.present || s == ArtifactState.cloned
 
   def proffered_?(s: ArtifactState.Value): Boolean = s == ArtifactState.proffered || s == ArtifactState.profferedLost || s == ArtifactState.profferedPresent
 }
