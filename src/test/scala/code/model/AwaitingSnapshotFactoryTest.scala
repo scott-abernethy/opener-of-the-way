@@ -247,6 +247,12 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
 
         val c1 = clones.insert(Clone.fake(a1.id, 2L, CloneState.awaiting, T.now, T.yesterday))
         x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.awaitingPresent), Some(c1)) )
+
+        clones.insert(Clone.fake(a1.id, 1L, CloneState.cloned, T.yesterday, T.yesterday))
+        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.awaitingPresent), Some(c1)) )
+
+        clones.deleteWhere(c => c.id === c1.id)
+        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.present), None) )
       }
     }
 

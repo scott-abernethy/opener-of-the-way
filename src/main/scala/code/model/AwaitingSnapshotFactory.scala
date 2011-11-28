@@ -73,17 +73,13 @@ class AwaitingSnapshotFactory {
 
   def stateOf(cultistId: Long, artifactId: Long): Option[(Artifact, Option[ArtifactState.Value], Option[Clone])] = {
     inTransaction {
-      join(artifacts, clones.leftOuter, presences.leftOuter)( (a, c, p) =>
-        where(a.id === artifactId and (c.map(_.forCultistId).~.isNull or c.map(_.forCultistId) === Some(cultistId)))
-        select((a, c, p))
-        on(a.id === c.map(_.artifactId), a.id === p.map(_.artifactId))
-      ).headOption match {
-        case Some( (a, c, p) ) =>
-          val state = a.stateFor(cultistId, cultistId - 1, c, T.now, p)
-          Some( (a, state, c) )
-        case _ =>
-          None
+      for {
+        a <- artifacts.lookup(artifactId)
+        p = presences.where(p => p.artifactId === artifactId).headOption
+        c = clones.where(c => c.artifactId === artifactId and c.forCultistId === cultistId).headOption
+        state = a.stateFor(cultistId, cultistId - 1, c, T.now, p)
       }
+      yield (a, state, c)
     }
   }
 }

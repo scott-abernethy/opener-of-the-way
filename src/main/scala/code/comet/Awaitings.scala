@@ -20,14 +20,12 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
 
   override def lowPriority = {
     case ArtifactTouched(_, a) =>
-      logger.info("touched " + a)
       factory.stateOf(cultistId, a).foreach { i =>
         val a = i._1
         val s = i._2
         val c = i._3
         val (snapshot2, action) = snapshot.update(a, s, c)
         snapshot = snapshot2
-        logger.info("do " + List(action, a, s, c))
 
         val update = action match {
           case Add(cid) => {
