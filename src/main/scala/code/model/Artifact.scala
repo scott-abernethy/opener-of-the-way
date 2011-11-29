@@ -73,8 +73,16 @@ class Artifact extends MythosObject {
       case Some(ArtifactState.cloned) =>
         inTransaction{
           clones.update(c =>
-            where(c.artifactId === id and c.forCultistId === cultist.id)
-            set(c.state := CloneState.awaiting, c.requested := T.now)
+            where(
+              c.artifactId === id and
+              c.forCultistId === cultist.id
+            )
+            set(
+              c.state := CloneState.awaiting,
+              c.requested := T.now,
+              c.attempts := 0L,
+              c.repeats := c.repeats.~ + 1L
+            )
           )
         }
         true

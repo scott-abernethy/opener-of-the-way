@@ -16,7 +16,7 @@ class Clone extends MythosObject {
   var requested: Timestamp = T.now
   var attempted: Timestamp = T.yesterday
   var duration: Long = -2
-  // TODO: Persist number of retries?
+  var repeats: Long = 0
   
   def artifact: Option[Artifact] = artifactToClones.right(this).headOption
   def forCultist: Option[Cultist] = cultistToClones.right(this).headOption
