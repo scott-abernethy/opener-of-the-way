@@ -20,6 +20,23 @@ class Clone extends MythosObject {
   
   def artifact: Option[Artifact] = artifactToClones.right(this).headOption
   def forCultist: Option[Cultist] = cultistToClones.right(this).headOption
+
+  def waitPlusDuration(): Long = {
+    state match {
+      case CloneState.cloned => {
+        val lag = attempted.getTime - requested.getTime
+        if (lag > 0) {
+          lag + duration
+        } else {
+          // Weird
+          duration
+        }
+      }
+      case _ => {
+        T.now.getTime - requested.getTime
+      }
+    }
+  }
 }
 
 object Clone {
@@ -43,6 +60,10 @@ object Clone {
   }
 
   lazy val nonRepeatableBefore = 30 * 60 * 1000L
+
+  lazy val marginalWaitAfter = 30 * 60 * 1000L
+  lazy val poorWaitAfter = 4 * 60 * 60 * 1000L
+  lazy val terribleWaitAfter = 48 * 60 * 60 * 1000L
 }
 
 object CloneState extends Enumeration {

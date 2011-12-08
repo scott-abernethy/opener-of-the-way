@@ -48,7 +48,7 @@ class Cryptic extends CometActor with CometListener {
           Unparsed("&nbsp;")
         }
       }
-      "*" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "))
+      "*" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList)
     } &
     ".glimpsed-item" #> glimpsed().map{ g =>
       val (artifact, presence, profferredBy) = g
@@ -65,7 +65,7 @@ class Cryptic extends CometActor with CometListener {
     } &
     ".cloned-item" #> complete().map{ c =>
       val (clone, artifact, presence, forCultist, profferredBy) = c
-      "*" #> writeSymbol(Unparsed("&gt;"), List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "))
+      "*" #> writeSymbol(Unparsed("&gt;"), List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList)
     }
   }
 
@@ -77,8 +77,24 @@ class Cryptic extends CometActor with CometListener {
     "for " + cloner.map(_.sign).getOrElse("Unknown")
   }
 
-  def writeSymbol(inner: NodeSeq, description: String): NodeSeq = {
-    <span class="symbol"><abbr title={ description }>{ inner }</abbr></span>
+  def cloneWaitClass(clone: Clone): Option[String] = {
+    val wait = clone.waitPlusDuration()
+    if (wait > Clone.terribleWaitAfter) {
+      Some("error")
+    }
+    else if (wait > Clone.poorWaitAfter) {
+      Some("warning")
+    }
+    else if (wait > Clone.poorWaitAfter) {
+      Some("notice")
+    }
+    else {
+      None
+    }
+  }
+
+  def writeSymbol(inner: NodeSeq, description: String, otherClasses: List[String] = Nil): NodeSeq = {
+    <span class={ ("symbol" :: otherClasses).mkString(" ") }><abbr title={ description }>{ inner }</abbr></span>
   }
 
   def incomplete() = inTransaction(

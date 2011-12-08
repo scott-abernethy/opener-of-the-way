@@ -11,13 +11,7 @@ import code.model.{Clone, CloneState, Mythos}
 
 object Shifting {
   def durationOf(clone: Clone): Long = {
-    val lag = clone.attempted.getTime - clone.requested.getTime
-    if (lag > 0) {
-      lag + clone.duration
-    } else {
-      // Weird
-      clone.duration
-    }
+    clone.waitPlusDuration()
   }
 
   def calculateMedian(in: List[Clone]): Long = {
