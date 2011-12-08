@@ -38,7 +38,7 @@ object T {
   def startOfDay(in: Timestamp): Timestamp = {
     val c = Calendar.getInstance()
     c.setTimeInMillis(in.getTime)
-    c.set(Calendar.HOUR, 0)
+    c.set(Calendar.HOUR_OF_DAY, 0)
     c.set(Calendar.MINUTE, 0)
     c.set(Calendar.SECOND, 0)
     c.set(Calendar.MILLISECOND, 0)
