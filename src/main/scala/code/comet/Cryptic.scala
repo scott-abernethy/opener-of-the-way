@@ -22,7 +22,7 @@ class Cryptic extends CometActor with CometListener {
   def render = {
     val t = T.now
     ClearClearable &
-    ".queue-item" #> incomplete().map{ i =>
+    ".cloned-item" #> cloned().map{ i =>
       val (clone, artifact, presence, forCultist, profferredBy) = i
       val state = artifact.stateFor(
         forCultist.map(_.id).getOrElse(-1),
@@ -32,6 +32,9 @@ class Cryptic extends CometActor with CometListener {
         presence
       )
       val symbol: Node = state match {
+        case Some(ArtifactState.cloned) => {
+          Unparsed("&gt;")
+        }
         case Some(ArtifactState.cloning) => {
           Unparsed("&asymp;")
         }
@@ -62,10 +65,6 @@ class Cryptic extends CometActor with CometListener {
         }
       }
       "*" #> writeSymbol(symbol, artifactDesc(artifact, profferredBy))
-    } &
-    ".cloned-item" #> complete().map{ c =>
-      val (clone, artifact, presence, forCultist, profferredBy) = c
-      "*" #> writeSymbol(Unparsed("&gt;"), List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList)
     }
   }
 
@@ -97,29 +96,23 @@ class Cryptic extends CometActor with CometListener {
     <span class={ ("symbol" :: otherClasses).mkString(" ") }><abbr title={ description }>{ inner }</abbr></span>
   }
 
-  def incomplete() = inTransaction(
-    join(clones, presences.leftOuter, cultists.leftOuter, artifacts, gateways, cultists)((c, p, f, a, g, o) =>
-      where(c.state === CloneState.awaiting or c.state === CloneState.cloning)
-      select((c, a, p, f, o))
-      orderBy(c.requested desc)
-      on(c.artifactId === p.map(_.artifactId), c.forCultistId === f.map(_.id), c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === o.id)
-    ).toList
-  )
-
   def glimpsed() = inTransaction(
     join(artifacts, presences.leftOuter, gateways, cultists)((a, p, g, o) =>
       where(a.discovered > T.startOfDay(T.now))
       select((a, p, o))
-      orderBy(a.discovered desc)
+      orderBy(a.discovered asc)
       on(a.id === p.map(_.artifactId), a.gatewayId === g.id, g.cultistId === o.id)
     ).toList
   )
 
-  def complete() = inTransaction(
+  def cloned() = inTransaction(
     join(clones, presences.leftOuter, cultists.leftOuter, artifacts, gateways, cultists)((c, p, f, a, g, o) =>
-      where(c.state === CloneState.cloned and c.attempted > T.startOfDay(T.now))
+      where(
+        (c.state === CloneState.cloned and c.attempted > T.startOfDay(T.now)) or
+        (c.state <> CloneState.cloned)
+      )
       select((c, a, p, f, o))
-      orderBy(c.attempted desc)
+      orderBy(c.requested asc)
       on(c.artifactId === p.map(_.artifactId), c.forCultistId === f.map(_.id), c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === o.id)
     ).toList
   )

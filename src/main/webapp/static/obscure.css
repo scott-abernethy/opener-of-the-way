@@ -3,6 +3,30 @@ body {
   background: #ffffff;
   color: #666666;
 }
+h1 {
+  color: #cccccc;
+}
+h1 a {
+  color: #cccccc;
+  text-decoration: none;
+}
+h1 a:hover {
+  color: #ffffff;
+  background: #cccccc;
+  text-decoration: none;
+}
+.key {
+  padding: 2px 4px;
+  margin-right: 2px;
+  white-space: nowrap;
+  line-height: 26px;
+  background: #ffffff;
+  color: #bfbfbf;
+  font-weight: bold;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
 .symbol {
   padding: 2px 4px;
   margin-right: 2px;
