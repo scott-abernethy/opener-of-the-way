@@ -183,7 +183,7 @@ trait Db {
           clone3.artifactId = 2
           clone3.forCultistId = foo.id
           clone3.state = CloneState.awaiting
-          clone3.requested = T.yesterday
+          clone3.requested = T.ago(61 * 60 * 1000L)
           clone3.attempted = T.now
           clone3.attempts = 1
           Mythos.clones.insert(clone3)

@@ -25,7 +25,7 @@ class Cryptic extends CometActor with CometListener {
     ".cloned-item" #> cloned().map{ i =>
       val (clone, artifact, presence, forCultist, profferredBy) = i
       val state = artifact.stateFor(
-        forCultist.map(_.id).getOrElse(-1),
+        forCultist.id,
         profferredBy.id,
         Some(clone),
         t,
@@ -55,7 +55,6 @@ class Cryptic extends CometActor with CometListener {
     } &
     ".glimpsed-item" #> glimpsed().map{ g =>
       val (artifact, presence, profferredBy) = g
-      println(presence)
       val symbol: Node = presence.map(_.state) match {
         case Some(PresenceState.present) => {
           Unparsed("&le;");
@@ -72,8 +71,8 @@ class Cryptic extends CometActor with CometListener {
     artifact.path + " from " + profferedBy.sign
   }
 
-  def clonerDesc(cloner: Option[Cultist]): String = {
-    "for " + cloner.map(_.sign).getOrElse("Unknown")
+  def clonerDesc(cloner: Cultist): String = {
+    "for " + cloner.sign
   }
 
   def cloneWaitClass(clone: Clone): Option[String] = {
@@ -84,7 +83,7 @@ class Cryptic extends CometActor with CometListener {
     else if (wait > Clone.poorWaitAfter) {
       Some("warning")
     }
-    else if (wait > Clone.poorWaitAfter) {
+    else if (wait > Clone.marginalWaitAfter) {
       Some("notice")
     }
     else {
@@ -106,14 +105,14 @@ class Cryptic extends CometActor with CometListener {
   )
 
   def cloned() = inTransaction(
-    join(clones, presences.leftOuter, cultists.leftOuter, artifacts, gateways, cultists)((c, p, f, a, g, o) =>
+    join(clones, presences.leftOuter, cultists, artifacts, gateways, cultists)((c, p, f, a, g, o) =>
       where(
         (c.state === CloneState.cloned and c.attempted > T.startOfDay(T.now)) or
         (c.state <> CloneState.cloned)
       )
       select((c, a, p, f, o))
       orderBy(c.requested asc, c.id asc)
-      on(c.artifactId === p.map(_.artifactId), c.forCultistId === f.map(_.id), c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === o.id)
+      on(c.artifactId === p.map(_.artifactId), c.forCultistId === f.id, c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === o.id)
     ).toList
   )
 

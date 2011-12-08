@@ -63,7 +63,7 @@ object Clone {
 
   lazy val marginalWaitAfter = 30 * 60 * 1000L
   lazy val poorWaitAfter = 4 * 60 * 60 * 1000L
-  lazy val terribleWaitAfter = 48 * 60 * 60 * 1000L
+  lazy val terribleWaitAfter = 3 * 24 * 60 * 60 * 1000L
 }
 
 object CloneState extends Enumeration {
