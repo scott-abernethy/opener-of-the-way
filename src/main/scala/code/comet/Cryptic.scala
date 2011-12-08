@@ -100,7 +100,7 @@ class Cryptic extends CometActor with CometListener {
     join(artifacts, presences.leftOuter, gateways, cultists)((a, p, g, o) =>
       where(a.discovered > T.startOfDay(T.now))
       select((a, p, o))
-      orderBy(a.discovered asc)
+      orderBy(a.discovered asc, a.id asc)
       on(a.id === p.map(_.artifactId), a.gatewayId === g.id, g.cultistId === o.id)
     ).toList
   )
@@ -112,7 +112,7 @@ class Cryptic extends CometActor with CometListener {
         (c.state <> CloneState.cloned)
       )
       select((c, a, p, f, o))
-      orderBy(c.requested asc)
+      orderBy(c.requested asc, c.id asc)
       on(c.artifactId === p.map(_.artifactId), c.forCultistId === f.map(_.id), c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === o.id)
     ).toList
   )
