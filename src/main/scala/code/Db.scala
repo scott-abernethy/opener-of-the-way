@@ -141,7 +141,7 @@ trait Db {
           val j = new Artifact
           j.gatewayId = g3.id
           j.path = "/fake"
-          j.discovered = T.yesterday
+          j.discovered = T.ago(60 * 60 * 1000L)
           j.witnessed = T.now
           j.length = 34;
           val k = new Artifact

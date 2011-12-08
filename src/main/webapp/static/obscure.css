@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  background: #ffffff;
+  color: #666666;
+}
+.symbol {
+  padding: 2px 4px;
+  margin-right: 2px;
+  white-space: nowrap;
+  line-height: 26px;
+  background: #bfbfbf;
+  color: #ffffff;
+  font-weight: bold;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+.symbol.warning {
+  background-color: #F89406;
+}
+.symbol.error {
+  background-color: #C43C35;
+}
+.symbol.notice {
+  background-color: #62CFFC;
+}
+.label.ok {
+  background-color: #46A546;
+}
