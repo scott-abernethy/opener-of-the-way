@@ -51,7 +51,12 @@ class Cryptic extends CometActor with CometListener {
           Unparsed("&nbsp;")
         }
       }
-      "*" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList)
+      val emphasis: Option[String] = for {
+        s <- state
+        if (s != ArtifactState.cloned)
+      }
+      yield "emphasis"
+      "*" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList ::: emphasis.toList)
     } &
     ".glimpsed-item" #> glimpsed().map{ g =>
       val (artifact, presence, profferredBy) = g

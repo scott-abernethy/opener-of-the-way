@@ -28,16 +28,20 @@ h1 a:hover {
   border-radius: 3px;
 }
 .symbol {
-  padding: 2px 4px;
-  margin-right: 2px;
+  padding: 1px 3px;
+  margin-right: 3px;
   white-space: nowrap;
-  line-height: 26px;
+  line-height: 28px;
   background: #bfbfbf;
+  border: 2px solid transparent;
   color: #ffffff;
   font-weight: bold;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
+}
+.symbol.emphasis {
+  border-color: #666666;
 }
 .symbol.warning {
   background-color: #F89406;
