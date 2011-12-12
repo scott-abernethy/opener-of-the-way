@@ -3,11 +3,12 @@ package code.comet
 import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
 import net.liftweb.http.{CometListener, CometActor}
-import net.liftweb.util.ClearClearable
 import code.util.DatePresentation
 import code.model._
-import code.gate.T
 import xml.{Unparsed, Node, Text, NodeSeq}
+import code.gate.{Millis, T}
+import java.sql.Timestamp
+import net.liftweb.util.{CssSel, ClearClearable}
 
 class Cryptic extends CometActor with CometListener {
   def registerWith = ArtifactServer
@@ -19,16 +20,43 @@ class Cryptic extends CometActor with CometListener {
     case _ => { }
   }
 
+
+
   def render = {
-    val t = T.now
+    val t = T.startOfDay(T.now)
+    val history = for {
+      offset <- List.range(0, 7)
+    }
+    yield {
+      val point = T.agoFrom(t, Millis.days(offset))
+      val start = T.startOfDay(point)
+      val end = T.futureFrom(start, Millis.days(1))
+      val clones = if (offset == 0) {
+        loadClonesAndAwaiting(start, end)
+      }
+      else {
+        loadClones(start, end)
+      }
+      val glimpsed = loadGlimpsed(start, end)
+      ( historyFor(clones, t), impressionFor(glimpsed) )
+    }
+
     ClearClearable &
-    ".cloned-item" #> cloned().map{ i =>
+    ".cryptic-history" #> history.map { day =>
+      val (clones, glimpsed) = day
+      ".cloned-item" #> clones &
+      ".glimpsed-item" #> glimpsed
+    }
+  }
+
+  def historyFor(items: List[(Clone, Artifact, Option[Presence], Cultist, Cultist)], at: Timestamp): List[CssSel] = {
+    items.map { i =>
       val (clone, artifact, presence, forCultist, profferredBy) = i
       val state = artifact.stateFor(
         forCultist.id,
         profferredBy.id,
         Some(clone),
-        t,
+        at,
         presence
       )
       val symbol: Node = state match {
@@ -57,9 +85,12 @@ class Cryptic extends CometActor with CometListener {
       }
       yield "emphasis"
       "*" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList ::: emphasis.toList)
-    } &
-    ".glimpsed-item" #> glimpsed().map{ g =>
-      val (artifact, presence, profferredBy) = g
+    }
+  }
+
+  def impressionFor(items: List[(Artifact, Option[Presence], Cultist)]): List[CssSel] = {
+    items.map { i =>
+      val (artifact, presence, profferredBy) = i
       val symbol: Node = presence.map(_.state) match {
         case Some(PresenceState.present) => {
           Unparsed("&le;");
@@ -100,19 +131,35 @@ class Cryptic extends CometActor with CometListener {
     <span class={ ("symbol" :: otherClasses).mkString(" ") }><abbr title={ description }>{ inner }</abbr></span>
   }
 
-  def glimpsed() = inTransaction(
+  def loadGlimpsed(startInclusive: Timestamp, endExclusive: Timestamp) = inTransaction(
     join(artifacts, presences.leftOuter, gateways, cultists)((a, p, g, o) =>
-      where(a.discovered > T.startOfDay(T.now))
+      where(a.discovered >= startInclusive and
+        a.discovered < endExclusive)
       select((a, p, o))
       orderBy(a.discovered asc, a.id asc)
       on(a.id === p.map(_.artifactId), a.gatewayId === g.id, g.cultistId === o.id)
     ).toList
   )
 
-  def cloned() = inTransaction(
+  def loadClones(startInclusive: Timestamp, endExclusive: Timestamp) = inTransaction(
+    join(clones, presences.leftOuter, cultists, artifacts, gateways, cultists)((c, p, f, a, g, o) =>
+      where(c.state === CloneState.cloned and
+        c.attempted >=  startInclusive and
+        c.attempted < endExclusive
+      )
+      select((c, a, p, f, o))
+      orderBy(c.requested asc, c.id asc)
+      on(c.artifactId === p.map(_.artifactId), c.forCultistId === f.id, c.artifactId === a.id, a.gatewayId === g.id, g.cultistId === o.id)
+    ).toList
+  )
+
+  def loadClonesAndAwaiting(startInclusive: Timestamp, endExclusive: Timestamp) = inTransaction(
     join(clones, presences.leftOuter, cultists, artifacts, gateways, cultists)((c, p, f, a, g, o) =>
       where(
-        (c.state === CloneState.cloned and c.attempted > T.startOfDay(T.now)) or
+        (c.state === CloneState.cloned and
+          c.attempted >=  startInclusive and
+          c.attempted < endExclusive
+        ) or
         (c.state <> CloneState.cloned)
       )
       select((c, a, p, f, o))

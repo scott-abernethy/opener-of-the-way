@@ -15,6 +15,9 @@ h1 a:hover {
   background: #cccccc;
   text-decoration: none;
 }
+.cryptic-history {
+  margin-bottom: 1em;
+}
 .key {
   padding: 2px 4px;
   margin-right: 2px;

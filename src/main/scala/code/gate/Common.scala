@@ -23,11 +23,13 @@ object T {
     new Timestamp(start.getTime - msecPeriod)
   }
 
-  def yesterday: Timestamp = {
-    ago(1000 * 60 * 60 * 24)
+  def futureFrom(start: Timestamp, msecPeriod: Long): Timestamp = {
+    new Timestamp(start.getTime + msecPeriod)
   }
 
-  //  def zero: Timestamp = new Timestamp(0)
+  def yesterday: Timestamp = {
+    ago(Millis.days(1))
+  }
 
   def at(year: Int, month: Int, date: Int, hour: Int, minute: Int, second: Int): Timestamp = {
     val c = Calendar.getInstance()
@@ -44,4 +46,27 @@ object T {
     c.set(Calendar.MILLISECOND, 0)
     new Timestamp(c.getTimeInMillis)
   }
+
+  def startOfSevenDayPeriod(): Timestamp = {
+    T.startOfDay(T.ago(Millis.days(7)))
+  }
+}
+
+object Millis {
+  def days(count: Int): Long = {
+    count * hours(24)
+  }
+
+  def hours(count: Int): Long = {
+    count * minutes(60)
+  }
+
+  def minutes(count: Int): Long = {
+    count * seconds(60)
+  }
+
+  def seconds(count: Int): Long = {
+    count * 1000L
+  }
+
 }
