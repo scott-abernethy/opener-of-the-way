@@ -44,8 +44,28 @@ class Cryptic extends CometActor with CometListener {
     ClearClearable &
     ".cryptic-history" #> history.map { day =>
       val (clones, glimpsed) = day
-      ".cloned-item" #> clones &
-      ".glimpsed-item" #> glimpsed
+      ".cloned-count *" #> sectionKey(clones.size, ">") &
+      ".cloned-item" #> sectionBody(clones) &
+      ".glimpsed-count *" #> sectionKey(glimpsed.size, "<") &
+      ".glimpsed-item" #> sectionBody(glimpsed)
+    }
+  }
+
+  def sectionKey(itemCount: Int, icon: String): NodeSeq = {
+//    if (itemCount > 0) {
+      Text(itemCount + " " + icon)
+//    }
+//    else {
+//      Text("-")
+//    }
+  }
+
+  def sectionBody(items: List[CssSel]): List[CssSel] = {
+    if (items.size > 0) {
+      items
+    }
+    else {
+      List(".replace" #> Unparsed("&nbsp;"))
     }
   }
 
@@ -84,7 +104,7 @@ class Cryptic extends CometActor with CometListener {
         if (s != ArtifactState.cloned)
       }
       yield "emphasis"
-      "*" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList ::: emphasis.toList)
+      ".replace" #> writeSymbol(symbol, List(artifactDesc(artifact, profferredBy), clonerDesc(forCultist)).mkString(", "), cloneWaitClass(clone).toList ::: emphasis.toList)
     }
   }
 
@@ -99,7 +119,7 @@ class Cryptic extends CometActor with CometListener {
           Unparsed("&lt;")
         }
       }
-      "*" #> writeSymbol(symbol, artifactDesc(artifact, profferredBy))
+      ".replace" #> writeSymbol(symbol, artifactDesc(artifact, profferredBy))
     }
   }
 
