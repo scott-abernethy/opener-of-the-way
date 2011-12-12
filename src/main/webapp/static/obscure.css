@@ -49,6 +49,12 @@ h1 a:hover {
 .symbol.notice {
   background-color: #62CFFC;
 }
-.label.ok {
+.symbol.ok {
   background-color: #46A546;
+}
+.cryptic-history a {
+  text-decoration: none;
+}
+.cryptic-history a:hover {
+  text-decoration: none;
 }

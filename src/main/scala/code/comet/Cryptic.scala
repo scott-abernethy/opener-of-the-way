@@ -148,7 +148,7 @@ class Cryptic extends CometActor with CometListener {
   }
 
   def writeSymbol(inner: NodeSeq, description: String, otherClasses: List[String] = Nil): NodeSeq = {
-    <span class={ ("symbol" :: otherClasses).mkString(" ") }><abbr title={ description }>{ inner }</abbr></span>
+    <a href="#" class={ ("symbol" :: otherClasses).mkString(" ") } title={ description }>{ inner }</a>
   }
 
   def loadGlimpsed(startInclusive: Timestamp, endExclusive: Timestamp) = inTransaction(
