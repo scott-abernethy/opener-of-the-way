@@ -15,7 +15,7 @@ object Mythos extends Schema {
   val presences = table[Presence]
 
   on(artifacts)(a => declare(
-    a.path is(indexed),
+    a.path is(indexed, dbType("varchar(255)")),
     columns(a.gatewayId, a.path) are(unique, indexed)
   ))
   on(clones)(c => declare(
