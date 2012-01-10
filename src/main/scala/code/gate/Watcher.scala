@@ -31,7 +31,7 @@ object Watcher {
     where(
       cl.state <> CloneState.cloned and
       (cl.attempts === 0 or cl.attempted < T.ago(Clone.nonRepeatableBefore)) and
-      g.mode === GateMode.sink and
+      g.sink === true and
       (p.map(_.state) === Some(PresenceState.present) or p.map(_.state) === Some(PresenceState.presenting))
     )
     select((cl,g,p))
@@ -40,7 +40,7 @@ object Watcher {
   )
 
   def scourQuery(): Query[Gateway] = gateways.where(g =>
-    g.mode === GateMode.source and
+    g.source === true and
     g.scoured < T.ago(Gateway.scourPeriod)
   )
 
@@ -54,14 +54,14 @@ object Watcher {
 
   val gatewaysPresenting: Query[Gateway] = join(presences, artifacts, gateways)( (p, a, g) =>
     where(p.state === PresenceState.presenting and
-      g.mode === GateMode.source)
+      g.source === true)
     select(g)
     on(p.artifactId === a.id, a.gatewayId === g.id)
   )
 
   val gatewaysCloning: Query[Gateway] = join(clones, gateways.leftOuter)( (c, g) =>
     where(c.state === CloneState.cloning and
-      g.map(_.mode) === Some(GateMode.sink))
+      g.map(_.sink) === Some(true))
     select(g.get)
     on(c.forCultistId === g.map(_.cultistId))
   )

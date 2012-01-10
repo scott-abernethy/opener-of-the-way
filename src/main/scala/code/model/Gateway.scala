@@ -8,7 +8,7 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
 import java.sql.Timestamp
-import xml.{Unparsed, Node}
+import xml.{NodeSeq, Unparsed, Node}
 
 class Gateway extends MythosObject {
   var cultistId: Long = 0
@@ -16,7 +16,8 @@ class Gateway extends MythosObject {
   var path: String = "" // folder/subfolder/tcfilename
   var localPath: String = "" // /folder/subfolder
   var password: String = "" // storing in cleartext as none should have access to db
-  var mode: GateMode.Value = GateMode.source
+  var source: Boolean = true
+  var sink: Boolean = true
   var state: GateState.Value = GateState.lost
   var stateDesc: String = ""
   var scoured: Timestamp = T.yesterday
@@ -30,18 +31,36 @@ class Gateway extends MythosObject {
 
   def description: String = new File(location, path).getPath
 
-  override def toString = "Gateway[" + location + "/" + path + "=" + mode + "]"
+  def modesIcon: NodeSeq = {
+    (source, sink) match {
+      case (true, false) => <img src="/static/g_i.png" title="Source"/>
+      case (false, true) => <img src="/static/g_o.png" title="Sink"/>
+      case (true, true) => <img src="/static/g_io.png" title="Source + Sink"/>
+      case _ => <img src="/static/g_disabled.png" title="Disabled"/>
+    }
+  }
+
+  def modesDescription: NodeSeq = {
+    (source, sink) match {
+      case (true, false) => <span><img src="/static/g_i.png" title="Source"/> Source</span>
+      case (false, true) => <span><img src="/static/g_o.png" title="Sink"/> Sink</span>
+      case (true, true) => <span><img src="/static/g_io.png" title="Source + Sink"/> Source + Sink</span>
+      case _ => <span><img src="/static/g_disabled.png" title="Disabled"/> Disabled</span>
+    }
+  }
+
+  override def toString = "Gateway[" + location + "/" + path + "=" + source + sink + "]"
 }
 
 object Gateway {
   lazy val viableDestinations: Query[Gateway] = {
     gateways.where(g =>
-      g.mode === GateMode.sink and
+      g.sink === true and
       g.state === GateState.open)
   }
 
   def remove(gateway: Gateway) {
-    Mythos.gateways.deleteWhere(x => x.id === gateway.id and x.mode === GateMode.sink)
+    Mythos.gateways.deleteWhere(x => x.id === gateway.id and x.source === false)
   }
 
   lazy val scourPeriod = 2 * 60 * 60 * 1000L // 2 hours
@@ -51,24 +70,6 @@ object Gateway {
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
   lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
   lazy val symbolExclamation = <img src="/static/g_exclamation.png" title="Are you crazy?!!"/>
-}
-
-object GateMode extends Enumeration {
-  type GateMode = Value
-
-  val source = Value("Source")
-  val sink = Value("Sink")
-
-  def parse(text: String): GateMode = text match {
-    case "Sink" => sink
-    case _ => source
-  }
-
-  def symbol(s: GateMode.Value): Node = s match {
-    case GateMode.source => <img src="/static/g_source.png" title="Source"/>
-    case GateMode.sink => <img src="/static/g_sink.png" title="Sink"/>
-    case _ => Unparsed("&nbsp;")
-  }
 }
 
 object GateState extends Enumeration {

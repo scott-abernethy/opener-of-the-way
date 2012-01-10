@@ -91,8 +91,7 @@ class Cultist extends Loggable {
     ".about:gateway [id]" #> ("g" + g.id) &
     ".gateway:state *" #> <span>{ GateState.symbol(g.state) } { g.state.toString }</span> &
     ".gateway:description *" #> g.description &
-    ".gateway:mode *" #> <span>{ GateMode.symbol(g.mode) } { g.mode.toString }</span> &
-    ".gateway-action *" #> (if (g.mode == GateMode.sink) SHtml.ajaxButton("Remove", () => removeGateway(g)) else Text(" "))
+    ".gateway:mode *" #> g.modesDescription
   }.apply(in)
 
   def removeGateway(gateway: code.model.Gateway): JsCmd = {

@@ -16,20 +16,27 @@ import org.squeryl.PrimitiveTypeMode._
 import code.comet.GatewayServer
 
 class Gateway {
-  val modes = GateMode.values.toSeq map (i => (i.toString, i.toString))
   object host extends RequestVar("")
   object share extends RequestVar("")
   object path extends RequestVar("")
   object password extends RequestVar("")
-  object mode extends RequestVar(GateMode.source)
+  object mode extends RequestVar("Sink")
+
+  val modeMap = Map(
+    "Source" -> (true, false),
+    "Sink" -> (false, true),
+    "Source + Sink (beta)" -> (true, true),
+    "Disabled" -> (false, false)
+  )
 
   def add = {
+    val modeOptions = SHtml.radio(modeMap.keys.toList, Full(mode.is), x => mode(x))
     ClearClearable &
     ".add:host" #> JsCmds.FocusOnLoad(SHtml.text(host.is, t => host(t)) % ("style" -> "width: 250px")) &
     ".add:share" #> (SHtml.text(share.is, t => share(t)) % ("style" -> "width: 250px")) &
     ".add:path" #> (SHtml.text(path.is, t => path(t)) % ("style" -> "width: 250px")) &
     ".add:password" #> (SHtml.password(password.is, t => password(t)) % ("style" -> "width: 250px")) &
-    ".add:mode" #> (SHtml.select(modes, Full(mode.is.toString), (selected) => (mode(GateMode parse selected)))) &
+    ".add:mode" #> modeOptions.toForm &
     "#add:submit" #> SHtml.submit("Submit", () => processAdd) &
     "#add:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
@@ -45,7 +52,9 @@ class Gateway {
         g.location = host.is.trim + "/" + share.is.trim
         g.path = path.is.trim
         g.password = password.is.trim
-        g.mode = mode.is
+        val (source, sink) = modeMap.get(mode.is) getOrElse (false, false)
+        g.source = source
+        g.sink = sink
         transaction(gateways.insert(g))
         GatewayServer ! 'WayChanged
       case _ => S.error("?!")

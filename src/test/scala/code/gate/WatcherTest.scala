@@ -19,10 +19,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "clone is not ready if artifact very recently discovered" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -45,10 +47,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "sink is not ready if very recently attempted (simplified rule)" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -76,10 +80,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "source is not ready if very recently attempted (simplified rule)" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -108,10 +114,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "cloned artifacts with no presence will not be sourced" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -133,10 +141,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "called presence will be sourced" >> {
       db.reset
       val p = transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -157,10 +167,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "presence does not need to be sourced" >> {
       db.reset
       val p = transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -180,10 +192,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "cloned artifacts called again are still needing to be sourced" >> {
       db.reset
       val p = transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -223,13 +237,16 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "open gateways that need to be scoured" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.ago((2 * 60 * 60 * 1000L) + 5000)
-        db.c2g.mode = GateMode.source
+        db.c2g.source = true
+        db.c2g.sink = false
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
-        db.c3g.mode = GateMode.sink
+        db.c3g.source = false
+        db.c3g.sink = true
         db.c3g.state = GateState.closed
         db.c3g.scoured = T.yesterday
         Mythos.gateways.update(db.c1g)
@@ -252,10 +269,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "open source gateways required for presences called" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -278,10 +297,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "open sink gateways required for clones" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)
@@ -309,17 +330,20 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "don't open recently requested but non-opened gateways, even if needed for scour, scour, or sink" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.ago((2 * 60 * 60 * 1000L) + 5000)
         db.c1g.seen = T.ago(69 * 60 * 1000L)
         db.c1g.requested = T.ago(6 * 60 * 1000L)
-        db.c2g.mode = GateMode.source
+        db.c2g.source = true
+        db.c2g.sink = false
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         db.c2g.seen = T.ago(16 * 60 * 1000L)
         db.c2g.requested = T.ago(14 * 60 * 1000L)
-        db.c3g.mode = GateMode.sink
+        db.c3g.source = false
+        db.c3g.sink = true
         db.c3g.state = GateState.closed
         db.c3g.scoured = T.yesterday
         db.c3g.seen = T.ago(99 * 60 * 1000L)
@@ -356,15 +380,18 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "don't reopen recenlty seen gateways, even if needed for scour, scour, or sink" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.open
         db.c1g.scoured = T.ago((2 * 60 * 60 * 1000L) + 5000)
         db.c1g.seen = T.ago(13 * 60 * 1000L)
-        db.c2g.mode = GateMode.source
+        db.c2g.source = true
+        db.c2g.sink = false
         db.c2g.state = GateState.open
         db.c2g.scoured = T.now
         db.c2g.seen = T.ago(14 * 60 * 1000L)
-        db.c3g.mode = GateMode.sink
+        db.c3g.source = false
+        db.c3g.sink = true
         db.c3g.state = GateState.open
         db.c3g.scoured = T.yesterday
         db.c3g.seen = T.ago(9 * 1000L)
@@ -400,10 +427,12 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "open gateways required for clones, but not if the artifact is lost" >> {
       db.reset
       transaction {
-        db.c1g.mode = GateMode.source
+        db.c1g.source = true
+        db.c1g.sink = false
         db.c1g.state = GateState.closed
         db.c1g.scoured = T.now
-        db.c2g.mode = GateMode.sink
+        db.c2g.source = false
+        db.c2g.sink = true
         db.c2g.state = GateState.closed
         db.c2g.scoured = T.now
         Mythos.gateways.update(db.c1g)

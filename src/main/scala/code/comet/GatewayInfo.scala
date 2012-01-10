@@ -5,7 +5,7 @@ import net.liftweb.http.{ListenerManager, CometActor, CometListener}
 import net.liftweb.http.ListenerManager._
 import net.liftweb.common.{Full, Loggable}
 import org.squeryl.PrimitiveTypeMode._
-import code.model.{Gateway, GateMode, GateState, Cultist}
+import code.model.{Gateway, GateState, Cultist}
 import xml.{Node, Unparsed, NodeSeq}
 import net.liftweb.util.{CssSel, ClearClearable}
 
@@ -42,7 +42,7 @@ class GatewayInfo extends CometActor with CometListener {
     Cultist.attending.is match {
       case Full(cultist) =>
         gateways.flatMap(g =>
-          (".gateway-mode *" #> GateMode.symbol(g.mode) &
+          (".gateway-mode *" #> g.modesIcon &
           ".gateway-status *" #> GateState.symbol(g.state) &
           ".gateway-description *" #> g.path).apply(in)
         )
@@ -52,8 +52,9 @@ class GatewayInfo extends CometActor with CometListener {
   }
 
   def bindWarnings(gateways: List[Gateway])(in: NodeSeq): NodeSeq = {
-    val sources = gateways.filter(_.mode == GateMode.source).size
-    val sinks = gateways.filter(_.mode == GateMode.sink).size
+    val sources = gateways.filter(_.source).size
+    val sinks = gateways.filter(_.sink).size
+    val dual = gateways.filter(x => x.source && x.sink).size
 
     // Multiple sources. Odd.
     // Multiple sinks. Won't work.
@@ -68,6 +69,9 @@ class GatewayInfo extends CometActor with CometListener {
           warnings = (Gateway.symbolExclamation, <span>You have multiple sink gateways; only one will accept clones. <a href="/cultist/profile">Manage Gateways</a></span>) :: warnings
     } else if (sinks == 0) {
       warnings = (Gateway.symbolWarning, <span>You do not have a sink gateway, which means you can not clone artifacts - any artifacts you do select for cloning will stay awaiting until a sink is created. <a href="/gateway/add">Add Gateway</a></span>) :: warnings
+    }
+    if (dual > 0) {
+      warnings = (Gateway.symbolExclamation, <span>One or more of your gateways is configured to dual source + sink mode, which is still under beta testing. Prepare for possible corruption! <a href="/cultist/profile">Manage Gateways</a></span>) :: warnings
     }
 
     warnings.flatMap(w =>

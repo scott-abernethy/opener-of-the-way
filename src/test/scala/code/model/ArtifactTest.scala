@@ -103,7 +103,8 @@ object ArtifactTest extends Specification with Mockito {
         g.path = "bar"
         g.localPath = "/tmp/g/it"
         g.password = "password"
-        g.mode = GateMode.sink
+        g.source = false
+        g.sink = true
         g.state = GateState.open
         g = gateways.insert(g)
         val a: Artifact = artifacts.insert(Artifact.create(g.id, "folder/file.ext", T.now, T.now))

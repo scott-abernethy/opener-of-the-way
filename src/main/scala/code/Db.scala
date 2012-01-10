@@ -78,6 +78,8 @@ trait Db {
           g1.path = "foobar"
           g1.localPath = ""
           g1.password = "treesaregreen"
+          g1.source = true
+          g1.sink = false
           g1 = Mythos.gateways.insert(g1)
           var g2: Gateway = new Gateway
           g2.cultistId = foo.id
@@ -85,7 +87,8 @@ trait Db {
           g2.path = "foobar-sink"
           g2.localPath = ""
           g2.password = "treesaregreen"
-          g2.mode = GateMode.sink
+          g2.source = false
+          g2.sink = true
           g2 = Mythos.gateways.insert(g2)
           var g3: Gateway = new Gateway
           g3.cultistId = two.id
@@ -93,6 +96,8 @@ trait Db {
           g3.path = "frog/sheep/cow"
           g3.localPath = ""
           g3.password = "cowsaregreen"
+          g3.source = true
+          g3.sink = false
           g3 = Mythos.gateways.insert(g3)
 
           val a = new Artifact

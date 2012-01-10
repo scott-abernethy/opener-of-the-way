@@ -6,7 +6,7 @@ import org.specs.mock.Mockito
 import akka.testkit.{TestKit, TestActorRef}
 import org.squeryl.PrimitiveTypeMode._
 import code.TestDb
-import code.model.{Mythos, GateState, GateMode, Gateway}
+import code.model.{Mythos, GateState, Gateway}
 import akka.util.duration._
 
 object ThresholdTest extends Specification with Mockito with TestKit {
@@ -25,7 +25,8 @@ object ThresholdTest extends Specification with Mockito with TestKit {
     g.location = "10.16.15.43/public"
     g.path = "frog/sheep/cow"
     g.password = "cowsaregreen"
-    g.mode = GateMode.sink
+    g.source = false
+    g.sink = true
     g.state = GateState.open
 
     "open a gateway" >> {
