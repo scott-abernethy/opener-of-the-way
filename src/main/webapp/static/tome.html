@@ -5,8 +5,29 @@
   </ol>
   <h2>On gateways</h2>
   <ol>
-    <li>Gateways (TrueCrypt volumes shared on the network) are used to proffer (share) artifacts (files) to other cultists (users), or to clone (copy) artifacts that were proffered by others.</li>
-    <li>In this way no artifacts touch disk in plain-text.</li>
+    <li>Gateways are encrypted TrueCrypt volumes shared on the local network.</li>
+    <li>Source gateways are used to proffer (share) artifacts (files) to other cultists (users)
+      <ul>
+        <li>Used in a read only mode.</li>
+        <li>Opened regularly to scan for newly proffered artifacts.</li>
+        <li>Some artifacts are ignored:
+          <ul>
+            <li>Any files under the following special folders: <pre>/clones/</pre> or <pre>/ignored/</pre></li>
+            <li>Any hidden files (prefixed with a &quot;.&quot; character), for example <pre>/.Trash-41231/Deleted-file.txt</pre> or <pre>/.settings</pre></li>
+            <li>Known system files, for example <pre>/System Volume Information/</pre> or <pre>/Recycled</pre></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+    <li>Sink gateways are used to clone (copy) artifacts (files) that were proffered (shared) by other cultists (users).
+      <ul>
+        <li>Used in a write only mode.</li>
+        <li>Opened only to clone artifacts.</li>
+        <li>Cloned artifacts are placed under the folder <pre>/clones/</pre></li>
+      </ul>
+    </li>
+    <li>In this way artifacts are never stored on disk in plain-text.</li>
+    <li>Cultists should never locally mount a gateway TrueCrypt volume while oOoo* has the gateway open. To do so may cause corruption.</li>
   </ol>
   <h3>On creating a gateway</h3>
   <ol>
@@ -28,7 +49,7 @@
     <li>Ensure the encrypted volume file has appropriate permissions...
       <ul><li>Sink: <em>read-write</em> permissions</li><li>Source: <em>read-only</em> permissions</li></ul>
     </li>
-    <li>In oOoo* <a href="/gateway/add">add a gateway</a> with these details, choosing the <em>sink mode</em> for a gateway to receive clones or <em>source mode</em> to proffer artifacts for other cultists to clone.</li>
+    <li>In oOoo* <a href="/gateway/add">add a gateway</a> with these details, selecting the correct mode, source or sink, depending on the use.</li>
   </ol>
   <h2>On nothing in particular</h2>
   <ol>
