@@ -20,42 +20,68 @@ class Gateway {
   object share extends RequestVar("")
   object path extends RequestVar("")
   object password extends RequestVar("")
-  object mode extends RequestVar("Sink")
-
-  val modeMap = Map(
-    "Source" -> (true, false),
-    "Sink" -> (false, true),
-    "Source + Sink (beta)" -> (true, true),
-    "Disabled" -> (false, false)
-  )
+  object mode extends RequestVar(Gateway.defaultMode)
 
   def add = {
-    val modeOptions = SHtml.radio(modeMap.keys.toList, Full(mode.is), x => mode(x))
-    ClearClearable &
-    ".add:host" #> JsCmds.FocusOnLoad(SHtml.text(host.is, t => host(t)) % ("style" -> "width: 250px")) &
-    ".add:share" #> (SHtml.text(share.is, t => share(t)) % ("style" -> "width: 250px")) &
-    ".add:path" #> (SHtml.text(path.is, t => path(t)) % ("style" -> "width: 250px")) &
-    ".add:password" #> (SHtml.password(password.is, t => password(t)) % ("style" -> "width: 250px")) &
-    ".add:mode" #> modeOptions.toForm &
-    "#add:submit" #> SHtml.submit("Submit", () => processAdd) &
-    "#add:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
+    formFill(() => {
+      val g = new code.model.Gateway
+      processEdit(g)
+    })
   }
 
-  private def processAdd {
+  private def formFill(submitAction: () => Unit) = {
+      val modeOptions = SHtml.radio(Gateway.encodeModeMap.keys.toList, Full(mode.is), x => mode(x))
+      ClearClearable &
+      ".add:host" #> JsCmds.FocusOnLoad(SHtml.text(host.is, t => host(t)) % ("style" -> "width: 250px")) &
+      ".add:share" #> (SHtml.text(share.is, t => share(t)) % ("style" -> "width: 250px")) &
+      ".add:path" #> (SHtml.text(path.is, t => path(t)) % ("style" -> "width: 250px")) &
+      ".add:password" #> (SHtml.password(password.is, t => password(t)) % ("style" -> "width: 250px")) &
+      ".add:mode" #> modeOptions.toForm &
+      "#add:submit" #> SHtml.submit("Submit", submitAction) &
+      "#add:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/cultist/profile"))
+    }
+
+  def edit = {
+    val editing: Option[code.model.Gateway] = for {
+      id <- S.param("id").toOption
+      key <- tryo(id.toLong)
+      gateway <- transaction( Mythos.gateways.lookup(key) )
+      cultist <- Cultist.attending.is.toOption
+      if (gateway.cultistId == cultist.id)
+    }
+    yield gateway
+
+    editing match {
+      case Some(g) => {
+        val split = g.location.lastIndexOf("/")
+        host(g.location.substring(0, split))
+        share(g.location.substring(split + 1))
+        path(g.path)
+        password(g.password)
+        mode(Gateway.decodeModeMap.get( (g.source, g.sink) ).getOrElse(Gateway.defaultMode))
+        formFill(() => processEdit(g))
+      }
+      case _ => {
+        S.error("No such gateway!")
+        S.redirectTo("/cultist/profile")
+      }
+    }
+  }
+
+  private def processEdit(g: code.model.Gateway) {
     Cultist.attending.is match {
       case Full(c) =>
         // replace \ with /
         // check host matches a pattern
         // allow edits? with a big warning about implications, redetection etc
-        val g = new code.model.Gateway
         g.cultistId = c.id
         g.location = host.is.trim + "/" + share.is.trim
         g.path = path.is.trim
         g.password = password.is.trim
-        val (source, sink) = modeMap.get(mode.is) getOrElse (false, false)
+        val (source, sink) = Gateway.encodeModeMap.get(mode.is) getOrElse (false, false)
         g.source = source
         g.sink = sink
-        transaction(gateways.insert(g))
+        transaction(gateways.insertOrUpdate(g))
         GatewayServer ! 'WayChanged
       case _ => S.error("?!")
     }

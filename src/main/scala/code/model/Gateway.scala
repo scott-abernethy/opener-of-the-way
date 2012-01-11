@@ -70,6 +70,22 @@ object Gateway {
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
   lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
   lazy val symbolExclamation = <img src="/static/g_exclamation.png" title="Are you crazy?!!"/>
+
+  val defaultMode = "Sink"
+
+  val encodeModeMap = Map(
+    "Source" -> (true, false),
+    "Sink" -> (false, true),
+    "Source + Sink (beta)" -> (true, true),
+    "Disabled" -> (false, false)
+  )
+
+  val decodeModeMap = Map(
+    (true, false) -> "Source",
+    (false, true) -> "Sink",
+    (true, true) -> "Source + Sink (beta)",
+    (false, false) -> "Disabled"
+  )
 }
 
 object GateState extends Enumeration {
