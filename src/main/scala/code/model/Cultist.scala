@@ -59,6 +59,12 @@ object Cultist {
 
   def approach(cultist: Cultist, password: String): Option[Cultist] = {
     if (cultist.password == password) {
+      transaction{
+        update(cultists)(c =>
+          where(c.id === cultist.id)
+          set(c.seen := Some(T.now))
+        )
+      }
       attending(Full(cultist))
       Some(cultist)
     } else {
