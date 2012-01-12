@@ -11,11 +11,18 @@ import org.squeryl.PrimitiveTypeMode._
 import java.util.Properties
 import java.io.FileReader
 import net.liftweb.util.Helpers
+import code.gate.T
+import java.sql.Timestamp
+import util.matching.Regex
 
 class Cultist extends MythosObject {
   var email: String = ""
   var password: String = ""
   var insane: Boolean = false
+  var expired: Boolean = false
+  var locked: Boolean = false
+  var recruitedBy: Long = -1
+  var seen: Option[Timestamp] = None
 
   def sign: String = Cultist.loadCodename(id.toString) // lame but simple
 
@@ -36,6 +43,8 @@ object Cultist {
     x.password = password
     x
   }
+
+  val ValidEmail: Regex = """([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})""".r
 
   def find(id: Long): Option[Cultist] = cultists.lookup(id)
   val cultistCookie = "theyWhomAttendethIt"

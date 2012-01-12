@@ -14,6 +14,9 @@ object Mythos extends Schema {
   val clones = table[Clone]
   val presences = table[Presence]
 
+  on(cultists)(c => declare(
+    c.email is(indexed, unique)
+  ))
   on(artifacts)(a => declare(
     a.path is(indexed, dbType("varchar(255)")),
     columns(a.gatewayId, a.path) are(unique, indexed)

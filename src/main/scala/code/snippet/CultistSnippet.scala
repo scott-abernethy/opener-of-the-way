@@ -11,29 +11,58 @@ import Helpers._
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import code.comet.GatewayServer
+import java.lang.String
 
 class Cultist extends Loggable {
   val emailHint = "gone@insane.yet"
   object email extends RequestVar[Option[String]](Some(emailHint))
   object password extends RequestVar[Option[String]](None)
+  object theRecruited extends RequestVar[Option[code.model.Cultist]](None)
 
-  def join = {
+  def recruit = {
     ClearClearable &
-    ".join:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
-    "#join:submit" #> SHtml.submit("Submit", () => processJoin) &
-    "#join:cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
+    ".recruit-email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
+    "#recruit-submit" #> SHtml.submit("Submit", () => processRecruit) &
+    "#recruit-cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
 
-  private def processJoin {
-    email.is.filter(! _.contains("aviat")) match {
-      case Some(e) =>
-        //val c = new code.model.Cultist
-        //c.email = e
-        //cultists.insert(c)
-        S.redirectTo("approach", () => email(Some(e)))
-      case _ =>
+  private def processRecruit {
+    email.is match {
+      case Some(Cultist.ValidEmail(username, domain)) if (domain.contains("aviat") || domain.contains("hstx.") || domain.contains("stratex")) => {
+        S.warning("Don't be silly")
+      }
+      case Some(Cultist.ValidEmail(username, domain)) => {
+        val e = username + "@" + domain
+        val c = new code.model.Cultist
+        c.email = e
+        c.password = "beyond"
+        c.recruitedBy = Cultist.attending.is.map(_.id) openOr -2L
+        c.expired = true // forces password change
+        c.locked = true // requires unlocking by the insane before they can glimpse the truth
+        transaction {
+          val free = cultists.where(_.email === c.email).isEmpty
+          if (free) {
+            cultists.insert(c)
+          }
+        }
+        S.redirectTo("recruited", () => theRecruited(Some(c)))
+      }
+      case _ => {
         S.warning("Invalid email")
-        S.redirectTo("join")
+      }
+    }
+  }
+
+  def recruited = {
+    theRecruited.is match {
+      case Some(c) => {
+        ClearClearable &
+        ".recruited-email" #> c.email &
+        ".recruited-password" #> c.password
+      }
+      case _ => {
+        S.redirectTo("/")
+      }
     }
   }
 
