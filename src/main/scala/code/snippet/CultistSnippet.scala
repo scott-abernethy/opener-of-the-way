@@ -13,7 +13,7 @@ import org.squeryl.PrimitiveTypeMode._
 import code.comet.GatewayServer
 import java.lang.String
 
-class Cultist extends Loggable {
+class Cultist extends Loggable with CultistWho {
   val emailHint = "gone@insane.yet"
   object email extends RequestVar[Option[String]](Some(emailHint))
   object password extends RequestVar[Option[String]](None)
@@ -30,6 +30,9 @@ class Cultist extends Loggable {
     email.is match {
       case Some(Cultist.ValidEmail(username, domain)) if (domain.contains("aviat") || domain.contains("hstx.") || domain.contains("stratex")) => {
         S.warning("Don't be silly")
+      }
+      case Some(x) if (x == emailHint) => {
+        S.warning("Don't be insane")
       }
       case Some(Cultist.ValidEmail(username, domain)) => {
         val e = username + "@" + domain
@@ -79,15 +82,21 @@ class Cultist extends Loggable {
 
     if (submittedEmail == emailHint) {
       S.error("approach-messages", "Open your mouth, unworthy parrot!")
-    } else { 
-      Cultist.forEmail(submittedEmail).toOption.flatMap(Cultist.approach(_, submittedPassword)) match {
-        case Some(c) =>
-          S.notice("Proceed with care '" + c.sign + "'.")
+    } else {
+      val c = Cultist.forEmail(submittedEmail)
+      c.map( x => (x, x.approach(submittedPassword)) ).toOption match {
+        case Some((cultist, ApproachSuccess)) => {
+          S.notice("Proceed with care '" + cultist.sign + "'.")
           S.redirectTo("/", () => (Cultist.saveCookie))
-        case _ =>
+        }
+        case Some((cultist, ApproachExpired)) => {
+          S.redirectTo("/cultist/expired", () => who(Some(cultist.id)))
+        }
+        case _ => {
           S.warning("approach-messages", "Unfumble your mind, unworthy worm!")
           logger.info("Approach rejected for: '" + submittedEmail + "'")
           S.redirectTo("approach", () => email(Some(submittedEmail)))
+        }
       }
     }
   }

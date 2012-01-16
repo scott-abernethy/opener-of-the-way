@@ -68,6 +68,7 @@ trait Db {
           val c2 = new Cultist
           c2.email = "two@bar.com"
           c2.password = "two"
+          c2.expired = true
 
           val foo = Mythos.cultists.insert(c1)
           val two = Mythos.cultists.insert(c2)

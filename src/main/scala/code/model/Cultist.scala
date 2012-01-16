@@ -15,6 +15,11 @@ import code.gate.T
 import java.sql.Timestamp
 import util.matching.Regex
 
+sealed abstract class ApproachResult
+case object ApproachSuccess extends ApproachResult
+case object ApproachRejected extends ApproachResult
+case object ApproachExpired extends ApproachResult
+
 class Cultist extends MythosObject {
   var email: String = ""
   var password: String = ""
@@ -34,6 +39,23 @@ class Cultist extends MythosObject {
     where(c.forCultistId === id and (c.state === CloneState.awaiting or c.state === CloneState.cloning))
     select(c)
   )
+
+  def approach(submittedPassword: String): ApproachResult = {
+    (password == submittedPassword, expired) match {
+      case (false, _) => ApproachRejected
+      case (_, true) => ApproachExpired
+      case _ => {
+        transaction {
+          update(cultists)(c =>
+            where(c.id === id)
+            set(c.seen := Some(T.now))
+          )
+        }
+        Cultist.attending(Full(this))
+        ApproachSuccess
+      }
+    }
+  }
 }
 
 object Cultist {
@@ -56,21 +78,6 @@ object Cultist {
   object attending extends SessionVar[Box[Cultist]](checkForCookie)
   def attending_? = !attending.is.isEmpty
   def isAttending_?(cultist: Cultist) = attending.is.map(_ == cultist) getOrElse false
-
-  def approach(cultist: Cultist, password: String): Option[Cultist] = {
-    if (cultist.password == password) {
-      transaction{
-        update(cultists)(c =>
-          where(c.id === cultist.id)
-          set(c.seen := Some(T.now))
-        )
-      }
-      attending(Full(cultist))
-      Some(cultist)
-    } else {
-      None
-    }
-  }
 
   def withdraw() {
     attending(Empty)

@@ -39,6 +39,7 @@ class Boot {
       Menu.i("Search") / "search" >> isAttending >> Hidden,
       Menu.i("Awaiting") / "awaiting" >> isAttending >> Hidden,
       Menu.i("Approach") / "cultist" / "approach" >> notAttending,
+      Menu.i("Expired") / "cultist" / "expired" >> Hidden,
       Menu.i("Profile") / "cultist" / "profile" >> isAttending,
       Menu.i("Recruit") / "cultist" / "recruit" >> isAttending,
       Menu.i("Recruited") / "cultist" / "recruited" >> isAttending >> Hidden,
