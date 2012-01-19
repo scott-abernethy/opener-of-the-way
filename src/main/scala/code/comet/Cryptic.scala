@@ -84,7 +84,8 @@ class Cryptic extends CometActor with CometListener {
           Unparsed("&gt;")
         }
         case Some(ArtifactState.cloning) => {
-          Unparsed("&asymp;")
+          //Unparsed("&asymp;")
+          Unparsed("&#8734;")
         }
         case Some(ArtifactState.awaitingPresent) => {
           Text("=")
