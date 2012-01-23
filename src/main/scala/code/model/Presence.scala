@@ -39,7 +39,7 @@ object Presence {
 
   // Set this in properties file?
   lazy val gigaByteLength = 1024L * 1024 * 1024;
-  lazy val maxPresenceLength = gigaByteLength * 50
+  lazy val maxPresenceLength = gigaByteLength * 59
 }
 
 object PresenceState extends Enumeration {
