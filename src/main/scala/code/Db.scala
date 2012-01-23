@@ -54,7 +54,11 @@ trait Db {
     pool.close()
   }
 
-  def describe { Mythos.printDdl }
+  def describe {
+    transaction {
+      Mythos.printDdl
+    }
+  }
 
   def populate {
     Props.mode match {
