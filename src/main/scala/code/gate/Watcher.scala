@@ -87,13 +87,14 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val scour = scourQuery().toList.distinct
         val open = openQuery.toList.distinct
         val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
-        val dontReopen = open.filter(g => g.seen.after(reopenTimestamp))
+        val dontReopen = open.filter(g => g.seen.after(reopenTimestamp)) // reopen only applies to currently open gateways.
 
         logger.info("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
 
         val keepOpen = (sources ::: sinks ::: scour).distinct.toSet.filter(_.state != GateState.transient) // don't open transient.
         val rerequestTimeStamp = T.ago(Gateway.rerequestableAfter)
-        val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp))
+        val retryFailedTimeStamp = T.ago(Gateway.retryFailedAfter)
+        val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp)).filter(g => g.failed.before(retryFailedTimeStamp))
         val toTransient = open.toSet -- keepOpen
 
         logger.info("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
@@ -144,13 +145,13 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       lurker ! WayFound(g, lp)
 
     case OpenGateFailed(g) =>
-      markTransient(g)
+      markFailedThusTransient(g)
 
     case CloseGateSuccess(g) =>
       markClosed(g)
 
     case CloseGateFailed(g) =>
-      markTransient(g)
+      markFailedThusTransient(g)
 
     case PresenceFailed(p) =>
       val source = transaction {
@@ -159,7 +160,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
           gateway <- artifact.gateway.headOption
         } yield gateway
       }
-      source.foreach( markTransient(_) )
+      source.foreach( markFailedThusTransient(_) )
 
     case CloneFailed(c) =>
       val sink = transaction {
@@ -168,7 +169,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
           gateway <- requester.destination
         } yield gateway
       }
-      sink.foreach( markTransient(_) )
+      // TODO mark to not open for a while.
+      sink.foreach( markFailedThusTransient(_) )
 
     case 'Ping =>
       self.reply( 'Pong )
@@ -188,12 +190,12 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     GatewayServer ! 'WayFound
   }
 
-  def markTransient(transient: Gateway) {
-    logger.debug("WayTransient " + transient)
+  def markFailedThusTransient(transient: Gateway) {
+    logger.debug("WayFailed " + transient)
     transaction {
       gateways.update(g =>
         where(g.id === transient.id and g.state === GateState.open)
-        set(g.state := GateState.transient)
+        set(g.state := GateState.transient, g.failed := T.now)
       )
     }
     GatewayServer ! 'WayTransient

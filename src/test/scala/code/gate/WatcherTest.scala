@@ -377,7 +377,60 @@ object WatcherTest extends Specification with Mockito with TestKit {
       x.getMailboxSize() must be_==(0)
     }
 
-    "don't reopen recenlty seen gateways, even if needed for scour, scour, or sink" >> {
+    "don't open recently requested but failed gateways, even if needed for scour, scour, or sink" >> {
+      db.reset
+      transaction {
+        db.c1g.source = true
+        db.c1g.sink = false
+        db.c1g.state = GateState.closed
+        db.c1g.scoured = T.ago((2 * 60 * 60 * 1000L) + 5000)
+        db.c1g.seen = T.ago(5 * 60 * 1000L)
+        db.c1g.requested = T.ago(6 * 60 * 1000L)
+        db.c1g.failed = T.ago(59 * 60 * 1000L)
+        db.c2g.source = true
+        db.c2g.sink = false
+        db.c2g.state = GateState.closed
+        db.c2g.scoured = T.now
+        db.c2g.seen = T.ago(10 * 60 * 1000L)
+        db.c2g.requested = T.ago(14 * 60 * 1000L)
+        db.c2g.failed = T.ago(59 * 60 * 1000L)
+        db.c3g.source = false
+        db.c3g.sink = true
+        db.c3g.state = GateState.closed
+        db.c3g.scoured = T.yesterday
+        db.c3g.seen = T.ago(9 * 1000L)
+        db.c3g.requested = T.ago(12 * 1000L)
+        db.c3g.failed = T.ago(59 * 60 * 1000L)
+        Mythos.gateways.update(db.c1g)
+        Mythos.gateways.update(db.c2g)
+        Mythos.gateways.update(db.c3g)
+
+        val p = new Presence()
+        p.artifactId = db.c1ga1.id
+        p.state = PresenceState.called
+        p.attempts = 0
+        Mythos.presences.insert(p)
+
+        val c = new Clone()
+        c.artifactId = db.c1ga2.id
+        c.forCultistId = db.c3.id
+        c.state = CloneState.awaiting
+        c.attempts = 0
+        Mythos.clones.insert(c)
+        val p2 = new Presence()
+        p2.artifactId = db.c1ga2.id
+        p2.state = PresenceState.present
+        Mythos.presences.insert(p2)
+      }
+      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      within(900 millis) {
+        x ! 'Wake
+        expectNoMsg
+      }
+      x.getMailboxSize() must be_==(0)
+    }
+
+    "don't reopen recently seen gateways, even if needed for scour, scour, or sink" >> {
       db.reset
       transaction {
         db.c1g.source = true

@@ -3,12 +3,12 @@ package code.model
 import org.squeryl.Query
 import org.squeryl.dsl.{OneToMany, ManyToOne}
 import org.squeryl.annotations.Column
-import code.gate.T
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
 import java.sql.Timestamp
 import xml.{NodeSeq, Unparsed, Node}
+import code.gate.{Millis, T}
 
 class Gateway extends MythosObject {
   var cultistId: Long = 0
@@ -23,6 +23,7 @@ class Gateway extends MythosObject {
   var scoured: Timestamp = T.yesterday
   var seen: Timestamp = T.yesterday // aka opened
   var requested: Timestamp = T.yesterday
+  var failed: Timestamp = T.ago(Millis.days(2))
 
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
@@ -63,9 +64,10 @@ object Gateway {
     Mythos.gateways.deleteWhere(x => x.id === gateway.id and x.source === false)
   }
 
-  lazy val scourPeriod = 2 * 60 * 60 * 1000L // 2 hours
-  lazy val reopenTestAfter = 30 * 60 * 1000L // 30 mins
-  lazy val rerequestableAfter = 15 * 60 * 1000L // 15 mins
+  lazy val scourPeriod = Millis.hours(2)
+  lazy val reopenTestAfter = Millis.minutes(30)
+  lazy val rerequestableAfter = Millis.minutes(15)
+  lazy val retryFailedAfter = Millis.minutes(60)
 
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
   lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
