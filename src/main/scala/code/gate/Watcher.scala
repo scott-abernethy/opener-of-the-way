@@ -145,13 +145,13 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       lurker ! WayFound(g, lp)
 
     case OpenGateFailed(g) =>
-      markFailedThusTransient(g)
+      markTransient(g)
 
     case CloseGateSuccess(g) =>
       markClosed(g)
 
     case CloseGateFailed(g) =>
-      markFailedThusTransient(g)
+      markTransient(g)
 
     case PresenceFailed(p) =>
       val source = transaction {
@@ -169,7 +169,6 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
           gateway <- requester.destination
         } yield gateway
       }
-      // TODO mark to not open for a while.
       sink.foreach( markFailedThusTransient(_) )
 
     case 'Ping =>
@@ -188,6 +187,17 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       })
     }
     GatewayServer ! 'WayFound
+  }
+
+  def markTransient(transient: Gateway) {
+    logger.debug("WayTransient " + transient)
+    transaction {
+      gateways.update(g =>
+        where(g.id === transient.id and g.state === GateState.open)
+        set(g.state := GateState.transient)
+      )
+    }
+    GatewayServer ! 'WayTransient
   }
 
   def markFailedThusTransient(transient: Gateway) {
