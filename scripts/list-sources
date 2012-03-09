@@ -1,0 +1,2 @@
+#!/bin/bash
+mysql -u root -p --database=ootw -e 'select cultistId as "cid",location,path,date(seen),scoured from Gateway where source=1 order by scoured;'
