@@ -5,7 +5,6 @@ import java.util.{Date, TimeZone}
 import code.gate.T
 import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
-import com.sun.jmx.trace.TraceImplementation
 
 class ArtifactCloneSearchFactory {
   def create(cultistId: Long, search: String): Seq[(Artifact, Option[ArtifactState.Value])] = {

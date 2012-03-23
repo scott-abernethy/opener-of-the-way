@@ -13,7 +13,7 @@ class LiftProject(info: ProjectInfo) extends DefaultWebProject(info) with IdeaPr
 
   //override def jettyWebappPath = webappPath
   lazy val JavaNet = "Java.net Maven2 Repository" at "http://download.java.net/maven/2/"
-  val akkaRepo = "Akka Repo" at "http://akka.io/repository"
+  val akkaRepo = "Akka Repo" at "http://repo.akka.io/releases"
 
   override def libraryDependencies = Set(
     "net.liftweb" %% "lift-webkit" % liftVersion.value.toString % "compile->default",
