@@ -32,4 +32,5 @@ mkdir -p "$dest_dir"
 # --partial  (allows continuation from partial transfer, otherwise it is deleted)
 # --whole-file  (skips delta transfer algorithm)
 # --temp-dir=DIR  (scratch directory on receiver, i think this defaults to receive dir)
-rsync --verbose --times --timeout=10 --whole-file "$src_file" "$dest_file" ; abort_check $?
+# --timeout=SECS  (IO timeout in seconds)
+rsync --verbose --times --timeout=20 --whole-file "$src_file" "$dest_file" ; abort_check $?
