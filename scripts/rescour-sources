@@ -1,0 +1,2 @@
+#!/bin/bash
+mysql -u root -p --database=ootw -e 'update Gateway set scoured=TIMESTAMP(CURDATE()) where source=1 and scoured > TIMESTAMP(CURDATE());'
