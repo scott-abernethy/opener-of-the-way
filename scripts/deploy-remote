@@ -11,9 +11,9 @@ abort_check() {
 }
 
 # build, test, package
-sbt clean ; abort_check $?
-sbt test ; abort_check $?
-sbt package ; abort_check $?
+./sbt clean ; abort_check $?
+./sbt test ; abort_check $?
+./sbt package ; abort_check $?
 
 # tag
 tag="0.0.0-1"
