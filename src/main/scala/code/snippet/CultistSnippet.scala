@@ -94,7 +94,7 @@ class Cultist extends Loggable with CultistWho {
         }
         case _ => {
           S.warning("approach-messages", "Unfumble your mind, unworthy worm!")
-          logger.info("Approach rejected for: '" + submittedEmail + "'")
+          logger.warn("Approach rejected for: '" + submittedEmail + "'")
           S.redirectTo("approach", () => email(Some(submittedEmail)))
         }
       }

@@ -24,7 +24,7 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore"
   override def lowPriority = {
     case msg =>
-      logger.debug(msg.toString)
+      logger.info(msg.toString)
       updateListeners(msg)
   }
 }

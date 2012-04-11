@@ -89,7 +89,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
         val dontReopen = open.filter(g => g.seen.after(reopenTimestamp)) // reopen only applies to currently open gateways.
 
-        logger.info("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
+        logger.debug("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
 
         val keepOpen = (sources ::: sinks ::: scour).distinct.toSet.filter(_.state != GateState.transient) // don't open transient.
         val rerequestTimeStamp = T.ago(Gateway.rerequestableAfter)
@@ -97,7 +97,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp)).filter(g => g.failed.before(retryFailedTimeStamp))
         val toTransient = open.toSet -- keepOpen
 
-        logger.info("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
+        logger.debug("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
 
         val now = T.now
         for (t <- toTransient) {
