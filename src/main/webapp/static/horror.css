@@ -254,3 +254,14 @@ background-color: #62CFFC;
 .label.success {
 background-color: #46A546;
 }
+.sigal {
+  padding: 1px 3px 2px;
+  font-size: 9.75px;
+  font-weight: bold;
+  color: white;
+  white-space: nowrap;
+  background-color: #BFBFBF;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}

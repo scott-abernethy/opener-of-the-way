@@ -9,12 +9,12 @@ import net.liftweb.http.ListenerManager._
 import net.liftweb.http._
 import js.JsCmds.{RedirectTo, SetValById}
 
-case class BabbleItem(text: String)
+case class BabbleItem(source: Option[Cultist], text: String)
 
 class Babblings extends CometActor with CometListener
 {
   var items: List[BabbleItem] = Nil
-  val initial = BabbleItem("Yaji Ash-Shuthath!")
+  val initial = BabbleItem(None, "Yaji Ash-Shuthath!")
 
   def registerWith = BabblingsServer
 
@@ -24,13 +24,13 @@ class Babblings extends CometActor with CometListener
     {
       items = init match {
         case Nil => initial :: Nil
-        case list => list
+        case list => list.take(8)
       }
       reRender
     }
     case update: BabbleItem =>
     {
-      items = update :: items.filter(_ != initial).take(6)
+      items = update :: items.filter(_ != initial).take(8)
       reRender
     }
     case _ =>
@@ -45,7 +45,9 @@ class Babblings extends CometActor with CometListener
 //      case Full(cultist) =>
         ClearClearable &
         ".item" #> items.map{ x =>
-          ".part *" #> x.text
+          val sign = x.source.map(_.sign).filter(x => x != null && x.size > 0).getOrElse("???")
+          val sigal = sign.charAt(0)
+          ".part *" #> <span>{ Cultist.sigalFor(x.source) } { x.text }</span>
         }
 //      case _ =>
 //        ClearClearable
@@ -63,8 +65,9 @@ object BabblingsServer extends LiftActor with ListenerManager with Loggable
   {
     case babble: BabbleItem if (babble.text.trim.size > 0) =>
     {
-      items = babble :: items.take(6)
+      items = babble :: items.take(8)
       updateListeners(babble)
+      logger.info(Cultist.signFor(babble.source) + " babbled \"" + babble.text + "\"")
     }
   }
 }

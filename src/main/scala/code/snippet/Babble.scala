@@ -6,6 +6,7 @@ import code.comet.{BabbleItem, BabblingsServer}
 import net.liftweb.http.js.JsCmds.{SetValById, RedirectTo}
 import net.liftweb.http.js.JsCmds
 import net.liftweb.http.{RequestVar, SHtml}
+import code.model.Cultist
 
 class Babble
 {
@@ -13,9 +14,9 @@ class Babble
 
   def input =
   {
-    "#babbling" #> SHtml.text(babble.is, x => babble(x)) &
+    "#babbling" #> JsCmds.FocusOnLoad(SHtml.text(babble.is, x => babble(x), "class" -> "span-7")) &
     ".send" #> SHtml.submit("Send", () => {
-      BabblingsServer ! BabbleItem(babble.is)
+      BabblingsServer ! BabbleItem(Cultist.attending.is.toOption, babble.is)
       babble("")
     })
   }

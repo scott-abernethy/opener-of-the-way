@@ -14,6 +14,7 @@ import net.liftweb.util.Helpers
 import code.gate.T
 import java.sql.Timestamp
 import util.matching.Regex
+import xml.Node
 
 sealed abstract class ApproachResult
 case object ApproachSuccess extends ApproachResult
@@ -103,4 +104,14 @@ object Cultist {
     }
   }
   def loadCodename(index: String): String = codenames.getProperty(index, index + "?")
+
+  def signFor(cultist: Option[Cultist]): String =
+  {
+    cultist.map(_.sign).filter(x => x != null && x.size > 0).getOrElse("???")
+  }
+
+  def sigalFor(cultist: Option[Cultist]): Node =
+  {
+    <span class="sigal">{ signFor(cultist) }</span>
+  }
 }
