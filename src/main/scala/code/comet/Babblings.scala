@@ -67,7 +67,7 @@ object BabblingsServer extends LiftActor with ListenerManager with Loggable
     {
       items = babble :: items.take(8)
       updateListeners(babble)
-      logger.info(Cultist.signFor(babble.source) + " babbled \"" + babble.text + "\"")
+      logger.info(Cultist.signFor(babble.source) + "(" + babble.source.map(_.id).getOrElse(-1)  + ") babbled \"" + babble.text + "\"")
     }
   }
 }

@@ -67,6 +67,8 @@ object LurkerTest extends Specification with Mockito {
           ("/folder/sub/another-file.txt", 7654L) ::
           ("/ignored/stuff/foo.txt", 14L) ::
           ("/ignored/stuff/foo.txt", 14L) ::
+          ("/README", 2L) ::
+          ("README", 1L) ::
           ("/$RECYCLE.BIN/$IUOSDFY.xxu", 34L) ::
           ("$RECYCLE.BIN/uiopuip", 34L) ::
           ("$other", 34L) ::
