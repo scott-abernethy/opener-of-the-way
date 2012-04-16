@@ -70,9 +70,9 @@ class GatewayInfo extends CometActor with CometListener {
     } else if (sinks == 0) {
       warnings = (Gateway.symbolWarning, <span>You do not have a sink gateway, which means you can not clone artifacts - any artifacts you do select for cloning will stay awaiting until a sink is created. <a href="/gateway/add">Add Gateway</a></span>) :: warnings
     }
-    if (dual > 0) {
-      warnings = (Gateway.symbolExclamation, <span>One or more of your gateways is configured to dual source + sink mode, which is still under beta testing. Prepare for possible corruption! <a href="/cultist/profile">Manage Gateways</a></span>) :: warnings
-    }
+//    if (dual > 0) {
+//      warnings = (Gateway.symbolExclamation, <span>One or more of your gateways is configured to dual source + sink mode, which is still under beta testing. Prepare for possible corruption! <a href="/cultist/profile">Manage Gateways</a></span>) :: warnings
+//    }
 
     warnings.flatMap(w =>
       (
