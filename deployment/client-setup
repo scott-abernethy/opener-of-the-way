@@ -1,0 +1,30 @@
+sudo mkdir /srv/public
+sudo chown <user>:root /srv/public
+sudo chmod a+rw /srv/public
+sudo truecrypt -t -c
+sudo chmod a+rw <pc>.vmdk
+sudo vim /etc/samba/smb.conf
+
+[public]
+  path = /srv/public
+  comment = "Public"
+  public = yes
+  browseable = yes
+  read only = no
+  writable = yes
+
+sudo smbpasswd -a sqatest
+
+sudo service smbd reload
+
+sudo mkdir /tmp/foo
+sudo truecrypt -t /srv/public/<> /tmp/foo
+mkdir /tmp/foo/ignored
+vim /tmp/foo/README
+
+Files placed in this directory (the root of the truecrypt drive) will be detected and catalogued by the system for other users to download.
+
+Your downloads will be placed in the ./clones directory.
+
+Files place in the ./ignored directory are ignored.
+
