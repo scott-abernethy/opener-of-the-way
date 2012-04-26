@@ -1,0 +1,3 @@
+#!/bin/bash
+DUMP_FILE=ootw.$(date +%F).sql.gz
+mysqldump -u root -p ootw | gzip -c > $DUMP_FILE
