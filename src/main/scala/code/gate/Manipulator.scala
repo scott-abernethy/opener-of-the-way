@@ -53,6 +53,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             // get random(?) waiting clone
             // TODO is this actually in another thread?
             // TODO don't present if no space available!! get summoner to ensure, message goes via them.
+            // TODO one (presenter|cloner) per gateway. Can't present and clone from same gateway. Mutliple gateways may be clone dest or present source simultaneously.
             waitingPresences() match {
               case p :: ps => {
                 logger.debug("Manipulator WAITING presences: " + (p :: ps))
