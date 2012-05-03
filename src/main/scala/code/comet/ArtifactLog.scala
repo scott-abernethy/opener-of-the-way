@@ -14,6 +14,7 @@ import org.squeryl.PrimitiveTypeMode._
 case object Subscribed
 
 sealed class ArtifactChange
+
 case object ArtifactCreated extends ArtifactChange
 case class ArtifactRefresh(selectCultistId: Option[Long]) extends ArtifactChange
 case object ArtifactAwaiting extends ArtifactChange
@@ -24,14 +25,24 @@ case object ArtifactPresentFailed extends ArtifactChange
 case object ArtifactCloning extends ArtifactChange
 case object ArtifactCloned extends ArtifactChange
 case object ArtifactCloneFailed extends ArtifactChange
+
 case class ArtifactTouched(change: ArtifactChange, artifactId: Long)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore"
   override def lowPriority = {
-    case msg =>
-      logger.info(msg.toString)
-      updateListeners(msg)
+    case msg @ ArtifactTouched(ArtifactPresentFailed, _) => fwd(msg, logger.info(_))
+    case msg @ ArtifactTouched(ArtifactCloneFailed, _) => fwd(msg, logger.warn(_))
+    case msg @ ArtifactTouched(ArtifactCreated, _) => fwd(msg, logger.info(_))
+    case msg @ ArtifactTouched(ArtifactAwaiting, _) => fwd(msg, logger.info(_))
+    case msg @ ArtifactTouched(ArtifactCloned, _) => fwd(msg, logger.info(_))
+    case msg @ ArtifactTouched(_, _) => fwd(msg, logger.debug(_))
+    case other => updateListeners(other)
+  }
+
+  def fwd(msg: ArtifactTouched, logMethod: (String) => Unit) {
+    logMethod("Artifact " + msg.artifactId.toString + " -> " + msg.change.toString)
+    updateListeners(msg)
   }
 }
 
