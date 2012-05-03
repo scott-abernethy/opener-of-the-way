@@ -2,10 +2,9 @@ package code.gate
 
 import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.common.Loggable
-import code.comet.ArtifactUpdated._
 import code.model.Mythos._
 import code.model._
-import code.comet.{ArtifactTouched, ArtifactUpdated, ArtifactServer}
+import code.comet._
 
 // TODO merge with Cloner
 
@@ -35,7 +34,7 @@ trait PresenterComponentImpl extends PresenterComponent {
 
       cur = Some(presence)
 
-      ArtifactServer ! ArtifactTouched(ArtifactUpdated, presence.artifactId)
+      ArtifactServer ! ArtifactTouched(ArtifactPresenting, presence.artifactId)
       transaction {
         // todo fix with better comprehension
         for {
@@ -67,7 +66,7 @@ trait PresenterComponentImpl extends PresenterComponent {
       } else {
         Environment.watcher ! PresenceFailed(p)
       }
-      ArtifactServer ! ArtifactTouched(ArtifactUpdated, p.artifactId)
+      ArtifactServer ! ArtifactTouched(if (result.success) ArtifactPresented else ArtifactPresentFailed, p.artifactId)
       manipulator ! Wake
     }
 

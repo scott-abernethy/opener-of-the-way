@@ -52,7 +52,7 @@ trait ArtifactBinding {
   }
 
   def itemRefresh(id: Long): JsCmd = {
-    ArtifactServer ! ArtifactTouched(ArtifactUpdated, id)
+    ArtifactServer ! ArtifactTouched(ArtifactRefresh(Cultist.attending.is.toOption.map(_.id)), id)
     JsCmds.Noop
   }
 

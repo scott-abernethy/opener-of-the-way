@@ -15,9 +15,15 @@ case object Subscribed
 
 sealed class ArtifactChange
 case object ArtifactCreated extends ArtifactChange
-case object ArtifactUpdated extends ArtifactChange
+case class ArtifactRefresh(selectCultistId: Option[Long]) extends ArtifactChange
 case object ArtifactAwaiting extends ArtifactChange
 case object ArtifactUnawaiting extends ArtifactChange
+case object ArtifactPresenting extends ArtifactChange
+case object ArtifactPresented extends ArtifactChange
+case object ArtifactPresentFailed extends ArtifactChange
+case object ArtifactCloning extends ArtifactChange
+case object ArtifactCloned extends ArtifactChange
+case object ArtifactCloneFailed extends ArtifactChange
 case class ArtifactTouched(change: ArtifactChange, artifactId: Long)
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
