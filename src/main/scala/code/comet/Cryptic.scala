@@ -9,18 +9,18 @@ import xml.{Unparsed, Node, Text, NodeSeq}
 import code.gate.{Millis, T}
 import java.sql.Timestamp
 import net.liftweb.util.{CssSel, ClearClearable}
+import code.state.{ArtifactPack, ArtifactTouched, ArtifactServer}
 
 class Cryptic extends CometActor with CometListener {
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactTouched(_, _) => {
+    case ArtifactPack(_, _, _, _, _) => {
+      // todo partial update
       reRender(true)
     }
     case _ => { }
   }
-
-
 
   def render = {
     val t = T.startOfDay(T.now)

@@ -8,6 +8,7 @@ import net.liftweb.common._
 import org.squeryl.Query
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
+import code.state._
 
 // TODO merge with Presenter
 

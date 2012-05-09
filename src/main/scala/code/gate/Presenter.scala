@@ -5,6 +5,7 @@ import net.liftweb.common.Loggable
 import code.model.Mythos._
 import code.model._
 import code.comet._
+import code.state._
 
 // TODO merge with Cloner
 

@@ -10,6 +10,7 @@ import code.model._
 import scala.xml._
 import code.js.JquiJsCmds
 import util.Helpers._
+import code.state.{ArtifactPack, ArtifactServer, ArtifactTouched}
 
 class Awaitings extends CometActor with CometListener with ArtifactBinding with Loggable {
   val cultistId = Cultist.attending.is.map(_.id).getOrElse(-1L)
@@ -19,8 +20,9 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactTouched(_, a) =>
-      factory.stateOf(cultistId, a).foreach { i =>
+    case ArtifactPack(_, a, _, _, _) =>
+      // todo make use of preloaded pack data in factory below
+      factory.stateOf(cultistId, a.id).foreach { i =>
         val a = i._1
         val s = i._2
         val c = i._3

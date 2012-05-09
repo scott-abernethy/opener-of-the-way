@@ -11,6 +11,7 @@ import net.liftweb.common._
 import org.squeryl.PrimitiveTypeMode._
 import java.io.File
 import code.util.ExceptionLoggingActor
+import code.state.{ArtifactCreated, ArtifactTouched, ArtifactServer}
 
 case class WayFound(gateway: Gateway, localPath: String)
 case class WayLost(gateway: Gateway)

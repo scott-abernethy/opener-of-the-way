@@ -10,59 +10,26 @@ import Helpers._
 import code.model._
 import scala.xml._
 import org.squeryl.PrimitiveTypeMode._
-
-case object Subscribed
-
-sealed class ArtifactChange
-
-case object ArtifactCreated extends ArtifactChange
-case class ArtifactRefresh(selectCultistId: Option[Long]) extends ArtifactChange
-case object ArtifactAwaiting extends ArtifactChange
-case object ArtifactUnawaiting extends ArtifactChange
-case object ArtifactPresenting extends ArtifactChange
-case object ArtifactPresented extends ArtifactChange
-case object ArtifactPresentFailed extends ArtifactChange
-case object ArtifactCloning extends ArtifactChange
-case object ArtifactCloned extends ArtifactChange
-case object ArtifactCloneFailed extends ArtifactChange
-
-case class ArtifactTouched(change: ArtifactChange, artifactId: Long)
-
-object ArtifactServer extends LiftActor with ListenerManager with Loggable {
-  var createUpdate: AnyRef = "ignore"
-  override def lowPriority = {
-    case msg @ ArtifactTouched(ArtifactPresentFailed, _) => fwd(msg, logger.info(_))
-    case msg @ ArtifactTouched(ArtifactCloneFailed, _) => fwd(msg, logger.warn(_))
-    case msg @ ArtifactTouched(ArtifactCreated, _) => fwd(msg, logger.info(_))
-    case msg @ ArtifactTouched(ArtifactAwaiting, _) => fwd(msg, logger.info(_))
-    case msg @ ArtifactTouched(ArtifactCloned, _) => fwd(msg, logger.info(_))
-    case msg @ ArtifactTouched(_, _) => fwd(msg, logger.debug(_))
-    case other => updateListeners(other)
-  }
-
-  def fwd(msg: ArtifactTouched, logMethod: (String) => Unit) {
-    logMethod("Artifact " + msg.artifactId.toString + " -> " + msg.change.toString)
-    updateListeners(msg)
-  }
-}
-
-// TODO much of the work here is common across user sessions... scale
+import code.state._
 
 class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
+
+  lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1L)
+
   val snapshot = new ArtifactCloneSnapshot
-  snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
+  snapshot.reload(cultistId)
 
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactTouched(ArtifactCreated, _) =>
-//      snapshot.add(a)
+    case ArtifactPack(ArtifactCreated, _, _, _, _) =>
       // todo partialUpdate, though this rerender is good at the mo as it allows missing artifacts to be highlighted.
-      snapshot.reload(Cultist.attending.is.map(_.id).getOrElse(-1))
+      snapshot.reload(cultistId)
       reRender
-    case ArtifactTouched(_, a) =>
-      snapshot.update(a)
-      partialUpdate(renderUpdate(a))
+    case ArtifactPack(change, artifact, ownerId, presence, clones) => {
+      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), artifact, cultistId, ownerId, presence, clones))
+    }
+    case _ =>
   }
 
   def render = {

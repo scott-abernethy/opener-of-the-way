@@ -5,17 +5,19 @@ import http._
 import util._
 import code.model._
 import scala.xml._
+import code.state.{ArtifactPack, ArtifactTouched, ArtifactServer}
 
 class Cloned extends CometActor with CometListener with ArtifactBinding {
+  lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1)
   val factory = new ClonedSnapshotFactory
-  var snapshot = factory.create(Cultist.attending.is.map(_.id).getOrElse(-1))
+  var snapshot = factory.create(cultistId)
 
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactTouched(_, a) =>
+    case ArtifactPack(_, a, _, _, _) =>
       // todo partialUpdate for all of this...
-      snapshot = factory.create(Cultist.attending.is.map(_.id).getOrElse(-1))
+      snapshot = factory.create(cultistId)
       reRender
     case _ =>
   }

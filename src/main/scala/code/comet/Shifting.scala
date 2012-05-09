@@ -6,6 +6,7 @@ import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.util.ClearClearable
 import code.util.DatePresentation
 import code.model.{Clone, CloneState, Mythos}
+import code.state.ArtifactServer
 
 // TODO optimise, shifting data is identical for all sessions
 

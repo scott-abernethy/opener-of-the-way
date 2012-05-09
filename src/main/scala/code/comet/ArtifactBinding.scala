@@ -5,10 +5,11 @@ import net.liftweb.util.Helpers._
 import net.liftweb.http.js.{JsCmds, JsCmd}
 import net.liftweb.http.SHtml
 import xml.{Unparsed, NodeSeq}
-import code.model.{Environment, Cultist, ArtifactState, Artifact}
-import code.gate.Summon
 import code.util.Size
 import code.js.JqConfirmationDialog
+import code.state._
+import code.model._
+import code.gate.{T, Summon}
 
 trait ArtifactBinding {
 
@@ -75,4 +76,10 @@ trait ArtifactBinding {
   }
   
   def idFor(id: Long): String = "artifact" + id
+
+  def packUpdate(in: NodeSeq, artifact: Artifact, cultistId: Long, ownerId: Long, presence: Option[Presence], clones: List[Clone]) = {
+    val artifactState = artifact.stateFor(cultistId, ownerId, clones.find(_.forCultistId == cultistId), T.now, presence)
+    val cloneCount = if (clones.isEmpty) None else Some(clones.size)
+    JsCmds.Replace(idFor(artifact.id), bindItem(in, artifact, artifactState, cloneCount))
+  }
 }
