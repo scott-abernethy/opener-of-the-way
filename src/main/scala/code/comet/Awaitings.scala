@@ -20,13 +20,10 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactPack(_, a, _, _, _) =>
-      // todo make use of preloaded pack data in factory below
-      factory.stateOf(cultistId, a.id).foreach { i =>
-        val a = i._1
-        val s = i._2
-        val c = i._3
-        val (snapshot2, action) = snapshot.update(a, s, c)
+    case pack @ ArtifactPack(_, a, _, _, _) => {
+      val s: Option[ArtifactState.Value] = pack.stateFor(cultistId)
+      val c: Option[Clone] = pack.cloneFor(cultistId)
+      val (snapshot2, action) = snapshot.update(a, s, c)
         snapshot = snapshot2
 
         val update = action match {
@@ -47,7 +44,7 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
           case _ =>
         }
       }
-    case _ =>
+    case _ => {}
   }
 
   def idOf(cloneId: Long) = { "aw" + cloneId }

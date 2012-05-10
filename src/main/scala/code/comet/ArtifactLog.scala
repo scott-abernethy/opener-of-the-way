@@ -26,8 +26,8 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
       // todo partialUpdate, though this rerender is good at the mo as it allows missing artifacts to be highlighted.
       snapshot.reload(cultistId)
       reRender
-    case ArtifactPack(change, artifact, ownerId, presence, clones) => {
-      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), artifact, cultistId, ownerId, presence, clones))
+    case pack @ ArtifactPack(change, artifact, ownerId, presence, clones) => {
+      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack))
     }
     case _ =>
   }

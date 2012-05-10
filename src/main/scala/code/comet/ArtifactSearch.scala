@@ -23,8 +23,8 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
   def registerWith = ArtifactServer
 
   override def lowPriority = {
-    case ArtifactPack(change, artifact, ownerId, presence, clones) => {
-      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), artifact, cultistId, ownerId, presence, clones))
+    case pack @ ArtifactPack(change, artifact, ownerId, presence, clones) => {
+      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack))
     }
     case SearchInput(text) => {
       searchFor = text

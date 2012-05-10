@@ -71,15 +71,15 @@ class AwaitingSnapshotFactory {
     } yield (artifact, state, clone)
   }
 
-  def stateOf(cultistId: Long, artifactId: Long): Option[(Artifact, Option[ArtifactState.Value], Option[Clone])] = {
-    inTransaction {
-      for {
-        a <- artifacts.lookup(artifactId)
-        p = presences.where(p => p.artifactId === artifactId).headOption
-        c = clones.where(c => c.artifactId === artifactId and c.forCultistId === cultistId).headOption
-        state = a.stateFor(cultistId, cultistId - 1, c, T.now, p)
-      }
-      yield (a, state, c)
-    }
-  }
+//  def stateOf(cultistId: Long, artifactId: Long): Option[(Artifact, Option[ArtifactState.Value], Option[Clone])] = {
+//    inTransaction {
+//      for {
+//        a <- artifacts.lookup(artifactId)
+//        p = presences.where(p => p.artifactId === artifactId).headOption
+//        c = clones.where(c => c.artifactId === artifactId and c.forCultistId === cultistId).headOption
+//        state = a.stateFor(cultistId, cultistId - 1, c, T.now, p)
+//      }
+//      yield (a, state, c)
+//    }
+//  }
 }

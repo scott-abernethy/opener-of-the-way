@@ -77,9 +77,7 @@ trait ArtifactBinding {
   
   def idFor(id: Long): String = "artifact" + id
 
-  def packUpdate(in: NodeSeq, artifact: Artifact, cultistId: Long, ownerId: Long, presence: Option[Presence], clones: List[Clone]) = {
-    val artifactState = artifact.stateFor(cultistId, ownerId, clones.find(_.forCultistId == cultistId), T.now, presence)
-    val cloneCount = if (clones.isEmpty) None else Some(clones.size)
-    JsCmds.Replace(idFor(artifact.id), bindItem(in, artifact, artifactState, cloneCount))
+  def packUpdate(in: NodeSeq, cultistId: Long, pack: ArtifactPack) = {
+    JsCmds.Replace(idFor(pack.artifact.id), bindItem(in, pack.artifact, pack.stateFor(cultistId), pack.cloneCount()))
   }
 }

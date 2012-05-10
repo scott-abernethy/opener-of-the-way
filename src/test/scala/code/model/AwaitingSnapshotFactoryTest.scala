@@ -235,27 +235,6 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       }
     }
 
-    "state of single artifact" >> {
-      inTransaction {
-        val a1 = artifacts.insert(Artifact.create(1L, "yuiiuy", T.now, T.now))
-        val x = new AwaitingSnapshotFactory
-        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.glimpsed), None) )
-        x.stateOf(2, a1.id + 1) must beNone
-
-        presences.insert(Presence.create(a1.id, PresenceState.present))
-        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.present), None) )
-
-        val c1 = clones.insert(Clone.fake(a1.id, 2L, CloneState.awaiting, T.now, T.yesterday))
-        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.awaitingPresent), Some(c1)) )
-
-        clones.insert(Clone.fake(a1.id, 1L, CloneState.cloned, T.yesterday, T.yesterday))
-        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.awaitingPresent), Some(c1)) )
-
-        clones.deleteWhere(c => c.id === c1.id)
-        x.stateOf(2, a1.id) must beSome( (a1, Some(ArtifactState.present), None) )
-      }
-    }
-
   }
 
   doAfter {

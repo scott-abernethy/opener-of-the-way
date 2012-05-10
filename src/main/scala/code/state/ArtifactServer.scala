@@ -4,7 +4,8 @@ import net.liftweb.common.Loggable
 import net.liftweb.actor.LiftActor
 import net.liftweb.http.ListenerManager
 import org.squeryl.PrimitiveTypeMode._
-import code.model.{Artifact, Presence, Clone}
+import code.gate.T
+import code.model.{ArtifactState, Artifact, Presence, Clone}
 
 sealed class ArtifactChange
 
@@ -21,7 +22,20 @@ case object ArtifactCloneFailed extends ArtifactChange
 
 case class ArtifactTouched(change: ArtifactChange, artifactId: Long)
 
-case class ArtifactPack(change: ArtifactChange, artifact: Artifact, ownerId: Long, presence: Option[Presence], clones: List[Clone])
+case class ArtifactPack(change: ArtifactChange, artifact: Artifact, ownerId: Long, presence: Option[Presence], clones: List[Clone]) {
+
+  def stateFor(cultistId: Long): Option[ArtifactState.Value] = {
+    artifact.stateFor(cultistId, ownerId, cloneFor(cultistId), T.now, presence)
+  }
+
+  def cloneCount(): Option[Int] = {
+    if (clones.isEmpty) None else Some(clones.size)
+  }
+
+  def cloneFor(cultistId: Long): Option[Clone] = {
+    clones.find(_.forCultistId == cultistId)
+  }
+}
 
 object ArtifactServer extends LiftActor with ListenerManager with Loggable {
 
