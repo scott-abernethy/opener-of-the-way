@@ -1,0 +1,4 @@
+#!/bin/bash
+mysql -u root -p --database=ootw -e '
+update Gateway set failed=TIMESTAMP(CURDATE()) where failed > TIMESTAMP(CURDATE());
+update Gateway set requested=TIMESTAMP(CURDATE()) where requested > TIMESTAMP(CURDATE());'

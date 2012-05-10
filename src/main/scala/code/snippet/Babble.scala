@@ -14,7 +14,7 @@ class Babble
 
   def input =
   {
-    "#babbling" #> JsCmds.FocusOnLoad(SHtml.text(babble.is, x => babble(x), "class" -> "span-7")) &
+    "#babbling" #> SHtml.text(babble.is, x => babble(x), "class" -> "span-7") &
     ".send" #> SHtml.submit("Send", () => {
       BabblingsServer ! BabbleItem(Cultist.attending.is.toOption, babble.is)
       babble("")
