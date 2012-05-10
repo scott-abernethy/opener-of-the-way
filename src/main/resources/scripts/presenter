@@ -33,4 +33,5 @@ mkdir -p "$dest_dir"
 # --whole-file  (skips delta transfer algorithm)
 # --temp-dir=DIR  (scratch directory on receiver, i think this defaults to receive dir)
 # --timeout=SECS  (IO timeout in seconds)
-rsync --verbose --times --timeout=20 --whole-file "$src_file" "$dest_file" ; abort_check $?
+# --bwlimit=KB/sec
+rsync --verbose --times --timeout=20 --bwlimit=9000 --whole-file "$src_file" "$dest_file" ; abort_check $?
