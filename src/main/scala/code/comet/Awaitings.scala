@@ -21,6 +21,7 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
 
   override def lowPriority = {
     case pack @ ArtifactPack(_, a, _, _, _) => {
+      // todo shortcut, check for cultist is matching.
       val s: Option[ArtifactState.Value] = pack.stateFor(cultistId)
       val c: Option[Clone] = pack.cloneFor(cultistId)
       val (snapshot2, action) = snapshot.update(a, s, c)
