@@ -80,7 +80,7 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
     combined.headOption match {
       case Some( (a, ownerId, p, cs) ) => {
         val pack: ArtifactPack = ArtifactPack(change, a, ownerId, p, cs)
-        logMethod(a + " -> " + pack.change)
+        logMethod(pack.change + " -> " + a)
         updateListeners(pack)
       }
       case _ => {
