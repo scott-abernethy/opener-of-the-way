@@ -26,7 +26,7 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
       snapshot.reload(cultistId)
       reRender
     case pack @ ArtifactPack(change, artifact, ownerId, presence, clones) => {
-      // todo update the snapshot such that we don't have to reload on render
+      // todo update the snapshot such that we don't have to reload on render, or have snapshot available from ArtifactServer for fetch.
       partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack, ".log:item [id]"))
     }
     case _ =>
@@ -53,12 +53,4 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
     }
   }
 
-  def renderUpdate(id: Long): JsCmd = {
-    inTransaction(Artifact.find(id)) match {
-      case Some(updated) =>
-        JsCmds.Replace(idFor(id), bindItem((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), updated, snapshot.stateFor(updated.id), snapshot.clonesFor(updated.id), ".log:item [id]"))
-      case _ =>
-        JsCmds.Noop
-    }
-  }
 }

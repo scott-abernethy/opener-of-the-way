@@ -54,12 +54,6 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
     }
   }
 
-  // need to distribute, artifact, for each cultist, a.stateFor(c) ... clone count
-
-  // count of clones
-  // present?
-  // cloned state for each cultist? -> gives count clones . unnecessary though?
-
   def fwd(change: ArtifactChange, id: Long, logMethod: (String) => Unit) {
     import code.model.Mythos._
     val results = inTransaction(
