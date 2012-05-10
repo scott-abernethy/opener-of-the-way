@@ -17,7 +17,6 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1L)
 
   val snapshot = new ArtifactCloneSnapshot
-  snapshot.reload(cultistId)
 
   def registerWith = ArtifactServer
 
@@ -27,12 +26,14 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
       snapshot.reload(cultistId)
       reRender
     case pack @ ArtifactPack(change, artifact, ownerId, presence, clones) => {
-      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack))
+      // todo update the snapshot such that we don't have to reload on render
+      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack, ".log:item [id]"))
     }
     case _ =>
   }
 
   def render = {
+    snapshot.reload(cultistId)
     ClearClearable &
     ".log:group" #> bindGroups _
   }
@@ -48,14 +49,14 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
 
   def bindItems(artifacts: List[Artifact])(in: NodeSeq): NodeSeq = {
     artifacts.flatMap{a =>
-      bindItem(in, a, snapshot.stateFor(a.id), snapshot.clonesFor(a.id))
+      bindItem(in, a, snapshot.stateFor(a.id), snapshot.clonesFor(a.id), ".log:item [id]")
     }
   }
 
   def renderUpdate(id: Long): JsCmd = {
     inTransaction(Artifact.find(id)) match {
       case Some(updated) =>
-        JsCmds.Replace(idFor(id), bindItem((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), updated, snapshot.stateFor(updated.id), snapshot.clonesFor(updated.id)))
+        JsCmds.Replace(idFor(id), bindItem((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), updated, snapshot.stateFor(updated.id), snapshot.clonesFor(updated.id), ".log:item [id]"))
       case _ =>
         JsCmds.Noop
     }

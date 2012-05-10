@@ -13,14 +13,10 @@ import code.gate.{T, Summon}
 
 trait ArtifactBinding {
 
-  def bindItems(items: Seq[(Artifact, Option[ArtifactState.Value])])(in: NodeSeq): NodeSeq = {
-    items.flatMap(i => bindItem(in, i._1, i._2, None))
-  }
-
-  def bindItem(in: NodeSeq, artifact: Artifact, artifactState: Option[ArtifactState.Value], clones: Option[Int]): NodeSeq = {
+  def bindItem(in: NodeSeq, artifact: Artifact, artifactState: Option[ArtifactState.Value], clones: Option[Int], idSelector: String): NodeSeq = {
     {
       ClearClearable &
-      ".log:item [id]" #> idFor(artifact.id) &
+      idSelector #> idFor(artifact.id) &
       ".item:select *" #> selectOption(artifact, artifactState, clones) &
       ".item:status *" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
       ".item:description *" #> artifact.description &
@@ -29,23 +25,25 @@ trait ArtifactBinding {
   }
 
   def itemSelected(id: Long): JsCmd = {
-    val result = for {
+    for {
       c <- Cultist.attending.is.toOption
       a <- Artifact.find(id)
-    } yield a.clone(c)
-    // todo return faster?
-    result.filter(_ == true).foreach { i =>
-      ArtifactServer ! ArtifactTouched(ArtifactAwaiting, id)
-      Environment.summoner ! Summon(id)
+    } {
+      val result = a.clone(c)
+      if (result) {
+        ArtifactServer ! ArtifactTouched(ArtifactAwaiting(c.id), id)
+        Environment.summoner ! Summon(id)
+      }
     }
+    // todo return faster?
     JsCmds.Noop
   }
 
   def itemDeselected(id: Long): JsCmd = {
     // todo return faster?
-    Cultist.attending.is.toOption.flatMap(c => Artifact.find(id).map(_.cancelClone(c))) match {
-      case Some(newStatus) =>
-        ArtifactServer ! ArtifactTouched(ArtifactUnawaiting, id)
+    Cultist.attending.is.toOption.map(c => (c, Artifact.find(id).map(_.cancelClone(c)))) match {
+      case Some( (c, Some(newStatus)) ) =>
+        ArtifactServer ! ArtifactTouched(ArtifactUnawaiting(c.id), id)
         JsCmds.Noop
       case _ =>
         JsCmds.Noop
@@ -77,7 +75,7 @@ trait ArtifactBinding {
   
   def idFor(id: Long): String = "artifact" + id
 
-  def packUpdate(in: NodeSeq, cultistId: Long, pack: ArtifactPack) = {
-    JsCmds.Replace(idFor(pack.artifact.id), bindItem(in, pack.artifact, pack.stateFor(cultistId), pack.cloneCount()))
+  def packUpdate(in: NodeSeq, cultistId: Long, pack: ArtifactPack, idSelector: String) = {
+    JsCmds.Replace(idFor(pack.artifact.id), bindItem(in, pack.artifact, pack.stateFor(cultistId), pack.cloneCount(), idSelector))
   }
 }

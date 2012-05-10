@@ -24,7 +24,7 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
 
   override def lowPriority = {
     case pack @ ArtifactPack(change, artifact, ownerId, presence, clones) => {
-      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack))
+      partialUpdate(packUpdate((defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item")), cultistId, pack, ".search:item [id]"))
     }
     case SearchInput(text) => {
       searchFor = text
@@ -38,11 +38,15 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
     if (items.size > 0) {
       ClearClearable &
         ".search-desc *" #> ("Found " + items.size + " matches for '" + searchFor + "'") &
-        ".log:item" #> (bindItems(items) _)
+        ".search:item" #> (bindItems(items) _)
     } else {
       ClearClearable &
         ".search-desc *" #> ("Found nothing matching '" + searchFor + "'") &
-        ".log:item" #> NodeSeq.Empty
+        ".search:item" #> NodeSeq.Empty
     }
+  }
+
+  def bindItems(items: Seq[(Artifact, Option[ArtifactState.Value])])(in: NodeSeq): NodeSeq = {
+    items.flatMap(i => bindItem(in, i._1, i._2, None, ".search:item [id]"))
   }
 }

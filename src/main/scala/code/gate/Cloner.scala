@@ -35,7 +35,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       job.state = CloneState.cloning
       job.attempted = T.now
       transaction { clones.update(job) }
-      ArtifactServer ! ArtifactTouched(ArtifactCloning, job.artifactId)
+      ArtifactServer ! ArtifactTouched(ArtifactCloning(job.forCultistId), job.artifactId)
       transaction {
         // todo fix with better comprehension
         for {
@@ -64,7 +64,7 @@ trait ClonerComponentImpl extends ClonerComponent {
       transaction { clones.update(c) }
       cur = None
       if (!result.success) Environment.watcher ! CloneFailed(c)
-      ArtifactServer ! ArtifactTouched(if (result.success) ArtifactCloned else ArtifactCloneFailed, c.artifactId)
+      ArtifactServer ! ArtifactTouched(if (result.success) ArtifactCloned(c.forCultistId) else ArtifactCloneFailed(c.forCultistId), c.artifactId)
       manipulator ! Wake
     }
 

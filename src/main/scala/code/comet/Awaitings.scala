@@ -59,7 +59,7 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
       (
         ".awaiting:item [id]" #> idOf(i._3.id) &
         awaitingMessage(i._3)
-      ).apply( bindItem(in, i._1, i._2, None) )
+      ).apply( bindItem(in, i._1, i._2, None, "not-used") )
     )
   }
 

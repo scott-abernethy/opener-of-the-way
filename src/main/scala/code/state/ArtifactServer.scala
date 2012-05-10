@@ -11,14 +11,14 @@ sealed class ArtifactChange
 
 case object ArtifactCreated extends ArtifactChange
 case class ArtifactRefresh(selectCultistId: Option[Long]) extends ArtifactChange
-case object ArtifactAwaiting extends ArtifactChange
-case object ArtifactUnawaiting extends ArtifactChange
+case class ArtifactAwaiting(forCultistId: Long) extends ArtifactChange
+case class ArtifactUnawaiting(forCultistId: Long) extends ArtifactChange
 case object ArtifactPresenting extends ArtifactChange
 case object ArtifactPresented extends ArtifactChange
 case object ArtifactPresentFailed extends ArtifactChange
-case object ArtifactCloning extends ArtifactChange
-case object ArtifactCloned extends ArtifactChange
-case object ArtifactCloneFailed extends ArtifactChange
+case class ArtifactCloning(forCultistId: Long) extends ArtifactChange
+case class ArtifactCloned(forCultistId: Long) extends ArtifactChange
+case class ArtifactCloneFailed(forCultistId: Long) extends ArtifactChange
 
 case class ArtifactTouched(change: ArtifactChange, artifactId: Long)
 
@@ -42,11 +42,12 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
   var createUpdate: AnyRef = "ignore"
 
   override def lowPriority = {
+    // todo replace this lameness with extractors for change type to logger level
     case ArtifactTouched(ArtifactPresentFailed, id) => fwd(ArtifactPresentFailed, id, logger.info(_))
-    case ArtifactTouched(ArtifactCloneFailed, id) => fwd(ArtifactCloneFailed, id, logger.warn(_))
+    case ArtifactTouched(ArtifactCloneFailed(c), id) => fwd(ArtifactCloneFailed(c), id, logger.warn(_))
     case ArtifactTouched(ArtifactCreated, id) => fwd(ArtifactCreated, id, logger.info(_))
-    case ArtifactTouched(ArtifactAwaiting, id) => fwd(ArtifactAwaiting, id, logger.info(_))
-    case ArtifactTouched(ArtifactCloned, id) => fwd(ArtifactCloned, id, logger.info(_))
+    case ArtifactTouched(ArtifactAwaiting(c), id) => fwd(ArtifactAwaiting(c), id, logger.info(_))
+    case ArtifactTouched(ArtifactCloned(c), id) => fwd(ArtifactCloned(c), id, logger.info(_))
     case ArtifactTouched(change, id) => fwd(change, id, logger.debug(_))
     case other => {
       logger.warn("Unexpected " + other)
