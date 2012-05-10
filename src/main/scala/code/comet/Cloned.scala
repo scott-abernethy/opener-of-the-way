@@ -23,7 +23,7 @@ class Cloned extends CometActor with CometListener with ArtifactBinding {
       // todo update the snapshot such that we don't have to reload on render
       val out: NodeSeq = (".cloned:item ^^" #> "not-used" andThen ".cloned:item" #> bindItems((a, pack.stateFor(cultistId)) :: Nil) _ andThen ".cloned:item [class+]" #> "hidden").apply(defaultHtml)
       partialUpdate(
-        JqJsCmds.AppendHtml("cloneds", out ) & JquiJsCmds.BlindInFast(idFor(a.id))
+        JqJsCmds.PrependHtml("cloneds", out ) & JquiJsCmds.BlindInFast(idFor(a.id))
       )
     }
     case pack @ ArtifactPack(ArtifactAwaiting(c), a, _, _, _) if (c == cultistId) => {
