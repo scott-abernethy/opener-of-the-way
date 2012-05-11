@@ -133,7 +133,7 @@ trait Db {
           f.length = 23954345235437L
           val g = new Artifact
           g.gatewayId = g3.id
-          g.path = "/var/cache/mv/outgoing/A Really Super Dooper Long File-name Which Could Cause Issues On Screen.archive.foo.bar.baz.mp3"
+          g.path = "/var/cache/mv/outgoing/A.Really.Super.Dooper.Long.File-name.Which.Could.Cause.Issues.On.Screen.archive.foo.bar.baz.mp3"
           g.witnessed = T.now
           g.length = 843562723L
           val h = new Artifact

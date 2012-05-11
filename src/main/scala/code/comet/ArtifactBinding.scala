@@ -4,14 +4,16 @@ import net.liftweb.util._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.{JsCmds, JsCmd}
 import net.liftweb.http.SHtml
-import xml.{Unparsed, NodeSeq}
 import code.util.Size
 import code.js.JqConfirmationDialog
 import code.state._
 import code.model._
 import code.gate.{T, Summon}
+import xml.{Text, Unparsed, NodeSeq}
 
 trait ArtifactBinding {
+
+  val zeroWidthSpace = "&#8203;"
 
   def bindItem(in: NodeSeq, artifact: Artifact, artifactState: Option[ArtifactState.Value], clones: Option[Int], idSelector: String): NodeSeq = {
     {
@@ -19,7 +21,7 @@ trait ArtifactBinding {
       idSelector #> idFor(artifact.id) &
       ".item:select *" #> selectOption(artifact, artifactState, clones) &
       ".item:status *" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
-      ".item:description *" #> artifact.description &
+      ".item:description *" #> Unparsed(artifact.description.replaceAll("\\.", "." + zeroWidthSpace).replaceAll("_", "_" + zeroWidthSpace).replaceAll("/", "/" + zeroWidthSpace)) &
       ".item-size *" #> Size.short(artifact.length)
     }.apply(in)
   }
