@@ -43,7 +43,7 @@ object LurkerTest extends Specification with Mockito {
         as(1).length must be_==(12L)
 
         transaction { update(Mythos.gateways)(g => setAll(g.scoured := T.yesterday)) }
-        fileSystem.find("/srv/g") returns(("folder/file", 345L) :: ("folder/sub/another-file.txt", 7654321L) :: ("readme.nfo", 7777L) :: Nil)
+        fileSystem.find("/srv/g") returns(("folder/file", 345L) :: ("folder/sub/another-file.txt", 7654321L) :: ("cool.wave", 7777L) :: Nil)
         x ! WayFound(g, "/srv/g")
         x !? (5000, Ping)
         val as2 = transaction { g.artifacts toList }
@@ -52,7 +52,7 @@ object LurkerTest extends Specification with Mockito {
         as2(0).length must be_==(345L)
         as2(1).path must be_==("folder/sub/another-file.txt")
         as2(1).length must be_==(7654321L)
-        as2(2).path must be_==("readme.nfo")
+        as2(2).path must be_==("cool.wave")
         as2(2).length must be_==(7777L)
       }
 
@@ -69,6 +69,19 @@ object LurkerTest extends Specification with Mockito {
           ("/ignored/stuff/foo.txt", 14L) ::
           ("/README", 2L) ::
           ("README", 1L) ::
+          ("readme", 1L) ::
+          ("/something.nfo", 1L) ::
+          ("/something.nzb", 1L) ::
+          ("/something.nzb.1", 1L) ::
+          ("/something.nzb.2", 1L) ::
+          ("/something.par2", 1L) ::
+          ("/something.par2.1", 1L) ::
+          ("/something.par2.2", 1L) ::
+          ("/something.sfv", 1L) ::
+          ("/something.srs", 1L) ::
+          ("/something.srr", 1L) ::
+          ("/something", 1L) ::
+          ("/foo/.DS_Store", 1L) ::
           ("/$RECYCLE.BIN/$IUOSDFY.xxu", 34L) ::
           ("$RECYCLE.BIN/uiopuip", 34L) ::
           ("$other", 34L) ::
@@ -81,8 +94,9 @@ object LurkerTest extends Specification with Mockito {
         x ! WayFound(g, "/srv/g")
         x !? (5000, Ping)
         val as = transaction { g.artifacts toList }
-        as must haveSize(1)
+        as must haveSize(2)
         as(0).path must be_==("/folder/sub/another-file.txt")
+        as(1).path must be_==("/something")
       }
       //"removing missing artifacts" >> {}
       //"cancelling bad copy jobs" >> {}
