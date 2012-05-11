@@ -71,15 +71,15 @@ object LurkerTest extends Specification with Mockito {
           ("README", 1L) ::
           ("readme", 1L) ::
           ("/something.nfo", 1L) ::
-          ("/something.nzb", 1L) ::
-          ("/something.nzb.1", 1L) ::
-          ("/something.nzb.2", 1L) ::
-          ("/something.par2", 1L) ::
-          ("/something.par2.1", 1L) ::
-          ("/something.par2.2", 1L) ::
-          ("/something.sfv", 1L) ::
-          ("/something.srs", 1L) ::
-          ("/something.srr", 1L) ::
+          ("/something.nzb", 1L) :: // nzb
+          ("/something.nzb.1", 1L) :: // nzb
+          ("/something.nzb.2", 1L) :: // nzb
+          ("/something.par2", 1L) :: // nzb
+          ("/something.par2.1", 1L) :: // nzb
+          ("/something.par2.2", 1L) :: // nzb
+          ("/something.sfv", 1L) :: // simple file verification, crc like
+          ("/something.srs", 1L) :: // rescene nzb
+          ("/something.srr", 1L) :: // rescene nzb
           ("/something", 1L) ::
           ("/foo/.DS_Store", 1L) ::
           ("/$RECYCLE.BIN/$IUOSDFY.xxu", 34L) ::
