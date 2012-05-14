@@ -6,11 +6,13 @@ import net.liftweb.http._
 import js.jquery.JqJsCmds
 import js.JsCmds
 import net.liftweb.util._
-import code.model._
 import scala.xml._
 import code.js.JquiJsCmds
 import util.Helpers._
 import code.state.{ArtifactPack, ArtifactServer, ArtifactTouched}
+import code.model.Clone._
+import code.gate.T
+import code.model._
 
 class Awaitings extends CometActor with CometListener with ArtifactBinding with Loggable {
   val cultistId = Cultist.attending.is.map(_.id).getOrElse(-1L)
@@ -59,16 +61,28 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
     xs.flatMap( i =>
       (
         ".awaiting:item [id]" #> idOf(i._3.id) &
-        awaitingMessage(i._3)
+        awaitingMessage(i._3, i._2)
       ).apply( bindItem(in, i._1, i._2, None, "not-used") )
     )
   }
 
-  def awaitingMessage(clone: Clone): CssSel = {
-    if (clone.attempts > 2) {
-      ".item-message *" #> <span><span class="label warning">OH NO</span>{" Attempted " + clone.attempts + "x without success. Check sink disk usage."}</span>
-    } else {
-      ".item-message" #> NodeSeq.Empty
+  def awaitingMessage(clone: Clone, state: Option[ArtifactState.Value]): CssSel = {
+    state match {
+      case Some(ArtifactState.awaitingLost) => {
+        ".item-message *" #> <span><span class="label important">!!!</span>{" Source artifact has been lost."}</span>
+      }
+      case Some(ArtifactState.awaiting) if (clone.requested.before(T.ago(Clone.poorWaitAfter))) => {
+        ".item-message *" #> <span><span class="label warning">???</span>{" Waiting on source artifact to be present."}</span>
+      }
+      case Some(ArtifactState.awaitingPresent) if (clone.attempts > 2) => {
+        ".item-message *" #> <span><span class="label warning">???</span>{" Attempted " + clone.attempts + "x without success. Check sink disk usage?"}</span>
+      }
+      case Some(ArtifactState.awaitingPresent) if (clone.requested.before(T.ago(Clone.poorWaitAfter))) => {
+      }
+      ".item-message *" #> <span><span class="label warning">...</span>{" Waiting on your sink gateway."}</span>
+      case _ => {
+        ".item-message" #> NodeSeq.Empty
+      }
     }
   }
 }
