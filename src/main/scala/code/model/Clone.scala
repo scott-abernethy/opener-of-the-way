@@ -37,6 +37,10 @@ class Clone extends MythosObject {
       }
     }
   }
+
+  override def toString = {
+    "Clone[a" + artifactId + " for" + forCultistId + " =" + state + "]"
+  }
 }
 
 object Clone {

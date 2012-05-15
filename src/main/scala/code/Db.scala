@@ -105,75 +105,84 @@ trait Db {
           g3.sink = false
           g3 = Mythos.gateways.insert(g3)
 
-          val a = new Artifact
+          var a = new Artifact
           a.gatewayId = g3.id
           a.path = "la/lo/lah"
           a.length = 8976L
-          val b = new Artifact
+          a = Mythos.artifacts.insert(a)
+          var b = new Artifact
           b.gatewayId = g3.id
-          b.path = "la/foyhyyyyyyyy"
+          b.path = "la/foyhyyyyyyyy22"
           b.length = 98512376L
-          val c = new Artifact
+          b.witnessed = T.ago(13 * 24 * 60 * 60 * 1000L)
+          b = Mythos.artifacts.insert(b)
+          var c = new Artifact
           c.gatewayId = g3.id
           c.path = "la/lo/ppppp55"
           c.length = 8;
-          val d = new Artifact
+          c = Mythos.artifacts.insert(c)
+          var d = new Artifact
           d.gatewayId = g3.id
           d.path = "la/lo/913913.try0"
           d.witnessed = T.ago(12 * 24 * 60 * 60 * 1000L)
           d.length = 48395434523543L
-          val e = new Artifact
+          d = Mythos.artifacts.insert(d)
+          var e = new Artifact
           e.gatewayId = g1.id
           e.path = "mee/neigh"
           e.length = 3453456L
-          val f = new Artifact
+          e = Mythos.artifacts.insert(e)
+          var f = new Artifact
           f.gatewayId = g1.id
           f.path = "mee/oink"
           f.witnessed = T.ago(12 * 24 * 60 * 60 * 1000L)
           f.length = 23954345235437L
-          val g = new Artifact
+          f = Mythos.artifacts.insert(f)
+          var g = new Artifact
           g.gatewayId = g3.id
           g.path = "/var/cache/mv/outgoing/A.Really.Super.Dooper.Long.File-name.Which.Could.Cause.Issues.On.Screen.archive.foo.bar.baz.mp3"
           g.witnessed = T.now
           g.length = 843562723L
-          val h = new Artifact
+          g = Mythos.artifacts.insert(g)
+          var h = new Artifact
           h.gatewayId = g3.id
           h.path = "other/one/foo.giz"
           h.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
           h.discovered = T.ago(12 * 24 * 60 * 60 * 1000L)
           h.length = 25235454L
-          val i = new Artifact
+          h = Mythos.artifacts.insert(h)
+          var i = new Artifact
           i.gatewayId = g1.id
           i.path = "mee/nurfnurf"
           i.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
           i.discovered = T.ago(5 * 24 * 60 * 60 * 1000L)
           i.length = 252345L
-          val j = new Artifact
+          i = Mythos.artifacts.insert(i)
+          var j = new Artifact
           j.gatewayId = g3.id
           j.path = "/fake"
           j.discovered = T.ago(60 * 60 * 1000L)
           j.witnessed = T.now
           j.length = 34;
-          val k = new Artifact
+          j = Mythos.artifacts.insert(j)
+          var k = new Artifact
           k.gatewayId = g3.id
           k.path = "/big.file"
           k.discovered = T.yesterday
           k.witnessed = T.now
           k.length = 43582342343L
-
-          Mythos.artifacts.insert(a :: b :: c :: d :: e :: f :: g :: h :: i :: j :: k :: Nil)
+          k = Mythos.artifacts.insert(k)
 
           val clone1 = new Clone
-          clone1.artifactId = 1
+          clone1.artifactId = a.id
           clone1.forCultistId = foo.id
           clone1.state = CloneState.awaiting
           clone1.requested = T.now
           clone1.attempted = T.now
           clone1.attempts = 5
           Mythos.clones.insert(clone1)
-
           val clone4 = new Clone
-          clone4.artifactId = 10
+          clone4.artifactId = k.id
           clone4.forCultistId = foo.id
           clone4.state = CloneState.awaiting
           clone4.requested = T.yesterday
@@ -181,25 +190,17 @@ trait Db {
           clone4.attempts = 0
           Mythos.clones.insert(clone4)
 
-          val presence4 = new Presence
-          presence4.artifactId = 10
-          presence4.state = PresenceState.called
-          presence4.requested = T.yesterday
-          presence4.attempted = T.yesterday
-          presence4.attempts = 0
-          Mythos.presences.insert(presence4)
-
           val clone3 = new Clone
-          clone3.artifactId = 2
+          clone3.artifactId = b.id
           clone3.forCultistId = foo.id
           clone3.state = CloneState.awaiting
           clone3.requested = T.ago(61 * 60 * 1000L)
           clone3.attempted = T.now
-          clone3.attempts = 1
+          clone3.attempts = 0
           Mythos.clones.insert(clone3)
 
           val clone2 = new Clone
-          clone2.artifactId = 3
+          clone2.artifactId = c.id
           clone2.forCultistId = foo.id
           clone2.state = CloneState.cloned
           clone2.requested = T.ago(89734562)

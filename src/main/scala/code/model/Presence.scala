@@ -19,7 +19,7 @@ class Presence extends MythosObject {
   // TODO refactor local path stuff in bash scripts.
   def localPath: String = "/tmp/presences/" + artifactId
 
-  override def toString = "Presence[" + artifactId + "=" + state + "]"
+  override def toString = "Presence[a" + artifactId + " =" + state + "]"
 }
 
 object Presence {
