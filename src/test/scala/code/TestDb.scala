@@ -55,10 +55,10 @@ class TestDb extends Db {
       val glue = artifacts.insert(Artifact.create(cow.id, "more/glue.txt", T.ago(15*60*1000), T.now))
       val paper = artifacts.insert(Artifact.create(cow.id, "stock foo/paper part p", T.ago(15*60*1000), T.now))
 
-      artifacts.insert( Artifact.create(ioi.id, "a1", T.ago(600000000), T.now, 1024L * 1024 * 1024 * 22) )
-      artifacts.insert( Artifact.create(ioi.id, "a2", T.ago(900000000), T.now, 1024L * 1024 * 1024 * 22) )
-      artifacts.insert( Artifact.create(ioi.id, "a3", T.ago(700000000), T.now, 1024L * 1024 * 1024 * 12) )
-      artifacts.insert( Artifact.create(ioi.id, "a4", T.ago(200000000), T.now, 1024L * 1024 * 1024 * 12) )
+      artifacts.insert( Artifact.create(ioi.id, "a1", T.ago(600000000), T.now, 1024L * 1024 * 1024 * 90) )
+      artifacts.insert( Artifact.create(ioi.id, "a2", T.ago(900000000), T.now, 1024L * 1024 * 1024 * 90) )
+      artifacts.insert( Artifact.create(ioi.id, "a3", T.ago(700000000), T.now, 1024L * 1024 * 1024 * 90) )
+      artifacts.insert( Artifact.create(ioi.id, "a4", T.ago(200000000), T.now, 1024L * 1024 * 1024 * 80) )
     }
   }
 
