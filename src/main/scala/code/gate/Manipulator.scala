@@ -56,7 +56,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             // TODO one (presenter|cloner) per gateway. Can't present and clone from same gateway. Mutliple gateways may be clone dest or present source simultaneously.
             waitingPresences() match {
               case p :: ps => {
-                logger.debug("Manipulator WAITING presences: " + (p :: ps))
+                logger.debug("Manipulator WAITING presences: " + p + " and " + ps.size + " more.")
                 if (presenter.currently.isEmpty) {
                   presenter.start(p)
                 }
@@ -65,7 +65,7 @@ trait ManipulatorComponentImpl extends ManipulatorComponent {
             }
             waitingClones() match {
               case c :: cs => {
-                logger.debug("Manipulator WAITING clones: " + (c :: cs))
+                logger.debug("Manipulator WAITING clones: " + c + " and " + cs.size + " more.")
                 if (cloner.currently.isEmpty) {
                   cloner.start(c)
                 }
