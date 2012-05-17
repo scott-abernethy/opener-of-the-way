@@ -43,7 +43,7 @@ object ArtifactServer extends LiftActor with ListenerManager with Loggable {
 
   override def lowPriority = {
     // todo replace this lameness with extractors for change type to logger level
-    case ArtifactTouched(ArtifactPresentFailed, id) => fwd(ArtifactPresentFailed, id, logger.info(_))
+    case ArtifactTouched(ArtifactPresentFailed, id) => fwd(ArtifactPresentFailed, id, logger.warn(_))
     case ArtifactTouched(ArtifactCloneFailed(c), id) => fwd(ArtifactCloneFailed(c), id, logger.warn(_))
     case ArtifactTouched(ArtifactCreated, id) => fwd(ArtifactCreated, id, logger.info(_))
     case ArtifactTouched(ArtifactAwaiting(c), id) => fwd(ArtifactAwaiting(c), id, logger.info(_))
