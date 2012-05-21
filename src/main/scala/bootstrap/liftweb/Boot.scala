@@ -44,7 +44,7 @@ class Boot {
       Menu.i("Recruit") / "cultist" / "recruit" >> isAttending,
       Menu.i("Recruited") / "cultist" / "recruited" >> isAttending >> Hidden,
       Menu.i("Tome") / "static" / "tome" >> isAttending,
-      Menu.i("Cryptic") / "cryptic" >> isInsane,
+      Menu.i("Cryptic") / "cryptic" >> isInsane >> Hidden,
       Menu.i("Withdraw") / "cultist" / "withdraw" >> isAttending,
       Menu.i("Add Gateway") / "gateway" / "add" >> Hidden >> isAttending,
       Menu.i("Edit Gateway") / "gateway" / "edit" >> Hidden >> isAttending)

@@ -17,16 +17,19 @@
   <body>
     <div class="header">
     <div class="container" style="margin: 0 2em 0 2em;">
-      <div class="span-10">
+      <div class="span-4 topo">
         <h1><a href="/" class="quietlink">oOoo*</a><img alt="" id="ajax-loader" style="display:none; margin-bottom: 0px; margin-left: 5px" src="/images/ajax-loader.gif" /></h1>
       </div>
-      <div class="span-4 lift:comet?type=Continuum"><span class="label" title="Queued Awaitings (System Load)"><img title="Queued Awaitings (System Load)" src="/static/c_awaiting_gray.png"/> <span class="all-awaiting"></span></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="label" title="Cloned Today (System Load)"><img title="Cloned Today (System Load)" src="/static/c_cloned_gray.png"/> <span class="all-cloned"></span></span></div>
-      <div class="span-10 last">
+      <div class="span-5 topo lift:comet?type=Continuum"><span class="label" title="Queued Awaitings (System Load)"><img title="Queued Awaitings (System Load)" src="/static/c_awaiting_gray.png"/> <span class="all-awaiting"></span></span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="label" title="Cloned Today (System Load)"><img title="Cloned Today (System Load)" src="/static/c_cloned_gray.png"/> <span class="all-cloned"></span></span></div>
+      <div class="span-8 topo">
         <div class="stripmenu" style="text-align:right">
             <span class="lift:Menu.builder"></span>
         </div>
-        <hr class="space"/>
-        <form id="searcher" class="lift:snippet?type=ArtifactSnippet.searcher span-10 last"><div class="span-8"><input class="search:text" value=""/></div><div class="span-2 last"><input value="Search" type="submit" id="search:submit" style="width:100%;margin:0;"/></div></form>
+      </div>
+      <div class="span-7 last">
+        <div style="float:right;">
+    <form id="searcher" class="lift:snippet?type=ArtifactSnippet.searcher"><input class="search:text" value=""/><input value="Search" type="submit" id="search:submit"/></form>
+        </div>
       </div>
     </div>
     </div>
