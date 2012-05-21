@@ -6,7 +6,7 @@ object Size {
   // 1024s
   // K M G T P
 
-  val units = List("", "K", "M", "G", "T", "P", "E", "Z", "Y")
+  val units = List("B", "K", "M", "G", "T", "P", "E", "Z", "Y")
 
   def short(length: Long): String = {
     short(length.toDouble, 0)

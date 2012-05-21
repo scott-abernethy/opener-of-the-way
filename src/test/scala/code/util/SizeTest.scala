@@ -6,9 +6,9 @@ import org.specs.mock.Mockito
 object SizeTest extends Specification with Mockito {
   "Size" should {
     "display bytes" >> {
-      Size.short(0L) must be_==("0")
-      Size.short(1L) must be_==("1")
-      Size.short(999L) must be_==("999")
+      Size.short(0L) must be_==("0B")
+      Size.short(1L) must be_==("1B")
+      Size.short(999L) must be_==("999B")
       Size.short(1000L) must be_==("1.0K")
       Size.short(1023L) must be_==("1.0K")
     }
