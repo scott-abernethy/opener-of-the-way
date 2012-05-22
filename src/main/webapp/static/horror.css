@@ -131,7 +131,6 @@ h4 {
   border-top-right-radius: 5px;
   border: 1px solid #A3BF95;
   border-bottom-width: 0;
-  /*background: #e8eed5;*/
   background: #A3BF95;
 }
 .coffin-top-red {
@@ -139,6 +138,10 @@ h4 {
   /*border-color: #94B8BF;*/
   background: #bf9b94;
   /*background: #94B8BF;*/
+}
+.coffin-top-blue {
+  border: 1px solid #94B8BF;
+  background: #94B8BF;
 }
 .coffin-top h2 {
   color: #ffffff;
@@ -163,6 +166,9 @@ h4 {
 .coffin-red {
   border-color: #bf9b94;
   /*border-color: #94B8BF;*/
+}
+.coffin-blue {
+  border-color: #94B8BF;
 }
 .coffin-item {
   margin: 0;
