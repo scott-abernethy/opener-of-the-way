@@ -134,6 +134,12 @@ h4 {
   /*background: #e8eed5;*/
   background: #A3BF95;
 }
+.coffin-top-red {
+  border-color: #bf9b94;
+  /*border-color: #94B8BF;*/
+  background: #bf9b94;
+  /*background: #94B8BF;*/
+}
 .coffin-top h2 {
   color: #ffffff;
   margin: 6px 10px;
@@ -153,6 +159,10 @@ h4 {
   border-top-width: 0;
   margin-bottom: 1em;
   background: #ffffff;
+}
+.coffin-red {
+  border-color: #bf9b94;
+  /*border-color: #94B8BF;*/
 }
 .coffin-item {
   margin: 0;
