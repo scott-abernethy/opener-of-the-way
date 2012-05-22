@@ -73,9 +73,14 @@ trait Db {
           c2.email = "two@bar.com"
           c2.password = "two"
           c2.expired = true
+          val c3 = new Cultist
+          c3.email = "fee@bar.com"
+          c3.password = "fi"
+          c3.expired = false
 
           val foo = Mythos.cultists.insert(c1)
           val two = Mythos.cultists.insert(c2)
+          val fee = Mythos.cultists.insert(c3)
 
           var g1: Gateway = new Gateway
           g1.cultistId = foo.id

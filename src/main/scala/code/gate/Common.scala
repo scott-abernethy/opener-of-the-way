@@ -37,6 +37,10 @@ object T {
     new Timestamp(c.getTimeInMillis)
   }
 
+  def startOfDay(): Timestamp = {
+    startOfDay(now)
+  }
+
   def startOfDay(in: Timestamp): Timestamp = {
     val c = Calendar.getInstance()
     c.setTimeInMillis(in.getTime)
