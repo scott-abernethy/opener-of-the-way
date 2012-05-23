@@ -29,7 +29,7 @@ class GatewayInfo extends CometActor with CometListener {
           ".gateway-item" #> bindItems(gateways) _ &
           ".gateway-warning" #> bindWarnings(gateways) _
           if (gateways.filter(g => g.state == GateState.open || g.state == GateState.transient).isEmpty) {
-            t & ".gateway-in-use [class+]" #> "hidden"
+            t & ".gateway-in-use" #> NodeSeq.Empty
           }
           else {
             t
@@ -37,13 +37,13 @@ class GatewayInfo extends CometActor with CometListener {
         }
         else {
           ClearClearable &
-          ".gateway-in-use [class+]" #> "hidden" &
+          ".gateway-in-use" #> NodeSeq.Empty &
           ".gateway-item" #> NodeSeq.Empty &
           ".gateway-warning" #> bindWarnings(gateways) _
         }
       case _ =>
         ClearClearable &
-        ".gateway-in-use [class+]" #> "hidden" &
+        ".gateway-in-use" #> NodeSeq.Empty &
         ".gateway-item" #> NodeSeq.Empty &
         ".gateway-warning" #> NodeSeq.Empty
     }
