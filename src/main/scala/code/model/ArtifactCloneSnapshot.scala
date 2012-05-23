@@ -97,13 +97,6 @@ class ArtifactCloneSnapshot {
   }
 
   private def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
-    def discoveredGroup(a: Artifact): Option[String] = {
-      for {
-        timestamp <- Option(a.discovered)
-        time = new Date(timestamp.getTime)
-      }
-      yield dateF.format(time)
-    }
     discoveredGroup(a) match {
       case Some(key) =>
         val as = into.getOrElse(key.toString, Nil)
@@ -115,5 +108,21 @@ class ArtifactCloneSnapshot {
   private def parseState(artifact: Artifact, cultistId: Long, ownerId: Long, clones: Seq[Clone], presence: Option[Presence]) = {
     val clone: Option[Clone] = clones.find(_.forCultistId == cultistId)
     artifact.stateFor(cultistId, ownerId, clone, T.now, presence)
+  }
+
+  def discoveredGroup(a: Artifact): Option[String] = {
+    for {
+      timestamp <- Option(a.discovered)
+      time = new Date(timestamp.getTime)
+    }
+    yield dateF.format(time)
+  }
+
+  def latestDayGroup(): String = {
+    items.lastOption.map(_._1).getOrElse("-")
+  }
+
+  def indexForGroup(group: String): String = {
+    group.substring(0, group.indexOf(','))
   }
 }

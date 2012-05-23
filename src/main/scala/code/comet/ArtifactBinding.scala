@@ -68,7 +68,7 @@ trait ArtifactBinding {
       SHtml.ajaxCheckbox(true, (s: Boolean) => itemDeselected(artifact.id))
     }
     case Some(state) if ArtifactState.proffered_?(state) => {
-      <span class="clone-count">{ clones.map(_.toString + "x").getOrElse("") }</span>
+      <span class="clone-count">{ clones.map(_.toString + "x").getOrElse("0x") }</span>
     }
     case _ => {
       Unparsed("&nbsp;")
