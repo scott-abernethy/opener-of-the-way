@@ -101,7 +101,7 @@ object GateState extends Enumeration {
   // TODO should the titles for these images give more help?
   def symbol(s: GateState.Value): Node = s match {
     case GateState.open => <img src="/static/g_open.png" title="Open"/>
-    case GateState.transient => <img src="/static/g_transient.png" title="Closing..."/>
+    case GateState.transient => <img src="/static/g_transient.png" title="Open, closing..."/>
     case GateState.closed => <img src="/static/g_inactive.png" title="Closed"/>
     case GateState.lost => <img src="/static/g_lost.png" title="Lost"/>
     case _ => Unparsed("&nbsp;")
