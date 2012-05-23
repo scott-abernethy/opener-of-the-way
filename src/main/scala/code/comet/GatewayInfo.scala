@@ -14,25 +14,36 @@ class GatewayInfo extends CometActor with CometListener {
   def registerWith = GatewayServer
 
   override def lowPriority = {
+    // todo only listen to this cultists gateways
     case _ => reRender
   }
 
   def render = {
+    // todo meh
     Cultist.attending.is match {
       case Full(cultist) =>
         val gateways = transaction ( cultist.gateways.toList )
         if (gateways.size > 0) {
-          ClearClearable &
+          val t = ClearClearable &
           ".empty" #> NodeSeq.Empty &
           ".gateway-item" #> bindItems(gateways) _ &
           ".gateway-warning" #> bindWarnings(gateways) _
-        } else {
+          if (gateways.filter(g => g.state == GateState.open || g.state == GateState.transient).isEmpty) {
+            t & ".gateway-in-use [class+]" #> "hidden"
+          }
+          else {
+            t
+          }
+        }
+        else {
           ClearClearable &
+          ".gateway-in-use [class+]" #> "hidden" &
           ".gateway-item" #> NodeSeq.Empty &
           ".gateway-warning" #> bindWarnings(gateways) _
         }
       case _ =>
         ClearClearable &
+        ".gateway-in-use [class+]" #> "hidden" &
         ".gateway-item" #> NodeSeq.Empty &
         ".gateway-warning" #> NodeSeq.Empty
     }
