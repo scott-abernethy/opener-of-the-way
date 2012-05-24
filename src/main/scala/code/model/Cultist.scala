@@ -21,6 +21,10 @@ case object ApproachSuccess extends ApproachResult
 case object ApproachRejected extends ApproachResult
 case object ApproachExpired extends ApproachResult
 
+trait RegardToCultist {
+  lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1L)
+}
+
 class Cultist extends MythosObject {
   var email: String = ""
   var password: String = ""

@@ -40,7 +40,7 @@ trait LurkerComponentImpl extends LurkerComponent {
               where(g.state === GateState.open)
               set(g.state := GateState.closed)
             ) )
-            GatewayServer ! 'Flush
+            GatewayServer ! FlushAllGateways
 
           case LooseInterest =>
             exit

@@ -5,9 +5,9 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import net.liftweb.common.Loggable
 import code.model._
-import code.comet.GatewayServer
 import akka.actor.{Scheduler, ActorRef, Actor}
 import java.util.concurrent.TimeUnit
+import code.comet._
 
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
@@ -105,8 +105,9 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
             where(g.id === t.id)
             set(g.state := GateState.transient)
           )
+          // TODO should send updates outside of transaction
+          GatewayServer ! ToState(GateState.transient, t.id, t.cultistId)
         }
-        if (toTransient.size > 0) { GatewayServer ! 'Hmmmmm }
 
         for (o <- toOpen) {
           Mythos.gateways.update(g =>
@@ -186,7 +187,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         x
       })
     }
-    GatewayServer ! 'WayFound
+    GatewayServer ! ToState(GateState.open, g.id, g.cultistId)
   }
 
   def markTransient(transient: Gateway) {
@@ -197,7 +198,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         set(g.state := GateState.transient)
       )
     }
-    GatewayServer ! 'WayTransient
+    GatewayServer ! ToState(GateState.transient, transient.id, transient.cultistId)
   }
 
   def markFailedThusTransient(transient: Gateway) {
@@ -208,7 +209,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         set(g.state := GateState.transient, g.failed := T.now)
       )
     }
-    GatewayServer ! 'WayTransient
+    GatewayServer ! ToState(GateState.transient, transient.id, transient.cultistId)
   }
 
   def markClosed(g: Gateway) {
@@ -220,7 +221,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         x
       })
     }
-    GatewayServer ! 'WayLost
+    GatewayServer ! ToState(GateState.closed, g.id, g.cultistId)
   }
 
   private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {

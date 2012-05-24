@@ -7,7 +7,7 @@ import org.squeryl.PrimitiveTypeMode._
 import code.gate.T
 import code.model.{ArtifactState, Artifact, Presence, Clone}
 
-sealed class ArtifactChange
+sealed abstract class ArtifactChange
 
 case object ArtifactCreated extends ArtifactChange
 case class ArtifactRefresh(selectCultistId: Option[Long]) extends ArtifactChange

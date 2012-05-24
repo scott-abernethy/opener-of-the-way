@@ -5,17 +5,25 @@ import net.liftweb.http.{ListenerManager, CometActor, CometListener}
 import net.liftweb.http.ListenerManager._
 import net.liftweb.common.{Full, Loggable}
 import org.squeryl.PrimitiveTypeMode._
-import code.model.{Gateway, GateState, Cultist}
 import xml.{Node, Unparsed, NodeSeq}
 import net.liftweb.util.{CssSel, ClearClearable}
+import code.model.{RegardToCultist, Gateway, GateState, Cultist}
 
-class GatewayInfo extends CometActor with CometListener {
+class GatewayInfo extends CometActor with CometListener with RegardToCultist {
 
   def registerWith = GatewayServer
 
   override def lowPriority = {
-    // todo only listen to this cultists gateways
-    case _ => reRender
+    case FlushAllGateways => {
+      reRender()
+    }
+    case ToState(_, _, who) if (who == cultistId) => {
+      reRender()
+    }
+    case ChangedGateway(_, who) if (who == cultistId) => {
+      reRender()
+    }
+    case _ => {}
   }
 
   def render = {
@@ -103,3 +111,9 @@ object GatewayServer extends LiftActor with ListenerManager with Loggable {
       updateListeners(msg)
   }
 }
+
+sealed abstract class GatewayChange
+
+case object FlushAllGateways
+case class ToState(state: GateState.Value, gatewayId: Long, cultistId: Long)
+case class ChangedGateway(gatewayId: Long, cultistId: Long)

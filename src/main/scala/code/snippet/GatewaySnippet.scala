@@ -13,7 +13,7 @@ import code.gate.T
 
 import Helpers._
 import org.squeryl.PrimitiveTypeMode._
-import code.comet.GatewayServer
+import code.comet.{ChangedGateway, GatewayServer}
 
 class Gateway {
   object host extends RequestVar("")
@@ -82,7 +82,7 @@ class Gateway {
         g.source = source
         g.sink = sink
         transaction(gateways.insertOrUpdate(g))
-        GatewayServer ! 'WayChanged
+        GatewayServer ! ChangedGateway(g.id, c.id)
       case _ => S.error("?!")
     }
     S.redirectTo("/cultist/profile")

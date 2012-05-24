@@ -10,8 +10,8 @@ import code.model._
 import Helpers._
 import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
-import code.comet.GatewayServer
 import java.lang.String
+import code.comet.{ChangedGateway, GatewayServer}
 
 class Cultist extends Loggable with CultistWho {
   val emailHint = "gone@insane.yet"
@@ -135,7 +135,7 @@ class Cultist extends Loggable with CultistWho {
 
   def removeGateway(gateway: code.model.Gateway): JsCmd = {
     transaction( Gateway.remove(gateway) )
-    GatewayServer ! 'WayChanged
+    GatewayServer ! ChangedGateway(gateway.id, gateway.cultistId)
     JsCmds.Replace("g" + gateway.id, NodeSeq.Empty)
   }
 }
