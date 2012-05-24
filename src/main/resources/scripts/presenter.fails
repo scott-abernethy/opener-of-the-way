@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sleep 2s
+
+echo Failure presenter exercised
+exit 99
