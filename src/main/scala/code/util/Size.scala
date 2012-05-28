@@ -36,4 +36,8 @@ object Size {
       short(length / 1024, power + 1)
     }
   }
+
+  def gigs(count: Long): Long = {
+    count * 1024L * 1024L * 1024L
+  }
 }

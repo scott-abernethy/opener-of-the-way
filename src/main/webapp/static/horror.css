@@ -275,16 +275,16 @@ background-color: #BFBFBF;
 -moz-border-radius: 3px;
 border-radius: 3px;
 }
-.label.warning {
+.label-warning {
 background-color: #F89406;
 }
-.label.important {
+.label-important {
 background-color: #C43C35;
 }
-.label.notice {
+.label-notice {
 background-color: #62CFFC;
 }
-.label.success {
+.label-success {
 background-color: #46A546;
 }
 .sigal {

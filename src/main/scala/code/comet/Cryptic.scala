@@ -135,13 +135,13 @@ class Cryptic extends CometActor with CometListener {
   def cloneWaitClass(clone: Clone): Option[String] = {
     val wait = clone.waitPlusDuration()
     if (wait > Clone.terribleWaitAfter) {
-      Some("error")
+      Some("label-error")
     }
     else if (wait > Clone.poorWaitAfter) {
-      Some("warning")
+      Some("label-warning")
     }
     else if (wait > Clone.marginalWaitAfter) {
-      Some("notice")
+      Some("label-notice")
     }
     else {
       None

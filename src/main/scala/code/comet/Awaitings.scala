@@ -69,20 +69,20 @@ class Awaitings extends CometActor with CometListener with ArtifactBinding with 
   def awaitingMessage(clone: Clone, state: Option[ArtifactState.Value]): CssSel = {
     state match {
       case Some(ArtifactState.awaitingLost) => {
-        ".item-message *" #> <span class="label important">{"Source artifact lost"}</span>
+        ".item-message *" #> <span class="label label-important">{"Source artifact lost"}</span>
       }
       case Some(ArtifactState.awaiting) if (clone.requested.before(T.ago(Clone.poorWaitAfter))) => {
-        ".item-message *" #> <span class="label warning">{"Waiting on source artifact presence"}</span>
+        ".item-message *" #> <span class="label label-warning">{"Waiting on source artifact presence"}</span>
       }
       case Some(ArtifactState.awaitingPresent) if (clone.attempts > 2) => {
-        ".item-message *" #> <span class="label important">{"Attempted " + clone.attempts + "x without success. Check sink disk usage!"}</span>
+        ".item-message *" #> <span class="label label-important">{"Attempted " + clone.attempts + "x without success. Check sink disk usage!"}</span>
       }
       case Some(ArtifactState.awaitingPresent) if (clone.attempts > 0) => {
-        ".item-message *" #> <span class="label warning">{"Attempted " + clone.attempts + "x without success. Check sink disk usage?"}</span>
+        ".item-message *" #> <span class="label label-warning">{"Attempted " + clone.attempts + "x without success. Check sink disk usage?"}</span>
       }
       case Some(ArtifactState.awaitingPresent) if (clone.requested.before(T.ago(Clone.poorWaitAfter))) => {
       }
-      ".item-message *" #> <span class="label warning">{"Waiting on your sink gateway."}</span>
+      ".item-message *" #> <span class="label label-warning">{"Waiting on your sink gateway."}</span>
       case _ => {
         ".item-message" #> NodeSeq.Empty
       }

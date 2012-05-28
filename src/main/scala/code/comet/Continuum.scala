@@ -9,8 +9,8 @@ import code.gate.T
 import code.state._
 import java.sql.Timestamp
 import code.model.{Artifact, Clone, CloneState, Mythos}
-import net.liftweb.http.js.JsCmds
 import xml.Text
+import net.liftweb.http.js.{JE, JsCmds}
 
 // todo same for all cultists, simplify
 
@@ -101,9 +101,23 @@ class Continuum extends CometActor with CometListener {
     }
   }
 
-  def awaitingText(): String = {
+  lazy val warningAwaitings = Size.gigs(5)
+  lazy val holyCrapAwaitings = Size.gigs(30)
+
+  def awaitingTextAndLabelClass(): (String,String) = {
     val length: Long = awaiting.values.foldLeft(0L)( (total,i) => total + (i._1 * i._2) )
-    if (length > 0) Size.short(length) else "Empty"
+    if (length > holyCrapAwaitings) {
+      (Size.short(length),"label label-important")
+    }
+    else if (length > warningAwaitings) {
+      (Size.short(length),"label label-warning")
+    }
+    else if (length > 0) {
+      (Size.short(length),"label label-notice")
+    }
+    else {
+      ("Empty","label")
+    }
   }
 
   def clonedText(): String = {
@@ -111,14 +125,18 @@ class Continuum extends CometActor with CometListener {
   }
 
   def render = {
+    val (text,clazz) = awaitingTextAndLabelClass()
     ClearClearable &
-    "#all-awaiting *" #> awaitingText() &
+    "#all-awaiting-label [class]" #> clazz &
+    "#all-awaiting *" #> text &
     "#all-cloned *" #> clonedText()
   }
 
   def renderPartial() {
+    val (text,clazz) = awaitingTextAndLabelClass()
     partialUpdate(
-      JsCmds.SetHtml("all-awaiting", Text(awaitingText())) &
+      JsCmds.SetHtml("all-awaiting", Text(text)) &
+      JsCmds.SetElemById("all-awaiting-label", JE.Str(clazz), "className") &
       JsCmds.SetHtml("all-cloned", Text(clonedText()))
     )
   }
