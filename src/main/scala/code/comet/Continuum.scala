@@ -101,7 +101,7 @@ class Continuum extends CometActor with CometListener {
     }
   }
 
-  lazy val warningAwaitings = Size.gigs(5)
+  lazy val warningAwaitings = Size.gigs(10)
   lazy val holyCrapAwaitings = Size.gigs(30)
 
   def awaitingTextAndLabelClass(): (String,String) = {
