@@ -7,7 +7,7 @@ import org.squeryl.PrimitiveTypeMode._
 import code.model.Mythos._
 
 class ArtifactCloneSearchFactory {
-  def create(cultistId: Long, search: String): Seq[(Artifact, Option[ArtifactState.Value])] = {
+  def create(cultistId: Long, search: String): Seq[(Artifact, Option[ArtifactState.Value], Option[Int])] = {
     val formattedSearch = formatSearch(search)
     val results: List[(Artifact, Long, Option[Clone], Option[Presence])] = inTransaction(join(artifacts, gateways, clones.leftOuter, presences.leftOuter)((a, g, c, p) =>
       where((a.witnessed > T.ago(Artifact.goneAfter)) and (a.path like formattedSearch))
@@ -26,7 +26,8 @@ class ArtifactCloneSearchFactory {
     for {
       (artifact, ownerId, clones, presence) <- combined
       state = parseState(artifact, cultistId, ownerId, clones, presence)
-    } yield (artifact, state)
+      count = Some(clones.size)
+    } yield (artifact, state, count)
   }
   
   private def parseState(artifact: Artifact, cultistId: Long, ownerId: Long, clones: Seq[Clone], presence: Option[Presence]) = {

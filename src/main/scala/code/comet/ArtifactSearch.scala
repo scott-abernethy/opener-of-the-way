@@ -48,8 +48,8 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
     }
   }
 
-  def bindItems(items: Seq[(Artifact, Option[ArtifactState.Value])])(in: NodeSeq): NodeSeq = {
-    items.flatMap(i => bindItem(in, i._1, i._2, None, ".search:item [id]"))
+  def bindItems(items: Seq[(Artifact, Option[ArtifactState.Value], Option[Int])])(in: NodeSeq): NodeSeq = {
+    items.flatMap(i => bindItem(in, i._1, i._2, i._3, ".search:item [id]"))
   }
 
   override def idFor(id: Long) = "sa" + id
