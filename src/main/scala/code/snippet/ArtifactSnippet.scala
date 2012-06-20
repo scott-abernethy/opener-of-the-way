@@ -15,7 +15,7 @@ class ArtifactSnippet extends ArtifactBinding {
   def searcher = {
     if (model.Cultist.attending_?) {
       ClearClearable &
-      ".search:text" #> JsCmds.FocusOnLoad(SHtml.text(searchText.is.getOrElse(""), t => searchText(Some(t)))) &
+      ".search:text" #> JsCmds.FocusOnLoad(SHtml.text(searchText.is.getOrElse(""), t => searchText(Some(t)), "placeholder" -> "Search")) &
       "#search:submit" #> SHtml.submit("Search", () => processSearch)
     } else {
       "#searcher" #> NodeSeq.Empty

@@ -19,6 +19,6 @@ class Babble
       JsCmds.SetValById("#babbling", "")
     }
 
-    "#babbling" #> (SHtml.text(babble, babble = _, "class" -> "span-7") ++ SHtml.hidden(process))
+    "#babbling" #> (SHtml.text(babble, babble = _, "placeholder" -> "Yaji Ash-Shuthath!", "class" -> "span-7") ++ SHtml.hidden(process))
   }
 }

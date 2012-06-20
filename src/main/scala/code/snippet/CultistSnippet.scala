@@ -14,14 +14,14 @@ import java.lang.String
 import code.comet.{ChangedGateway, GatewayServer}
 
 class Cultist extends Loggable with CultistWho {
-  val emailHint = "gone@insane.yet"
+  val emailHint = ""
   object email extends RequestVar[Option[String]](Some(emailHint))
   object password extends RequestVar[Option[String]](None)
   object theRecruited extends RequestVar[Option[code.model.Cultist]](None)
 
   def recruit = {
     ClearClearable &
-    ".recruit-email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
+    ".recruit-email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t)), "placeholder" -> "gone@insane.yet", "style" -> "width: 250px")) &
     "#recruit-submit" #> SHtml.submit("Submit", () => processRecruit) &
     "#recruit-cancel" #> SHtml.submit("Cancel", () => S.redirectTo("/"))
   }
@@ -71,7 +71,7 @@ class Cultist extends Loggable with CultistWho {
 
   def approach = {
     ClearClearable &
-    ".approach:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t))) % ("style" -> "width: 250px")) &
+    ".approach:email" #> JsCmds.FocusOnLoad(SHtml.text(email.is.getOrElse(""), t => email(Some(t)), "placeholder" -> "gone@insane.yet", "style" -> "width: 250px")) &
     ".approach:password" #> (SHtml.password("", t => password(Some(t))) % ("style" -> "width: 250px")) &
     "#approach:submit" #> SHtml.submit("Submit", () => processApproach)
   }

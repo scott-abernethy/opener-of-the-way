@@ -14,7 +14,7 @@ case class BabbleItem(source: Option[Cultist], text: String)
 class Babblings extends CometActor with CometListener
 {
   var items: List[BabbleItem] = Nil
-  val initial = BabbleItem(None, "Yaji Ash-Shuthath!")
+  val initial = BabbleItem(None, "Service restarted")
 
   def registerWith = BabblingsServer
 
