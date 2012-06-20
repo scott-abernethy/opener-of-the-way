@@ -19,10 +19,10 @@ trait ArtifactBinding {
     {
       ClearClearable &
       idSelector #> idFor(artifact.id) &
-      ".item:select *" #> selectOption(artifact, artifactState, clones) &
-      ".item:status *" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
-      ".item:description *" #> Unparsed(artifact.description.replaceAll("\\.", "." + zeroWidthSpace).replaceAll("_", "_" + zeroWidthSpace).replaceAll("/", "/" + zeroWidthSpace)) &
-      ".item-size *" #> Size.short(artifact.length)
+      ".item:select" #> selectOption(artifact, artifactState, clones) &
+      ".item:status" #> artifactState.flatMap(ArtifactState.symbol(_)).getOrElse(ArtifactState.unknownSymbol) &
+      ".item:description" #> Unparsed(artifact.description.replaceAll("\\.", "." + zeroWidthSpace).replaceAll("_", "_" + zeroWidthSpace).replaceAll("/", "/" + zeroWidthSpace)) &
+      ".item-size" #> Size.short(artifact.length)
     }.apply(in)
   }
 
