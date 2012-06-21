@@ -56,7 +56,7 @@ trait LurkerComponentImpl extends LurkerComponent {
     private def shouldScour(g: Gateway): Boolean = {
       transaction(gateways.lookup(g.id)) match {
         case Some(g2) =>
-          g2.source == true && g2.scoured.before(T.ago(Gateway.scourPeriod))
+          g2.source == true && (g2.scoured.before(T.ago(Gateway.scourPeriod)) || g2.scourAsap)
         case _ =>
           false
       }
@@ -100,9 +100,11 @@ trait LurkerComponentImpl extends LurkerComponent {
         // TODO do this in Watcher instead?
         update(gateways)(x =>
           where(x.id === g.id)
-          set(x.scoured := now)
+          set(x.scoured := now, x.scourAsap := false)
         )
       }
+      Environment.watcher ! 'Wake
+      GatewayServer ! ChangedGateway(g.id, g.cultistId)
     }
 
     private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {

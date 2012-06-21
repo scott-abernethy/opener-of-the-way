@@ -22,4 +22,10 @@ object DatePresentation {
     "?"
   }
   def format(count: Long, word: String) = count + " " + word + (if (count != 1) "s" else "")
+
+  def atAbbreviation(time: Long): String = {
+    val f = new SimpleDateFormat("MMM-dd',' HH:mm")
+    f.setTimeZone(TimeZone.getDefault)
+    f.format(new java.util.Date(time))
+  }
 }

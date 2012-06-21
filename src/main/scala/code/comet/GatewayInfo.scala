@@ -1,13 +1,24 @@
 package code.comet
 
 import net.liftweb.actor.LiftActor
-import net.liftweb.http.{ListenerManager, CometActor, CometListener}
+import net.liftweb.http._
+import js.JsCmds.SetElemById
+import js.JsCmds.SetElemById
 import net.liftweb.http.ListenerManager._
 import net.liftweb.common.{Full, Loggable}
 import org.squeryl.PrimitiveTypeMode._
-import xml.{Node, Unparsed, NodeSeq}
-import net.liftweb.util.{CssSel, ClearClearable}
-import code.model.{RegardToCultist, Gateway, GateState, Cultist}
+import xml.{Text, Node, Unparsed, NodeSeq}
+import net.liftweb.util.{ClearNodes, PassThru, CssSel, ClearClearable}
+import code.model._
+import js.{JE, JsCmds}
+import net.liftweb.common.Full
+import code.comet.ChangedGateway
+import code.comet.ToState
+import net.liftweb.common.Full
+import code.comet.ChangedGateway
+import code.comet.ToState
+import code.gate.ScourAsap
+import code.util.DatePresentation
 
 class GatewayInfo extends CometActor with CometListener with RegardToCultist {
 
@@ -60,11 +71,21 @@ class GatewayInfo extends CometActor with CometListener with RegardToCultist {
   def bindItems(gateways: List[Gateway])(in: NodeSeq): NodeSeq = {
     Cultist.attending.is match {
       case Full(cultist) =>
-        gateways.flatMap(g =>
-          (".gateway-mode *" #> g.modesIcon &
-          ".gateway-status *" #> GateState.symbol(g.state) &
-          ".gateway-description *" #> g.path).apply(in)
-        )
+        gateways.flatMap{g =>
+          val gwsId = "gws" + g.id
+          (".gateway-mode" #> g.modesIcon &
+          ".gateway-status" #> GateState.symbol(g.state) &
+          ".gateway-title" #> Text(g.path + " ("+Gateway.decode(g.source,g.sink)+")")  &
+          ".gateway-description" #> (if (g.source) Text("Last scoured: " + DatePresentation.atAbbreviation(g.seen.getTime)) else NodeSeq.Empty) &
+          ".gateway-scour" #> (if (g.source) PassThru else ClearNodes) &
+          ".gateway-scour [disabled]" #> (if (g.scourAsap) Some("disabled") else None) &
+          ".gateway-scour [id]" #> gwsId &
+          ".gateway-scour [onclick]" #> SHtml.ajaxInvoke(() => {
+            Environment.watcher ! ScourAsap(g.id, cultist.id)
+            SetElemById(gwsId, JE.Str("disabled"), "disabled")
+          })
+          ).apply(in)
+        }
       case _ =>
         NodeSeq.Empty
     }

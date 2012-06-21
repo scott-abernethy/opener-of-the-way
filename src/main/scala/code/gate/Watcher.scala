@@ -12,6 +12,7 @@ import code.comet._
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
 case class Flush(gatewayId: Long)
+case class ScourAsap(gatewayId: Long, cultistId: Long)
 
 object Watcher {
 
@@ -41,7 +42,7 @@ object Watcher {
 
   def scourQuery(): Query[Gateway] = gateways.where(g =>
     g.source === true and
-    g.scoured < T.ago(Gateway.scourPeriod)
+    (g.scoured < T.ago(Gateway.scourPeriod) or g.scourAsap === true)
   )
 
   val openQuery: Query[Gateway] = gateways.where(g =>
@@ -140,7 +141,16 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         }
       }
     }
-
+    case ScourAsap(gatewayId, cultistId) => {
+      transaction {
+        update(gateways)(g =>
+          where(g.id === gatewayId)
+          set(g.scourAsap := true)
+        )
+      }
+      GatewayServer ! ChangedGateway(gatewayId, cultistId)
+      self ! 'Wake
+    }
     case OpenGateSuccess(g, lp) =>
       markOpen(g, lp)
       lurker ! WayFound(g, lp)

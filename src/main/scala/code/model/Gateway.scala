@@ -21,9 +21,12 @@ class Gateway extends MythosObject {
   var state: GateState.Value = GateState.lost
   var stateDesc: String = ""
   var scoured: Timestamp = T.yesterday
+  var scourAsap: Boolean = false
   var seen: Timestamp = T.yesterday // aka opened
   var requested: Timestamp = T.yesterday
   var failed: Timestamp = T.ago(Millis.days(2))
+  var fails: Long = 0L
+  var failCode: Long = 0L
 
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
@@ -88,6 +91,10 @@ object Gateway {
     (true, true) -> "Source + Sink (beta)",
     (false, false) -> "Disabled"
   )
+
+  def decode(source: Boolean, sink: Boolean): String = {
+    decodeModeMap.get( (source, sink) ).getOrElse(Gateway.defaultMode)
+  }
 }
 
 object GateState extends Enumeration {
