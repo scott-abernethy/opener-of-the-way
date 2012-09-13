@@ -34,7 +34,7 @@ which does it's thing with a single DB round trip.
 
 case class ArtifactCloneInfo(state: ArtifactState.Value, clones: Int)
 
-class ArtifactCloneSnapshot {
+class ArtifactCloneSnapshot(val notNewsAfter: Long) {
   val dateF = {
     val f = new SimpleDateFormat("yyyy-MM-dd',' EEEE")
     f.setTimeZone(TimeZone.getDefault)
@@ -57,7 +57,7 @@ class ArtifactCloneSnapshot {
     items = new TreeMap[String, List[Artifact]]
     states = new HashMap[Long, ArtifactCloneInfo]
     val results: List[(Artifact, Long, Option[Clone], Option[Presence])] = inTransaction(join(artifacts, gateways, clones.leftOuter, presences.leftOuter)((a, g, c, p) =>
-      where(a.witnessed > T.ago(Artifact.goneAfter))
+      where(a.witnessed > T.ago(Artifact.goneAfter) and (a.discovered > T.ago(notNewsAfter)))
       select((a, g.cultistId, c, p))
       orderBy(a.discovered desc, a.path desc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId), a.id === p.map(_.artifactId))

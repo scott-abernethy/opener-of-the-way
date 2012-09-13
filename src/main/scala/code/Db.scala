@@ -163,7 +163,7 @@ trait Db {
           h.gatewayId = g3.id
           h.path = "other/one/foo.giz"
           h.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
-          h.discovered = T.ago(12 * 24 * 60 * 60 * 1000L)
+          h.discovered = T.ago(79 * 24 * 60 * 60 * 1000L)
           h.length = 25235454L
           h = Mythos.artifacts.insert(h)
           var i = new Artifact

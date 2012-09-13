@@ -6,7 +6,7 @@ import code.model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 import java.io.File
-import code.gate.T
+import code.gate.{Millis, T}
 import collection.immutable.TreeMap
 import xml.Node
 
@@ -131,6 +131,8 @@ object Artifact {
   lazy val lostAfter = 4 * 24 * 60 * 60 * 1000L
 
   lazy val goneAfter = 12 * 24 * 60 * 60 * 1000L
+
+  lazy val notNewsAfter = Millis.days(60)
 }
 
 object ArtifactState extends Enumeration {

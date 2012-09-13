@@ -19,7 +19,7 @@ class ArtifactLog extends CometActor with CometListener with ArtifactBinding {
   lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1L)
   lazy val itemPart = (defaultHtml \\ "div").filter(x => (x \ "@class").text.contains("log:item"))
 
-  val snapshot = new ArtifactCloneSnapshot
+  val snapshot = new ArtifactCloneSnapshot(Artifact.notNewsAfter)
   var latestDayGroup: String = "2000-01-01"
 
   def registerWith = ArtifactServer
