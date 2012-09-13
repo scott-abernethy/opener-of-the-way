@@ -45,14 +45,14 @@ class GatewayInfo extends CometActor with CometListener with RegardToCultist {
       case Some(cultist) =>
         val gateways = transaction ( cultist.gateways.toList )
         val someOpen = gateways.filter(g => g.state == GateState.open || g.state == GateState.transient).size > 0
-        val locked = cultist.lock.isDefined
+        val locked = cultist.shut.isDefined
         if (gateways.size > 0) {
           ClearClearable &
           ".empty" #> NodeSeq.Empty &
           ".coffin [class+]" #> (if (someOpen) Some("coffin-red") else (if (locked) Some("coffin-green") else None)) &
           ".coffin-top [class+]" #> (if (someOpen) Some("coffin-top-red") else (if (locked) Some("coffin-top-green") else None)) &
           ".gateway-in-use" #> (if (someOpen) PassThru else ClearNodes) &
-          ".gateway-locked" #> (if (locked && !someOpen) (".gateway-locked-expire" #> (cultist.lock.map(t => DatePresentation.atAbbreviation(t.getTime)))) else ClearNodes) &
+          ".gateway-locked" #> (if (locked && !someOpen) (".gateway-locked-expire" #> (cultist.shut.map(t => DatePresentation.atAbbreviation(t.getTime)))) else ClearNodes) &
           "#gateway-lock *" #> (if (locked && !someOpen) "Unlock" else "Shut&Lock") &
           "#gateway-lock [title]" #> (if (locked && !someOpen) "Unlock now" else "Shut and lock shut all of your gateways for a period of time") &
           "#gateway-lock [disabled]" #> (if (locked && someOpen) Some("disabled") else None) &

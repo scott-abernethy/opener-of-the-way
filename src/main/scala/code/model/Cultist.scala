@@ -43,7 +43,7 @@ class Cultist extends MythosObject {
   var locked: Boolean = false
   var recruitedBy: Long = -1
   var seen: Option[Timestamp] = None
-  var lock: Option[Timestamp] = None
+  var shut: Option[Timestamp] = None
 
   def sign: String = Cultist.loadCodename(id.toString) // lame but simple
 

@@ -52,7 +52,7 @@ object Watcher {
       (g.state === GateState.open and g.seen > T.ago(Gateway.reopenTestAfter)) or
       (g.requested > g.seen and g.requested > T.ago(Gateway.rerequestableAfter)) or
       (g.failed > T.ago(Gateway.retryFailedAfter)) or
-      (cu.lock.isNotNull)
+      (cu.shut.isNotNull)
     )
     select(g)
     on(g.cultistId === cu.id)
@@ -166,7 +166,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       transaction {
         update(cultists)(c =>
           where(c.id === cultistId)
-          set(c.lock := Some(T.future(Cultist.unlockAfter)))
+          set(c.shut := Some(T.future(Cultist.unlockAfter)))
         )
       }
       // TODO force cloner and presenter to stop using cultists gateways now
@@ -176,8 +176,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       logger.debug("Unlock " + cultistId);
       transaction {
         update(cultists)(c =>
-          where(c.id === cultistId and c.lock.isNotNull)
-          set(c.lock := None)
+          where(c.id === cultistId and c.shut.isNotNull)
+          set(c.shut := None)
         )
       }
       GatewayServer ! ChangedGateways(cultistId)
@@ -186,8 +186,8 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     case 'Unlockable => {
       transaction {
         update(cultists)(c =>
-          where(c.lock.isNotNull and c.lock < Some(T.now))
-          set(c.lock := None)
+          where(c.shut.isNotNull and c.shut < Some(T.now))
+          set(c.shut := None)
         )
       }
     }
