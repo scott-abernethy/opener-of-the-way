@@ -27,8 +27,16 @@ object T {
     new Timestamp(start.getTime + msecPeriod)
   }
 
+  def future(msecPeriod: Long): Timestamp = {
+    new Timestamp(System.currentTimeMillis + msecPeriod)
+  }
+
   def yesterday: Timestamp = {
     ago(Millis.days(1))
+  }
+
+  def tomorrow: Timestamp = {
+    future(Millis.days(1))
   }
 
   def at(year: Int, month: Int, date: Int, hour: Int, minute: Int, second: Int): Timestamp = {

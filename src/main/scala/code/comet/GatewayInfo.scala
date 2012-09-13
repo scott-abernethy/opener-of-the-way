@@ -17,7 +17,7 @@ import code.comet.ToState
 import net.liftweb.common.Full
 import code.comet.ChangedGateway
 import code.comet.ToState
-import code.gate.ScourAsap
+import code.gate.{Unlock, Lock, ScourAsap}
 import code.util.DatePresentation
 
 class GatewayInfo extends CometActor with CometListener with RegardToCultist {
@@ -34,34 +34,46 @@ class GatewayInfo extends CometActor with CometListener with RegardToCultist {
     case ChangedGateway(_, who) if (who == cultistId) => {
       reRender()
     }
+    case ChangedGateways(who) if (who == cultistId) => {
+      reRender()
+    }
     case _ => {}
   }
 
   def render = {
-    // todo meh
-    Cultist.attending.is match {
-      case Full(cultist) =>
+    whoOption() match {
+      case Some(cultist) =>
         val gateways = transaction ( cultist.gateways.toList )
+        val someOpen = gateways.filter(g => g.state == GateState.open || g.state == GateState.transient).size > 0
+        val locked = cultist.lock.isDefined
         if (gateways.size > 0) {
-          val t = ClearClearable &
+          ClearClearable &
           ".empty" #> NodeSeq.Empty &
+          ".coffin [class+]" #> (if (someOpen) Some("coffin-red") else (if (locked) Some("coffin-green") else None)) &
+          ".coffin-top [class+]" #> (if (someOpen) Some("coffin-top-red") else (if (locked) Some("coffin-top-green") else None)) &
+          ".gateway-in-use" #> (if (someOpen) PassThru else ClearNodes) &
+          ".gateway-locked" #> (if (locked && !someOpen) (".gateway-locked-expire" #> (cultist.lock.map(t => DatePresentation.atAbbreviation(t.getTime)))) else ClearNodes) &
+          "#gateway-lock *" #> (if (locked && !someOpen) "Unlock" else "Shut&Lock") &
+          "#gateway-lock [title]" #> (if (locked && !someOpen) "Unlock now" else "Shut and lock shut all of your gateways for a period of time") &
+          "#gateway-lock [disabled]" #> (if (locked && someOpen) Some("disabled") else None) &
+          "#gateway-lock [onclick]" #> SHtml.ajaxInvoke(() => {
+            val msg = if (locked) Unlock(cultist.id) else Lock(cultist.id)
+            Environment.watcher ! msg
+            SetElemById("gateway-lock", JE.Str("disabled"), "disabled")
+          }) &
           ".gateway-item" #> bindItems(gateways) _ &
           ".gateway-warning" #> bindWarnings(gateways) _
-          if (gateways.filter(g => g.state == GateState.open || g.state == GateState.transient).isEmpty) {
-            t & ".gateway-in-use" #> NodeSeq.Empty
-          }
-          else {
-            t
-          }
         }
         else {
           ClearClearable &
+          ".gateway-lock" #> NodeSeq.Empty &
           ".gateway-in-use" #> NodeSeq.Empty &
           ".gateway-item" #> NodeSeq.Empty &
           ".gateway-warning" #> bindWarnings(gateways) _
         }
       case _ =>
         ClearClearable &
+        ".gateway-lock" #> NodeSeq.Empty &
         ".gateway-in-use" #> NodeSeq.Empty &
         ".gateway-item" #> NodeSeq.Empty &
         ".gateway-warning" #> NodeSeq.Empty
@@ -138,3 +150,4 @@ sealed abstract class GatewayChange
 case object FlushAllGateways
 case class ToState(state: GateState.Value, gatewayId: Long, cultistId: Long)
 case class ChangedGateway(gatewayId: Long, cultistId: Long)
+case class ChangedGateways(cultistId: Long)

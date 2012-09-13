@@ -13,6 +13,8 @@ case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
 case class Flush(gatewayId: Long)
 case class ScourAsap(gatewayId: Long, cultistId: Long)
+case class Lock(cultistId: Long)
+case class Unlock(cultistId: Long)
 
 object Watcher {
 
@@ -43,6 +45,17 @@ object Watcher {
   def scourQuery(): Query[Gateway] = gateways.where(g =>
     g.source === true and
     (g.scoured < T.ago(Gateway.scourPeriod) or g.scourAsap === true)
+  )
+
+  def unopenableQuery(): Query[Gateway] = join(gateways, cultists)( (g, cu) =>
+    where(
+      (g.state === GateState.open and g.seen > T.ago(Gateway.reopenTestAfter)) or
+      (g.requested > g.seen and g.requested > T.ago(Gateway.rerequestableAfter)) or
+      (g.failed > T.ago(Gateway.retryFailedAfter)) or
+      (cu.lock.isNotNull)
+    )
+    select(g)
+    on(g.cultistId === cu.id)
   )
 
   val openQuery: Query[Gateway] = gateways.where(g =>
@@ -86,17 +99,14 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
         val sources = sourcesQuery().toList.map(_._2).distinct
         val sinks = sinksQuery().toList.map(_._2).distinct
         val scour = scourQuery().toList.distinct
-        val open = openQuery.toList.distinct
-        val reopenTimestamp = T.ago(Gateway.reopenTestAfter)
-        val dontReopen = open.filter(g => g.seen.after(reopenTimestamp)) // reopen only applies to currently open gateways.
+        val unopenable = unopenableQuery().toList.toSet
+        val open = openQuery.toList.toSet
 
         logger.debug("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
 
         val keepOpen = (sources ::: sinks ::: scour).distinct.toSet.filter(_.state != GateState.transient) // don't open transient.
-        val rerequestTimeStamp = T.ago(Gateway.rerequestableAfter)
-        val retryFailedTimeStamp = T.ago(Gateway.retryFailedAfter)
-        val toOpen = (keepOpen -- dontReopen).filter(g => g.seen.after(g.requested) || g.requested.before(rerequestTimeStamp)).filter(g => g.failed.before(retryFailedTimeStamp))
-        val toTransient = open.toSet -- keepOpen
+        val toOpen = (keepOpen -- unopenable)
+        val toTransient = open -- keepOpen
 
         logger.debug("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
 
@@ -150,6 +160,36 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
       }
       GatewayServer ! ChangedGateway(gatewayId, cultistId)
       self ! 'Wake
+    }
+    case Lock(cultistId) => {
+      logger.debug("Lock " + cultistId);
+      transaction {
+        update(cultists)(c =>
+          where(c.id === cultistId)
+          set(c.lock := Some(T.future(Cultist.unlockAfter)))
+        )
+      }
+      // TODO force cloner and presenter to stop using cultists gateways now
+      GatewayServer ! ChangedGateways(cultistId)
+    }
+    case Unlock(cultistId) => {
+      logger.debug("Unlock " + cultistId);
+      transaction {
+        update(cultists)(c =>
+          where(c.id === cultistId and c.lock.isNotNull)
+          set(c.lock := None)
+        )
+      }
+      GatewayServer ! ChangedGateways(cultistId)
+      self ! 'Wake
+    }
+    case 'Unlockable => {
+      transaction {
+        update(cultists)(c =>
+          where(c.lock.isNotNull and c.lock < Some(T.now))
+          set(c.lock := None)
+        )
+      }
     }
     case OpenGateSuccess(g, lp) =>
       markOpen(g, lp)

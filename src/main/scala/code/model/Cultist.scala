@@ -22,7 +22,17 @@ case object ApproachRejected extends ApproachResult
 case object ApproachExpired extends ApproachResult
 
 trait RegardToCultist {
-  lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1L)
+  lazy val cultistId: Long = whoId()
+
+  def whoId() = {
+    Cultist.attending.is.map(_.id).getOrElse(-1L)
+  }
+
+  def whoOption(): Option[Cultist] = {
+    inTransaction(
+      Mythos.cultists.lookup(whoId())
+    )
+  }
 }
 
 class Cultist extends MythosObject {
@@ -33,6 +43,7 @@ class Cultist extends MythosObject {
   var locked: Boolean = false
   var recruitedBy: Long = -1
   var seen: Option[Timestamp] = None
+  var lock: Option[Timestamp] = None
 
   def sign: String = Cultist.loadCodename(id.toString) // lame but simple
 
@@ -118,4 +129,6 @@ object Cultist {
   {
     <span class="sigal">{ signFor(cultist) }</span>
   }
+
+  lazy val unlockAfter = 4 * 60 * 60 * 1000L
 }
