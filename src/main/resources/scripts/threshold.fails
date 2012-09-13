@@ -1,6 +1,19 @@
 #!/bin/bash
 
+# For all operations, pause such that the output will be trapped correctly.
 sleep 2s
 
 echo Failure threshold exercised
+
+case "$1" in
+  stage) exit 99 ;;
+  unstage) exit 0 ;;
+  mount) exit 99 ;;
+  unmount) exit 0 ;;
+  open) exit 99 ;;
+  close) exit 0 ;;
+  flush) exit 0 ;;
+  *) exit 99 ;;
+esac
+
 exit 99
