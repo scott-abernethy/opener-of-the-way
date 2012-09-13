@@ -7,7 +7,7 @@ import _root_.net.liftweb.common._
 import _root_.net.liftweb.http._
 import _root_.net.liftweb.http.js._
 import Helpers._
-import code.comet.{SearchInput, ArtifactBinding}
+import comet.{ArtifactSearch, SearchInput, ArtifactBinding}
 
 object searchText extends RequestVar[Option[String]](None)
 

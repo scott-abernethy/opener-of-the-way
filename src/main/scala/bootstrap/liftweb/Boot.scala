@@ -1,12 +1,15 @@
 package bootstrap.liftweb
 
 import net.liftweb._
-import util._
+import common.Full
+import http.Html5Properties
+import net.liftweb.util._
 import Helpers._
 
-import common._
-import http._
-import sitemap._
+import net.liftweb.common._
+import net.liftweb.http._
+import rest.RestHelper
+import net.liftweb.sitemap._
 import Loc._
 
 import code.Db
@@ -14,6 +17,9 @@ import code.model._
 
 import org.squeryl.PrimitiveTypeMode._
 import net.liftweb.widgets.flot.Flot
+import sitemap.Loc.If
+import sitemap.Loc.Unless
+import code.comet.SearchInput
 
 /**
  * A class that's instantiated early and run.  It allows the application
@@ -80,6 +86,17 @@ class Boot {
         case _ => Empty
       }
     } )
+
+    val searchAll = new RestHelper {
+      serve {
+        case "search-all" :: Nil Get _ => {
+          S.session.foreach(_.sendCometActorMessage("ArtifactSearch", Empty, SearchInput("")))
+          RedirectResponse("/search")
+        }
+      }
+    }
+
+    LiftRules.dispatch.append(searchAll)
 
     Flot.init
 

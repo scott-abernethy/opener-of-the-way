@@ -5,6 +5,7 @@ import common._
 import http._
 import actor._
 import js._
+import js.JsCmds.{Replace, SetHtml}
 import util._
 import Helpers._
 import code.model._
@@ -12,11 +13,13 @@ import scala.xml._
 import org.squeryl.PrimitiveTypeMode._
 import code.state.{ArtifactPack, ArtifactTouched, ArtifactServer}
 import code.gate.T
+import code.snippet.searchText
 
 case class SearchInput(text: String)
 
 class ArtifactSearch extends CometActor with CometListener with ArtifactBinding {
-  var searchFor: String = ""
+  var searchFor = ""
+  var items: Seq[(Artifact, Option[ArtifactState.Value], Option[Int])] = Nil
 
   lazy val cultistId: Long = Cultist.attending.is.map(_.id).getOrElse(-1L)
 
@@ -30,13 +33,23 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
     }
     case SearchInput(text) => {
       searchFor = text
-      reRender()
+      items = new ArtifactCloneSearchFactory().create(cultistId, searchFor)
+      this ! 'Publish
+    }
+    case 'Publish => {
+      partialUpdate(Replace("searchx", renderResults.apply(defaultHtml)))
     }
     case _ => {}
   }
 
   def render = {
-    val items = new ArtifactCloneSearchFactory().create(cultistId, searchFor)
+    this ! 'Publish
+    ClearClearable &
+    ".search-desc *" #> ("Searching...") &
+    ".search:item" #> NodeSeq.Empty
+  }
+
+  def renderResults = {
     if (items.size > 0) {
       ClearClearable &
         ".search-desc *" #> ("Found " + items.size + " matches for '" + searchFor + "'") &
