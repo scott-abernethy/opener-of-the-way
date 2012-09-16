@@ -45,7 +45,7 @@ class ArtifactSearch extends CometActor with CometListener with ArtifactBinding 
   def render = {
     this ! 'Publish
     ClearClearable &
-    ".search-desc *" #> ("Searching...") &
+    ".search-desc *" #> <span>Searching... <img src="/static/img/search-loader.gif"/></span> &
     ".search:item" #> NodeSeq.Empty
   }
 
