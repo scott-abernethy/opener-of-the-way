@@ -9,6 +9,7 @@ import java.io.File
 import java.sql.Timestamp
 import xml.{NodeSeq, Unparsed, Node}
 import code.gate.{Millis, T}
+import util.matching.Regex
 
 class Gateway extends MythosObject {
   var cultistId: Long = 0
@@ -33,8 +34,6 @@ class Gateway extends MythosObject {
 
   def clonesPath: String = new File(localPath, "clones").getPath
 
-  def description: String = new File(location, path).getPath
-
   def modesIcon: NodeSeq = {
     (source, sink) match {
       case (true, false) => <img src="/static/g_i.png" title="Source"/>
@@ -57,6 +56,9 @@ class Gateway extends MythosObject {
 }
 
 object Gateway {
+  val SmbProtocol: Regex = """smb://([a-zA-Z0-9-._~!$&'()*+,;=]+)/([a-zA-Z0-9-._~!$&'()*+,;=:/]+)""".r
+  val NfsProtocol: Regex = """nfs://([a-zA-Z0-9-._~!$&'()*+,;=]+):(/?[a-zA-Z0-9-._~!$&'()*+,;=:/]+)""".r
+
   lazy val viableDestinations: Query[Gateway] = {
     gateways.where(g =>
       g.sink === true and

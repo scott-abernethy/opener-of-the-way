@@ -128,7 +128,8 @@ class Cultist extends Loggable with CultistWho {
     ClearClearable &
     ".about:gateway [id]" #> ("g" + g.id) &
     ".gateway:state *" #> <span>{ GateState.symbol(g.state) } { g.state.toString }</span> &
-    ".gateway:description *" #> g.description &
+    ".gateway:location *" #> g.location &
+    ".gateway:path *" #> g.path &
     ".gateway:mode *" #> g.modesDescription &
     ".gateway-edit" #> <a href={ "/gateway/edit?id=" + g.id }>Edit</a>
   }.apply(in)

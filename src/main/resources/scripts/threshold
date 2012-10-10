@@ -2,6 +2,9 @@
 
 ## create options, default to NTFS non-dynamic
 
+# Exit codes:
+# 91 - unknown gate protocol
+
 
 function print_usage {
   script_name=$(basename $0)
@@ -29,7 +32,21 @@ function abort_check {
 }
 
 function mount_gate_mount {
-  sudo mount -t cifs //$gate_location $gate_mount --verbose -o _netdev,rw,noexec,user=$1,password=$2 2>&1
+  # Gateway model has location and path. Location is the share, path is file within share file-system.
+  local gate_protocol=$(echo $gate_location | sed -e 's,^\([a-zA-Z]\+\)://.*$,\1,')
+  echo "Gate protocol found as $gate_protocol for $gate_location"
+  if [ "z$gate_protocol" == "znfs" ] ; then
+    # via nfs -- location should be nfs://host:share (where share is from root?)
+    local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+://\(.*:.*\)$,\1,')
+    sudo mount -t nfs4 $share $gate_mount --verbose -o rw,noexec,
+  elif [ "z$gate_protocol" == "zsmb" ] ; then
+    # via samba -- location should be smb://host/share .. currently host/share
+    local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+:\(//.*\)$,\1,')
+    sudo mount -t cifs $share $gate_mount --verbose -o _netdev,rw,noexec,user=$1,password=$2 2>&1
+  else
+    echo "Gate protocol unknown!"
+    exit 91
+  fi
 }
 
 function do_stage {
@@ -125,7 +142,7 @@ gate_user=$(id -un)
 
 function setup_env {
   gate_location=$1
-  gate_location_desc=$(echo $gate_location | sed 's,[ /],-,g')
+  gate_location_desc=$(echo $gate_location | sed 's,[ /:],-,g')
   gate_path=$2
   gate_path_desc=$(echo $gate_path | sed 's,[ /],-,g')
   gate_mount=$gate_mount_root/$gate_location_desc/fs

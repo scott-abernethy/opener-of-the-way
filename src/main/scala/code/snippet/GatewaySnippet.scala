@@ -16,7 +16,6 @@ import org.squeryl.PrimitiveTypeMode._
 import code.comet.{ChangedGateway, GatewayServer}
 
 class Gateway {
-  object host extends RequestVar("")
   object share extends RequestVar("")
   object path extends RequestVar("")
   object password extends RequestVar("")
@@ -32,8 +31,7 @@ class Gateway {
   private def formFill(submitAction: () => Unit) = {
       val modeOptions = SHtml.radio(Gateway.encodeModeMap.keys.toList, Full(mode.is), x => mode(x))
       ClearClearable &
-      ".add:host" #> JsCmds.FocusOnLoad(SHtml.text(host.is, t => host(t)) % ("style" -> "width: 250px")) &
-      ".add:share" #> (SHtml.text(share.is, t => share(t)) % ("style" -> "width: 250px")) &
+      ".add:share" #> JsCmds.FocusOnLoad(SHtml.text(share.is, t => share(t)) % ("style" -> "width: 250px")) &
       ".add:path" #> (SHtml.text(path.is, t => path(t)) % ("style" -> "width: 250px")) &
       ".add:password" #> (SHtml.password(password.is, t => password(t)) % ("style" -> "width: 250px")) &
       ".add:mode" #> modeOptions.toForm &
@@ -53,9 +51,7 @@ class Gateway {
 
     editing match {
       case Some(g) => {
-        val split = g.location.lastIndexOf("/")
-        host(g.location.substring(0, split))
-        share(g.location.substring(split + 1))
+        share(g.location)
         path(g.path)
         password(g.password)
         mode(Gateway.decodeModeMap.get( (g.source, g.sink) ).getOrElse(Gateway.defaultMode))
@@ -69,22 +65,26 @@ class Gateway {
   }
 
   private def processEdit(g: code.model.Gateway) {
+    def save(cultist: code.model.Cultist) {
+      g.cultistId = cultist.id
+      g.location = share.is.trim
+      g.path = path.is.trim
+      g.password = password.is.trim
+      val (source, sink) = Gateway.encodeModeMap.get(mode.is) getOrElse (false, false)
+      g.source = source
+      g.sink = sink
+      transaction(gateways.insertOrUpdate(g))
+      GatewayServer ! ChangedGateway(g.id, cultist.id)
+      S.redirectTo("/cultist/profile")
+    }
+    // allow edits? with a big warning about implications, redetection etc
     Cultist.attending.is match {
-      case Full(c) =>
-        // replace \ with /
-        // check host matches a pattern
-        // allow edits? with a big warning about implications, redetection etc
-        g.cultistId = c.id
-        g.location = host.is.trim + "/" + share.is.trim
-        g.path = path.is.trim
-        g.password = password.is.trim
-        val (source, sink) = Gateway.encodeModeMap.get(mode.is) getOrElse (false, false)
-        g.source = source
-        g.sink = sink
-        transaction(gateways.insertOrUpdate(g))
-        GatewayServer ! ChangedGateway(g.id, c.id)
+      case Full(c) => share.is.trim match {
+        case Gateway.SmbProtocol(_, _) => save(c)
+        case Gateway.NfsProtocol(_, _) => save(c)
+        case _ => S.error("Invalid share definition! Please enter a valid share definition. (See examples for valid format).")
+      }
       case _ => S.error("?!")
     }
-    S.redirectTo("/cultist/profile")
   }
 }
