@@ -1,6 +1,7 @@
 #!/bin/bash
 server_host="gaffer"
 war_name="ootw-"
+sbtx=./sbt-build
 set -o nounset
 
 abort_check() {
@@ -11,9 +12,9 @@ abort_check() {
 }
 
 # build, test, package
-./sbt clean ; abort_check $?
-./sbt test ; abort_check $?
-./sbt package ; abort_check $?
+$sbtx clean ; abort_check $?
+$sbtx test ; abort_check $?
+$sbtx package ; abort_check $?
 
 # tag
 tag="0.0.0-1"
