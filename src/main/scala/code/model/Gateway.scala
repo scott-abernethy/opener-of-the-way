@@ -69,7 +69,7 @@ object Gateway {
     Mythos.gateways.deleteWhere(x => x.id === gateway.id and x.source === false)
   }
 
-  lazy val scourPeriod = Millis.hours(2)
+  lazy val scourPeriod = Millis.hours(4)
   lazy val reopenTestAfter = Millis.minutes(30)
   lazy val rerequestableAfter = Millis.minutes(15)
   lazy val retryFailedAfter = Millis.minutes(60)

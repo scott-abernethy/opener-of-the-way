@@ -240,7 +240,7 @@ object WatcherTest extends Specification with Mockito with TestKit {
         db.c1g.source = true
         db.c1g.sink = false
         db.c1g.state = GateState.closed
-        db.c1g.scoured = T.ago((2 * 60 * 60 * 1000L) + 5000)
+        db.c1g.scoured = T.ago((4 * 60 * 60 * 1000L) + 5000)
         db.c2g.source = true
         db.c2g.sink = false
         db.c2g.state = GateState.closed
