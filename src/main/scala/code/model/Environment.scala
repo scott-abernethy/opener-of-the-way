@@ -17,15 +17,13 @@ object Environment
   with ProcessorComponentImpl
   with Loggable
 {
-  var threshold: ActorRef = _
   var watcher: ActorRef = _
   var summoner: ActorRef = _
 
   def start {
     logger.info("Environment start")
 
-    threshold = actorOf(new Threshold(processor)).start
-    watcher = actorOf(new Watcher(threshold, lurker)).start
+    watcher = actorOf(new Watcher(processor, lurker)).start
     Scheduler.schedule(watcher, 'Wake, 1, 5, TimeUnit.MINUTES)
     Scheduler.schedule(watcher, 'Close, 2, 2, TimeUnit.MINUTES)
     Scheduler.schedule(watcher, 'Unlockable, 10, 10, TimeUnit.MINUTES)
@@ -43,7 +41,6 @@ object Environment
     logger.info("Environment end")
     lurker ! LooseInterest
     manipulator ! Withdraw
-    threshold.stop()
     watcher.stop()
     summoner.stop()
   }

@@ -81,9 +81,11 @@ object Watcher {
   )
 }
 
-class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor with Loggable {
+class Watcher(processor: Processor, lurker: scala.actors.Actor) extends Actor with Loggable {
 
   import Watcher._
+
+  var thresholds = Map.empty[String, ActorRef]
 
   def receive = {
     case 'Source => {
@@ -127,7 +129,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
           )
         }
 
-        toOpen.foreach( threshold ! OpenGateway(_) )
+        toOpen.foreach( g => thresholdFor(g) ! OpenGateway(g) )
       }
     }
     case 'Close => {
@@ -144,7 +146,7 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
           case Some(gateway) if (gateway.state == GateState.transient) => {
             val inUse = gatewaysPresenting.toSet ++ gatewaysCloning.toSet
             if (!inUse.contains(gateway)) {
-              threshold ! CloseGateway(gateway)
+              thresholdFor(gateway) ! CloseGateway(gateway)
             }
           }
           case _ => // Do nothing
@@ -278,6 +280,15 @@ class Watcher(threshold: ActorRef, lurker: scala.actors.Actor) extends Actor wit
     gateways.lookup(g.id) match {
       case Some(x) => gateways.update(updater(x))
       case _ => // oop
+    }
+  }
+
+  def thresholdFor(gateway: Gateway): ActorRef = {
+    import akka.actor.Actor.actorOf
+    thresholds.get(gateway.location) getOrElse {
+      val t = actorOf(new Threshold(processor)).start
+      thresholds += (gateway.location -> t)
+      t
     }
   }
 }

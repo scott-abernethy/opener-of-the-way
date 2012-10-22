@@ -226,7 +226,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
 
     "handle wake, source, sink" >> {
       db.reset
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{}))
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      })
       x.isDefinedAt('Wake) must be (true)
       x.isDefinedAt('Source) must be (true)
       x.isDefinedAt('Sink) must be (true)
@@ -254,7 +256,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c3g)
       }
       val justBefore = T.now
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g))
@@ -285,7 +289,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         p.attempts = 0
         Mythos.presences.insert(p)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g))
@@ -318,7 +324,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         p.state = PresenceState.present
         Mythos.presences.insert(p)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c2g))
@@ -369,7 +377,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         p2.state = PresenceState.present
         Mythos.presences.insert(p2)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectNoMsg
@@ -422,7 +432,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         p2.state = PresenceState.present
         Mythos.presences.insert(p2)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectNoMsg
@@ -469,7 +481,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         p2.state = PresenceState.present
         Mythos.presences.insert(p2)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectNoMsg
@@ -499,7 +513,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         c.attempts = 0
         Mythos.clones.insert(c)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectNoMsg
@@ -518,7 +534,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c2g)
       }
       val justBefore = T.now
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor{})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor{}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! 'Wake
         expectMsg(OpenGateway(db.c1g)) // This one IS still required, and so will be reopened.
@@ -541,7 +559,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c1g)
         Mythos.gateways.update(db.c2g)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! Flush(db.c1g.id)
         expectMsg(CloseGateway(db.c1g))
@@ -570,7 +590,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         p.state = PresenceState.present
         Mythos.presences.insert(p)
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! Flush(db.c1g.id)
         expectNoMsg
@@ -581,7 +603,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "update a gateway state, on way found" >> {
       db.reset
       var g = transaction( db.c1g )
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! OpenGateSuccess(g, "/srv/f")
         x ! 'Ping
@@ -596,7 +620,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "update a gateway state, on way lost, inactive" >> {
       db.reset
       var g = transaction( db.c1g )
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       db.c1g.seen = T.ago(3*24*60*60*1000) // 3 days ago
       // TODO only pass if that is in db.
       within(900 millis) {
@@ -612,7 +638,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
     "update a gateway state, on way lost, truely lost" >> {
       db.reset
       var g = transaction( db.c1g )
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       db.c1g.seen = T.ago((4*24*60*60*1000) + 1) // 4 days ago
       // TODO only pass if that is in db.
       within(900 millis) {
@@ -635,7 +663,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.clones.insert( Clone.create(db.c1ga2.id, db.c3.id, CloneState.awaiting) )
         Mythos.presences.insert( Presence.create(db.c1ga2.id, PresenceState.called) )
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! PresenceFailed(p)
         x ! 'Ping
@@ -661,7 +691,9 @@ object WatcherTest extends Specification with Mockito with TestKit {
         Mythos.gateways.update(db.c1g :: db.c2g :: db.c3g :: Nil)
         Mythos.clones.insert( Clone.create(db.c1ga2.id, db.c3.id, CloneState.awaiting) )
       }
-      val x = TestActorRef(new Watcher(testActor, scala.actors.Actor.actor {})).start
+      val x = TestActorRef(new Watcher(null, scala.actors.Actor.actor {}){
+        override def thresholdFor(gateway: Gateway) = testActor
+      }).start
       within(900 millis) {
         x ! CloneFailed(c)
         x ! 'Ping
