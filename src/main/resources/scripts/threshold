@@ -38,7 +38,7 @@ function mount_gate_mount {
   if [ "z$gate_protocol" == "znfs" ] ; then
     # via nfs -- location should be nfs://host:share (where share is from root?)
     local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+://\(.*:.*\)$,\1,')
-    sudo mount -t nfs4 $share $gate_mount --verbose -o rw,noexec,
+    sudo mount -t nfs4 $share $gate_mount --verbose -o rw,async,tcp,noexec,soft,retrans=3 2>&1
   elif [ "z$gate_protocol" == "zsmb" ] ; then
     # via samba -- location should be smb://host/share .. currently host/share
     local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+:\(//.*\)$,\1,')
