@@ -127,8 +127,7 @@ function do_open {
 
 function do_close {
   do_unmount
-  # Don't unstage _ever_, as we don't know for sure that other mounts require this stage!
-  #do_unstage
+  do_unstage
 }
 
 function do_flush {

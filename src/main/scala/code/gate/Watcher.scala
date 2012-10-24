@@ -49,6 +49,7 @@ object Watcher {
 
   def unopenableQuery(): Query[Gateway] = join(gateways, cultists)( (g, cu) =>
     where(
+      (g.state === GateState.transient) or
       (g.state === GateState.open and g.seen > T.ago(Gateway.reopenTestAfter)) or
       (g.requested > g.seen and g.requested > T.ago(Gateway.rerequestableAfter)) or
       (g.failed > T.ago(Gateway.retryFailedAfter)) or
@@ -102,13 +103,14 @@ class Watcher(processor: Processor, lurker: scala.actors.Actor) extends Actor wi
         val sinks = sinksQuery().toList.map(_._2).distinct
         val scour = scourQuery().toList.distinct
         val unopenable = unopenableQuery().toList.toSet
+        val transientLocations = transientQuery.toList.map(_.location).toSet
         val open = openQuery.toList.toSet
 
         logger.debug("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
 
-        val keepOpen = (sources ::: sinks ::: scour).distinct.toSet.filter(_.state != GateState.transient) // don't open transient.
-        val toOpen = (keepOpen -- unopenable)
-        val toTransient = open -- keepOpen
+        val wantOpen = (sources ::: sinks ::: scour).distinct.toSet
+        val toOpen = (wantOpen -- unopenable).filterNot(transientLocations contains _.location)
+        val toTransient = open -- wantOpen
 
         logger.debug("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
 
@@ -135,7 +137,8 @@ class Watcher(processor: Processor, lurker: scala.actors.Actor) extends Actor wi
     case 'Close => {
       val watcher = self
       transaction {
-        transientQuery.toList.foreach { g =>
+        val openLocations = openQuery.toList.map(_.location).toSet
+        transientQuery.toList.filterNot(openLocations contains _.location).foreach { g =>
           Scheduler.scheduleOnce(() => watcher ! Flush(g.id), 30L, TimeUnit.SECONDS)
         }
       }
@@ -144,8 +147,8 @@ class Watcher(processor: Processor, lurker: scala.actors.Actor) extends Actor wi
       transaction {
         gateways.lookup(gatewayId) match {
           case Some(gateway) if (gateway.state == GateState.transient) => {
-            val inUse = gatewaysPresenting.toSet ++ gatewaysCloning.toSet
-            if (!inUse.contains(gateway)) {
+            val inUseLocations = (gatewaysPresenting.toSet ++ gatewaysCloning.toSet).map(_.location)
+            if (!inUseLocations.contains(gateway.location)) {
               thresholdFor(gateway) ! CloseGateway(gateway)
             }
           }
