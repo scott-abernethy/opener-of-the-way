@@ -78,8 +78,35 @@ function do_stage {
 }
 
 function do_unstage {
+  if [ $(mount | grep $gate_mount -c) == 0 ] ; then
+    echo "No need to unstage"
+    return 0
+  fi
+
+  # try clean unmount
   sudo umount $gate_mount
-  return $?
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+
+  # try forcing unmount
+  sudo umount -f $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+  sudo umount -f $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+  sudo umount -f $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+
+  # if the share has gone offline, we can only do a lazy umount
+  sudo umount -f -l $gate_mount
+
+  return 0 
 }
 
 function do_mount {
@@ -106,7 +133,7 @@ function do_mount {
 
 function do_unmount {
   if [ -d $gate_crypt ] ; then
-    if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_crypt -c) != 0 ] ; then
+    if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_mount/$gate_path -c) != 0 ] ; then
       sudo truecrypt -t --non-interactive -d $gate_mount/$gate_path
     fi
   fi
