@@ -12,11 +12,7 @@ import net.liftweb.util.{ClearNodes, PassThru, CssSel, ClearClearable}
 import code.model._
 import js.{JE, JsCmds}
 import net.liftweb.common.Full
-import code.comet.ChangedGateway
-import code.comet.ToState
 import net.liftweb.common.Full
-import code.comet.ChangedGateway
-import code.comet.ToState
 import code.gate.{Unlock, Lock, ScourAsap}
 import code.util.DatePresentation
 

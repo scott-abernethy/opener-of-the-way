@@ -2,6 +2,7 @@ package code.gate
 
 import scala.collection.JavaConversions._
 import java.io._
+import net.liftweb.util.Helpers._
 
 trait FileSystem {
   def find(path: String): Seq[(String, Long)]
@@ -22,7 +23,10 @@ trait FileSystemComponentImpl extends FileSystemComponent {
 
     def find(f: File): Seq[File] = {
       if (f isDirectory) {
-        f.listFiles.toSeq.flatMap(find(_))      
+        for {
+          child <- tryo(f.listFiles.toSeq) getOrElse Nil
+          found <- tryo(find(child)) getOrElse Nil
+        } yield found
       } else if (f isFile) { 
         f :: Nil
       } else {
