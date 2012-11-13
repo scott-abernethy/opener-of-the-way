@@ -42,7 +42,14 @@ function mount_gate_mount {
   elif [ "z$gate_protocol" == "zsmb" ] ; then
     # via samba -- location should be smb://host/share .. currently host/share
     local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+:\(//.*\)$,\1,')
-    sudo mount -t cifs $share $gate_mount --verbose -o _netdev,rw,noexec,user=$1,password=$2 2>&1
+    sudo mount -t cifs $share $gate_mount --verbose -o _netdev,rw,noexec,guest 2>&1
+    local result=$?
+    if [ $result == 32 ] ; then 
+      #permission denied, try with sqatest user 
+      sudo mount -t cifs $share $gate_mount --verbose -o _netdev,rw,noexec,user=$1,password=$2 2>&1
+    else
+      return $result
+    fi
   else
     echo "Gate protocol unknown!"
     exit 91
@@ -103,9 +110,10 @@ function do_unstage {
     return 0
   fi
 
+  #return 1 
+
   # if the share has gone offline, we can only do a lazy umount
   sudo umount -f -l $gate_mount
-
   return 0 
 }
 
