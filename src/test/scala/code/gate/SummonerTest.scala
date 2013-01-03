@@ -3,13 +3,13 @@ package code.gate
 import org.specs.Specification
 import org.specs.mock.Mockito
 import akka.testkit.TestKit
-import code.TestDb
+import TestDb
 import org.squeryl.PrimitiveTypeMode._
-import code.model.{Mythos, CloneState, Clone}
+import model.{Mythos, CloneState, Clone}
 import akka.testkit.TestActorRef
 import akka.testkit.TestActorRef._
 import akka.util.duration._
-import code.model._
+import model._
 
 object SummonerTest extends Specification with Mockito with TestKit {
 

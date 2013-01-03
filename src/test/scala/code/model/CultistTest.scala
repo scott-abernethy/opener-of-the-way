@@ -2,11 +2,11 @@ package code.model
 
 import org.specs._
 import org.specs.mock.Mockito
-import code.TestDb
-import code.model.Mythos._
+import TestDb
+import model.Mythos._
 
 import org.squeryl.PrimitiveTypeMode._
-import code.gate.T
+import gate.T
 
 object CultistTest extends Specification with Mockito {
 

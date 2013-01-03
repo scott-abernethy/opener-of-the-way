@@ -4,8 +4,8 @@ import model._
 import org.squeryl.PrimitiveTypeMode._
 
 class TestDb extends Db {
-  import code.gate.T
-  import code.model.Mythos._
+  import gate.T
+  import model.Mythos._
   def reset {
     clear
     transaction {

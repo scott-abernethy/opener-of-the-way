@@ -1,13 +1,13 @@
 package code.gate
 
 import org.specs.Specification
-import code.TestDb
+import TestDb
 import org.specs.mock.Mockito
 import akka.testkit.TestActorRef._
 import org.squeryl.PrimitiveTypeMode._
 import akka.testkit.{TestActorRef, TestKit}
 import akka.util.duration._
-import code.model._
+import model._
 
 object WatcherTest extends Specification with Mockito with TestKit {
 

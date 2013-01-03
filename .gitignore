@@ -1,65 +1,17 @@
-# use glob syntax.
-syntax: glob
-*.ser
-*.class
-*~
-.*.swp
-*.bak
-*.off
-*.old
-.DS_Store
-
-# rubbish
-/pics
-
-# logs
-/*.log
-/*.log.*
-
-# eclipse conf file
-.settings
-.classpath
-.project
-.manager
-
-# building
+logs
+project/project
+project/target
 target
-build
-null
-tmp*
+tmp
+.history
 dist
-test-output
-
-# sbt
-target
-lib_managed
-src_managed
-project/boot
-!project/build
-project/plugins/project/
-
-# db
-lift_proto*
-*.h2.db
-*.lock.db
-*.trace.db
-
-# other scm
-.svn
-.CVS
-.hg*
-
-# switch to regexp syntax.
-#  syntax: regexp
-#  ^\.pc/
-
-# IntelliJ
-*.iml
-*.ipr
-*.iws
-.idea
-
-# Pax Runner (for easy OSGi launching)
-runner
-
+/.idea
+/*.iml
+/out
+/.idea_modules
+/.classpath
+/.project
+/RUNNING_PID
+/.settings
 /ignored/
+*.swp

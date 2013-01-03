@@ -1,0 +1,22 @@
+#!/bin/bash
+
+SHARE_LOCAL_DIR=/srv/public
+
+mkdir -p $SHARE_LOCAL_DIR
+chmod a+r $SHARE_LOCAL_DIR
+
+# create samba share
+echo [public]\
+  path = /srv/public\
+  comment = \"Public share\"\
+  public = yes\
+  browseable = no\
+  read only = no\
+  writable = yes >> /etc/samba/smb.conf
+
+echo "Creating samba user account for sqatest, please enter password \"***REMOVED***\" at prompt..."
+smbpasswd -a sqatest
+
+service smbd restart
+
+echo "Place your truecrypt file in $SHARE_LOCAL_DIR and make sure to \"chmod a+rw\" it"

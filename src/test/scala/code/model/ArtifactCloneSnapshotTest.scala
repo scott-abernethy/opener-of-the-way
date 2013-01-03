@@ -2,9 +2,9 @@ package code.model
 
 import org.specs.Specification
 import org.specs.mock.Mockito
-import code.TestDb
-import code.model.Mythos._
-import code.gate.{Millis, T}
+import TestDb
+import model.Mythos._
+import gate.{Millis, T}
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 

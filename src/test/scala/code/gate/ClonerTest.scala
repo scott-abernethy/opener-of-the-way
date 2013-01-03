@@ -2,9 +2,9 @@ package code.gate
 
 import org.specs._
 import org.specs.mock.Mockito
-import code.TestDb
-import code.model.Mythos._
-import code.model._
+import TestDb
+import model.Mythos._
+import model._
 import org.squeryl.PrimitiveTypeMode._
 
 object ClonerTestSpecs extends Specification with Mockito {

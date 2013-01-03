@@ -3,8 +3,8 @@ package code.comet
 import org.specs.Specification
 import org.specs.mock.Mockito
 import java.sql.Timestamp
-import code.gate.T
-import code.model.{CloneState, Clone}
+import gate.T
+import model.{CloneState, Clone}
 
 object ShiftingTest extends Specification with Mockito  {
 

@@ -1,0 +1,7 @@
+#!/bin/bash
+PLAY_HOME=/opt/play-2.1-RC1
+if [ -z "$PLAY_HOME" ]; then
+  PLAY_HOME=/opt/play
+fi
+export PATH=$PATH:$PLAY_HOME
+$PLAY_HOME/play

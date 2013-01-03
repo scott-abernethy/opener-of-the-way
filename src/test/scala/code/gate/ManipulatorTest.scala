@@ -2,10 +2,10 @@ package code.gate
 
 import org.specs._
 import org.specs.mock.Mockito
-import code.TestDb
-import code.model._
+import TestDb
+import model._
 
-import code.model.Mythos._
+import model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 
 object ManipulatorTestSpecs extends Specification with Mockito {

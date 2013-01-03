@@ -1,0 +1,28 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index
+
+# Artifacts
+GET     /artifact/log               controllers.Artifacts.log
+GET     /artifact/list              controllers.Artifacts.list(q: String ?= "")
+PUT     /artifact/:id/touch         controllers.Artifacts.touch(id: Long)
+#GET     /artifact/stream            controllers.Artifacts.stream
+
+# Clones
+GET     /clone/awaiting             controllers.Clones.awaiting
+GET     /clone/history              controllers.Clones.history
+
+# Gateways
+GET     /gateway                    controllers.Gateways.list
+
+# Cultists
+GET     /cultist/become             controllers.Cultists.become(id: Long)
+GET     /cultist/approach           controllers.Cultists.approach
+POST    /cultist/approach           controllers.Cultists.approachSubmit
+GET     /cultist/withdraw           controllers.Cultists.withdraw
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)

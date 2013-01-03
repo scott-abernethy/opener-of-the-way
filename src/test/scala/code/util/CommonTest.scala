@@ -3,7 +3,7 @@ package code.util
 import org.specs.Specification
 import org.specs.mock.Mockito
 import java.sql.Timestamp
-import code.gate.{T, Millis}
+import gate.{T, Millis}
 
 object CommonTest extends Specification with Mockito  {
 

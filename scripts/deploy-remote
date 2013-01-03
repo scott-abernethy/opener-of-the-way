@@ -1,7 +1,7 @@
 #!/bin/bash
 server_host="gaffer"
 war_name="ootw-"
-sbtx=./sbt-build
+sbtx="./sbt-build"
 set -o nounset
 
 abort_check() {

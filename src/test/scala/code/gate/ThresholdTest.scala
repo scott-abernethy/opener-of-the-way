@@ -5,8 +5,8 @@ import scala.actors.Actor._
 import org.specs.mock.Mockito
 import akka.testkit.{TestKit, TestActorRef}
 import org.squeryl.PrimitiveTypeMode._
-import code.TestDb
-import code.model.{Mythos, GateState, Gateway}
+import TestDb
+import model.{Mythos, GateState, Gateway}
 import akka.util.duration._
 
 object ThresholdTest extends Specification with Mockito with TestKit {
