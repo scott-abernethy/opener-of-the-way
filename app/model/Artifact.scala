@@ -105,6 +105,35 @@ class Artifact extends MythosObject {
     }
   }
 
+  def toggleClone(cultistId: Long): Option[Boolean] = {
+    stateFor(cultistId) match {
+      case Some(ArtifactState.cloned) =>
+        inTransaction{
+          clones.update(c =>
+            where(
+              c.artifactId === id and
+              c.forCultistId === cultistId
+            )
+            set(
+              c.state := CloneState.awaiting,
+              c.requested := T.now,
+              c.attempts := 0L,
+              c.repeats := c.repeats.~ + 1L
+            )
+          )
+        }
+        Some(true)
+      case Some(s) if ArtifactState.possible_?(s) =>
+        val clone = Clone.create(id, cultistId, CloneState.awaiting)
+        inTransaction(clones.insert(clone))
+        Some(true)
+      case Some(s) if ArtifactState.awaiting_?(s) =>
+        inTransaction(clones.delete(clones.where(c => c.artifactId === id and c.forCultistId === cultistId)))
+        Some(false)
+      case _ => None
+    }
+  }
+
   override def toString = "Artifact[" + id + ";" + path + ";" + length + "]"
 
   def toJson: JsObject = {
@@ -195,13 +224,13 @@ object ArtifactState extends Enumeration {
   }
 
   def info(state: Option[ArtifactState.Value]): (String, String, String) = state match {
-    case Some(ArtifactState.proffered) => ("icon-gift", "Proffered", "")
+    case Some(ArtifactState.proffered) => ("icon-gift", "Proffered", "s-glimpsed")
     case Some(ArtifactState.profferedLost) => ("icon-gift", "Proffered, lost", "s-lost")
     case Some(ArtifactState.profferedPresent) => ("icon-gift", "Proffered, present", "s-present")
-    case Some(ArtifactState.awaiting) => ("icon-ok-circle", "Awaiting", "")
-    case Some(ArtifactState.awaitingLost) => ("icon-ok-cicle", "Awaiting, lost", "s-lost")
+    case Some(ArtifactState.awaiting) => ("icon-ok-circle", "Awaiting", "s-glimpsed")
+    case Some(ArtifactState.awaitingLost) => ("icon-ok-circle", "Awaiting, lost", "s-lost")
     case Some(ArtifactState.awaitingPresent) => ("icon-ok-sign", "Awaiting, present", "s-present")
-    case Some(ArtifactState.glimpsed) => ("icon-circle-blank", "Glimpsed", "")
+    case Some(ArtifactState.glimpsed) => ("icon-circle-blank", "Glimpsed", "s-glimpsed")
     case Some(ArtifactState.lost) => ("icon-ban-circle", "Glimpsed, lost", "s-lost")
     case Some(ArtifactState.present) => ("icon-circle", "Present", "s-present")
     case Some(ArtifactState.cloning) => ("icon-cog", "Cloning...", "s-cloning")

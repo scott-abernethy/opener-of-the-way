@@ -3,7 +3,7 @@ package state
 import org.squeryl.PrimitiveTypeMode._
 import gate.T
 import model.{ArtifactState, Artifact, Presence, Clone}
-import akka.actor.Actor
+import akka.actor.{ActorRef, Actor}
 import play.api.Logger
 
 sealed abstract class ArtifactChange
@@ -39,6 +39,13 @@ case class ArtifactPack(change: ArtifactChange, artifact: Artifact, ownerId: Lon
 class ArtifactServer extends Actor {
 
   var createUpdate: AnyRef = "ignore"
+  var artifactStream: ActorRef = context.system.deadLetters
+
+
+  override def preStart() {
+    super.preStart()
+    artifactStream = context.system.actorFor("/user/ArtifactStream")
+  }
 
   def receive = {
     // todo replace this lameness with extractors for change type to logger level
@@ -48,9 +55,7 @@ class ArtifactServer extends Actor {
     case ArtifactTouched(ArtifactAwaiting(c), id) => fwd(ArtifactAwaiting(c), id, Logger.info(_))
     case ArtifactTouched(ArtifactCloned(c), id) => fwd(ArtifactCloned(c), id, Logger.info(_))
     case ArtifactTouched(change, id) => fwd(change, id, Logger.debug(_))
-    case other => {
-      Logger.warn("Unexpected " + other)
-    }
+    case other => unhandled(other)
   }
 
   def fwd(change: ArtifactChange, id: Long, logMethod: (String) => Unit) {
@@ -74,8 +79,7 @@ class ArtifactServer extends Actor {
       case Some( (a, ownerId, p, cs) ) => {
         val pack: ArtifactPack = ArtifactPack(change, a, ownerId, p, cs)
         logMethod(pack.change + " -> " + a)
-        // TODO need to register and update
-        //updateListeners(pack)
+        artifactStream ! pack
       }
       case _ => {
         Logger.warn("Argh")

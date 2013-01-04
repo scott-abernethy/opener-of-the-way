@@ -1,4 +1,4 @@
-@(message: String)
+@()
 
 <!DOCTYPE html>
 <html lang="en" ng-app="ootw">
@@ -40,8 +40,8 @@
       <div class="bb-t" ng-repeat="day in log">
         <p class="bb-sml">{{day.name}}</p>
         <ol class="unstyled">
-          <li ng-repeat="artifact in day.items" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{artifact.desc}}" ng-click="artifactSelect(artifact)">
-            <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x"></i> {{artifact.abbr}}</span>
+          <li ng-repeat="artifact in day.items" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{artifact.desc}}">
+            <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x" ng-click="artifactSelect(artifact)"></i> {{artifact.abbr}}</span>
           </li>
         </ol>
       </div>
@@ -51,8 +51,8 @@
       <div ng-controller="AwaitingCtrl">
         <div class="bb-h"><i class="icon-signin"></i></div>
         <div class="bb-t"><ol class="unstyled">
-          <li ng-repeat="awaiting in awaitings" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{awaiting.desc}}">
-            <span><i class="icon-ok-circle icon-2x"></i> {{awaiting.abbr}}</span>
+          <li ng-repeat="awaiting in awaitings" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{awaiting.desc}}" >
+            <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x" ng-click="artifactSelect(awaiting)"></i> {{awaiting.abbr}}</span>
           </li>
         </ol></div>
       </div>

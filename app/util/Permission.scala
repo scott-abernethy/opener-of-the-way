@@ -1,36 +1,34 @@
 package util
 
-import play.api.mvc.{Controller, RequestHeader, Action}
+import play.api.mvc._
 import model.Cultist
 import org.squeryl.PrimitiveTypeMode._
+import scala.Some
+
+case class PermittedRequest[A](cultistId: Long, private val request: Request[A]) extends WrappedRequest(request)
 
 trait Permission extends Controller {
 
-  def Permitted[A](action: Long => Action[A]): Action[A] = {
-
-    def getCultistId(request: RequestHeader): Option[Long] = {
-      request.session.get("cultist").flatMap{c =>
-        try {
-          Some(c.toLong)
-        } catch {
-          case _: NumberFormatException => None
-        }
+  def getCultistId(request: RequestHeader): Option[Long] = {
+    request.session.get("cultist").flatMap{c =>
+      try {
+        Some(c.toLong)
+      } catch {
+        case _: NumberFormatException => None
       }
     }
-
-    // Wrap the original BodyParser with authentication
-    val authenticatedBodyParser = parse.using { request =>
-      getCultistId(request).map(c => action(c).parser).getOrElse {
-        parse.error(Unauthorized("Unauthorized"))
-      }
-    }
-
-    // Now let's define the new Action
-    Action(authenticatedBodyParser) { request =>
-      getCultistId(request).map(u => action(u)(request)).getOrElse {
-        Unauthorized("Unauthorized")
-      }
-    }
-
   }
+
+  def PermittedAction[A](p: BodyParser[A])(f: PermittedRequest[A] => Result) = {
+    Action(p) { request =>
+      getCultistId(request).map { cultistId =>
+        f(PermittedRequest(cultistId, request))
+      }.getOrElse(Unauthorized("Unauthorized"))
+    }
+  }
+
+  def PermittedAction(f: PermittedRequest[AnyContent] => Result): Action[AnyContent]  = {
+    PermittedAction(parse.anyContent)(f)
+  }
+
 }

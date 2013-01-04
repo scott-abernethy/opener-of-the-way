@@ -7,23 +7,17 @@ import util.Permission
 
 object Clones extends Controller with Permission {
 
-  def awaiting = Permitted { cultistId =>
-    Action {
-      val factory = new AwaitingSnapshotFactory
-      val snapshot = factory.create(cultistId)
-      val as = snapshot.awaiting.map(_._1)
-      Ok(Json.toJson(as.map(_.toJson)))
-    }
+  def awaiting = PermittedAction { request =>
+    val factory = new AwaitingSnapshotFactory
+    val snapshot = factory.create(request.cultistId)
+    Ok(Json.toJson(snapshot.awaiting.map(x => Artifacts.artifactWithStateJson(x._1, x._2))))
   }
 
-  def history = Permitted { cultistId =>
-    Action {
-      // TODO do we need all these separate controllers for clone management? the view could deal with it?
-      // could be one call to get all artifacts, and all clones.
-      val factory = new ClonedSnapshotFactory
-      val snapshot = factory.create(cultistId)
-      val as = snapshot.cloned.map(_._1)
-      Ok(Json.toJson(as.map(_.toJson)))
-    }
+  def history = PermittedAction { request =>
+    // TODO do we need all these separate controllers for clone management? the view could deal with it?
+    // could be one call to get all artifacts, and all clones.
+    val factory = new ClonedSnapshotFactory
+    val snapshot = factory.create(request.cultistId)
+    Ok(Json.toJson(snapshot.cloned.map(x => Artifacts.artifactWithStateJson(x._1, x._2))))
   }
 }

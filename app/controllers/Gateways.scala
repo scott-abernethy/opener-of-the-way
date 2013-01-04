@@ -9,12 +9,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Gateways extends Controller with Permission {
 
-  def list = Permitted { cultistId =>
-    Action {
-      val futureGs = Future( Gateway.forCultist(cultistId) )
-      Async {
-        futureGs.map(gs => Ok(Json.toJson(gs.map(_.toJson))))
-      }
+  def list = PermittedAction { request =>
+    val futureGs = Future( Gateway.forCultist(request.cultistId) )
+    Async {
+      futureGs.map(gs => Ok(Json.toJson(gs.map(_.toJson))))
     }
   }
 }

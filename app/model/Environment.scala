@@ -10,7 +10,7 @@ import akka.util.Timeout
 import play.api.Logger
 import concurrent.Await
 import concurrent.duration._
-import state.ArtifactServer
+import state.{ArtifactStream, ArtifactServer}
 
 // TODO is this right in a play app?
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -23,6 +23,7 @@ object Environment {
     actorSystem = ActorSystem.create("YogSothoth")
     val gatewayServer = actorSystem.actorOf(Props[GatewayServer], "GatewayServer")
     val artifactServer = actorSystem.actorOf(Props[ArtifactServer], "ArtifactServer")
+    val artifactStream = actorSystem.actorOf(Props[ArtifactStream], "ArtifactStream")
     val lurker = actorSystem.actorOf(Props(new Lurker(actorSystem.deadLetters, artifactServer, gatewayServer)), "Lurker")
     val threshold = actorSystem.actorOf(Props(new Threshold(ProcesssImpl)), "Threshold")
     val watcher = actorSystem.actorOf(Props(new Watcher(threshold, lurker, gatewayServer)), "Watcher")

@@ -36,6 +36,9 @@
     line-height: 1em;
     margin-bottom: 0.3em;
 }
+.bb-t li i {
+    cursor: pointer;
+}
 .bb-sml {
   font-size: 10px;
 }
