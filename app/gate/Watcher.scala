@@ -8,6 +8,8 @@ import akka.actor.{Props, Scheduler, ActorRef, Actor}
 import comet._
 import scala.concurrent.duration._
 import play.api.Logger
+import gate.KeeperRouterApi._
+import gate.KeeperApi._
 
 // TODO?
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -85,7 +87,7 @@ object Watcher {
   )
 }
 
-class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) extends Actor {
+class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) extends Actor {
 
   import Watcher._
 
@@ -125,6 +127,7 @@ class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) ex
           )
           // TODO should send updates outside of transaction
           gatewayServer ! ToState(GateState.transient, t.id, t.cultistId)
+          keepers ! ToKeeper(t.id, Closed)
         }
 
         for (o <- toOpen) {
@@ -177,7 +180,7 @@ class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) ex
           set(c.shut := Some(T.future(Cultist.unlockAfter)))
         )
       }
-      // TODO force cloner and presenter to stop using cultists gateways now
+      // TODO force cloner and presenter to stop using cultists gateways now via keeper
       gatewayServer ! ChangedGateways(cultistId)
     }
     case Unlock(cultistId) => {
@@ -250,6 +253,7 @@ class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) ex
       })
     }
     gatewayServer ! ToState(GateState.open, g.id, g.cultistId)
+    keepers ! ToKeeper(g.id, Open)
   }
 
   def markTransient(transient: Gateway) {
@@ -261,6 +265,7 @@ class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) ex
       )
     }
     gatewayServer ! ToState(GateState.transient, transient.id, transient.cultistId)
+    keepers ! ToKeeper(transient.id, Closed)
   }
 
   def markFailedThusTransient(transient: Gateway) {
@@ -272,6 +277,7 @@ class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) ex
       )
     }
     gatewayServer ! ToState(GateState.transient, transient.id, transient.cultistId)
+    keepers ! ToKeeper(transient.id, Closed)
   }
 
   def markClosed(g: Gateway) {
@@ -284,6 +290,7 @@ class Watcher(threshold: ActorRef, lurker: ActorRef, gatewayServer: ActorRef) ex
       })
     }
     gatewayServer ! ToState(GateState.closed, g.id, g.cultistId)
+    keepers ! ToKeeper(g.id, Closed)
   }
 
   private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {

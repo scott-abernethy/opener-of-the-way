@@ -20,6 +20,10 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
     $scope.$digest();
   }
 
+  ArtifactSocket.subscribe(update, "ArtifactCloning");
+  ArtifactSocket.subscribe(update, "ArtifactCloneFailed");
+  ArtifactSocket.subscribe(update, "ArtifactCloned");
+  ArtifactSocket.subscribe(update, "ArtifactPresented");
   ArtifactSocket.subscribe(update, "ArtifactAwaiting");
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
 }
@@ -78,8 +82,21 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
     $scope.awaitings = xs2;
     $scope.$digest();
   }
+  var update = function(a) {
+    for (var i = 0; i < $scope.awaitings.length; i++) {
+      var item = $scope.awaitings[i];
+      if (item.id == a.id) {
+        $scope.awaitings[i] = a;
+      }
+    }
+    $scope.$digest();
+  }
 
   ArtifactSocket.subscribe(awaiting, "ArtifactAwaiting");
   ArtifactSocket.subscribe(unawaiting, "ArtifactUnawaiting");
+  ArtifactSocket.subscribe(update, "ArtifactPresented");
+  ArtifactSocket.subscribe(update, "ArtifactCloning");
+  ArtifactSocket.subscribe(update, "ArtifactCloneFailed");
+  ArtifactSocket.subscribe(unawaiting, "ArtifactCloned");
 }
 

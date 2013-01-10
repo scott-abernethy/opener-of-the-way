@@ -233,7 +233,7 @@ object ArtifactState extends Enumeration {
     case Some(ArtifactState.glimpsed) => ("icon-circle-blank", "Glimpsed", "s-glimpsed")
     case Some(ArtifactState.lost) => ("icon-ban-circle", "Glimpsed, lost", "s-lost")
     case Some(ArtifactState.present) => ("icon-circle", "Present", "s-present")
-    case Some(ArtifactState.cloning) => ("icon-cog", "Cloning...", "s-cloning")
+    case Some(ArtifactState.cloning) => ("icon-cog icon-spin", "Cloning...", "s-cloning")
     case Some(ArtifactState.cloned) => ("icon-asterisk", "Cloned", "")
     case _ => ("icon-question-sign", "???", "s-error")
   }

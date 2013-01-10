@@ -37,6 +37,14 @@ object Presence {
     )
   }
 
+  def withArtifact(artifactId: Long): Query[(Artifact,Option[Presence])] = {
+    join(Mythos.artifacts, Mythos.presences.leftOuter)( (a, p) =>
+      where( a.id === artifactId )
+      select( (a, p) )
+      on(a.id === p.map(_.artifactId))
+    )
+  }
+
   // Set this in properties file? YES AS THEN DON'T NEED TO CHANGE TEST EVERY TIME.
   lazy val gigaByteLength = 1024L * 1024 * 1024;
   lazy val maxPresenceLength = gigaByteLength * 320

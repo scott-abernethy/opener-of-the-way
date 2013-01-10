@@ -9,6 +9,7 @@ import play.api.libs.json._
 import akka.pattern.Patterns
 import concurrent.ExecutionContext.Implicits.global
 import controllers.Artifacts
+import play.Logger
 
 case class Follow(cultistId: Long)
 
@@ -25,7 +26,9 @@ class ArtifactStream extends Actor {
       sender ! Streaming("todo", channel._1)
     }
     case pack @ ArtifactPack(change, artifact, ownerId, presence, clones) => {
-      channel._2.push(Json.obj("type" -> change.getClass.getSimpleName, "message" -> Artifacts.artifactWithStateJson(artifact, pack.stateFor(1l))))
+      val obj: JsObject = Json.obj("type" -> change.getClass.getSimpleName.replaceAllLiterally("$",""), "message" -> Artifacts.artifactWithStateJson(artifact, pack.stateFor(1l)))
+      Logger.debug("Streaming ... " + obj)
+      channel._2.push(obj)
     }
     case other => {
       unhandled(other)

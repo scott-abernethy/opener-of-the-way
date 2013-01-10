@@ -19,6 +19,9 @@ object Threshold {
   val localPathMessage = new Regex("""Gate opened[^']+'([^']+)'""")
 }
 
+/**
+ * Merge with Keeper?
+ */
 class Threshold(processor: Processs) extends Actor {
 
   def receive = {

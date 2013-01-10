@@ -10,11 +10,14 @@ import state.{ArtifactUnawaiting, ArtifactStream, ArtifactTouched, ArtifactAwait
 import gate.Summon
 import play.api.libs.iteratee.{Enumerator, Iteratee}
 import play.Logger
+import gate.KeeperRouterApi._
+import gate.KeeperApi._
 
 object Artifacts extends Controller with Permission {
 
   lazy val artifactServer = Environment.actorSystem.actorFor("/user/ArtifactServer")
   lazy val summoner = Environment.actorSystem.actorFor("/user/Summoner")
+  lazy val keepers = Environment.actorSystem.actorFor("/user/Keepers")
 
   def artifactWithStateJson(artifact: Artifact, state: Option[ArtifactState.Value]): JsObject = {
     artifact.toJson + ("state" -> ArtifactState.toJson(state))

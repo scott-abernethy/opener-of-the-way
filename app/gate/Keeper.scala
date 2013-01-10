@@ -1,36 +1,94 @@
 package gate
 
-import akka.actor.{Props, ActorRef, Actor}
-import model.{Clone, Presence}
+import akka.actor.{Terminated, Props, ActorRef, Actor}
+import model._
+import play.Logger
+import org.squeryl.PrimitiveTypeMode._
+import Watcher._
+import gate.FinishedCloning
+import scala.Some
+import akka.actor.Terminated
+import gate.StartCloning
+import gate.FinishedPresenting
+import gate.StartPresenting
+import gate.KeeperRouterApi.ToAll
 
-case class Admit(xs: Seq[Presence])
-case class Release(xs: Seq[Clone])
-case class Cancel(xs: Seq[Clone])
+object KeeperApi {
+  case object Open
+  case object Closed
+  case class Admit(xs: Seq[Presence])
+  case class Release(xs: Seq[Clone])
+  case class Cancel(xs: Seq[Clone])
+}
 
 /*
 keeps track of in out for this 'node' .. being a unique gateway location
 clones and presences
+replaces maintainer? or does maintainer act as keeper router and factory?
+start by just having one keeper.
+
+>> or is there one of these per gateway, and another 'lock' thing that manages whether each keeper can progress.
  */
 
-class Keeper(val processs: Processs, val watcher: ActorRef, val artifactServer: ActorRef) extends Actor {
-  var queuedPresences: Seq[Presence] = Nil
-  var queuedClones: Seq[Clone] = Nil
+class Keeper(gatewayId: Long, locker: ActorRef, processs: Processs, watcher: ActorRef, artifactServer: ActorRef) extends Actor {
+  import KeeperApi._
+
+  var open: Boolean = false
+//  var queuedPresences: Seq[Presence] = Nil
+//  var queuedClones: Seq[Clone] = Nil
 
   def receive = {
+    case Open => {
+      Logger.debug(self + " open")
+      open = true
+      // scour (currently done in lurker)
+      // check queue against db
+      // process
+      check()
+    }
+    case Closed => {
+      Logger.debug(self + " closed")
+      open = false
+      // stop processing
+      for (child <- context.children) {
+        child ! 'Cancel
+      }
+    }
     case Admit(xs) => {
-      queuedPresences = (queuedPresences ++ xs).distinct
+      Logger.debug(self + " admit")
+//      Logger.debug(self + " admit " + xs)
+//      queuedPresences = (queuedPresences ++ xs).distinct
       check()
     }
     case Release(xs) => {
-      queuedClones = (queuedClones ++ xs).distinct
+      Logger.debug(self + " release")
+//      queuedClones = (queuedClones ++ xs).distinct
       check()
     }
     case Cancel(xs) => {
-      queuedClones = queuedClones filterNot (xs.toSet.contains)
-      for (child <- context.children; job <- xs) child ! CancelCloning(job)
+      Logger.debug(self + " cancel")
+      // TODO
+//      queuedClones = queuedClones.filterNot(xs.toSet.contains)
+//      for (child <- context.children; job <- xs) {
+//        child ! CancelCloning(job)
+//      }
     }
-    case FinishedCloning(clone) => {
-      // probably need to wait, or death watch
+    case FinishedPresenting(presence, true) => {
+//      queuedPresences = queuedPresences.filterNot(presence ==)
+      check()
+      context.parent ! ToAll(Release(Nil))
+    }
+    case FinishedPresenting(_, false) => {
+      // TODO close?
+    }
+    case FinishedCloning(clone, true) => {
+//      queuedClones = queuedClones.filterNot(clone ==)
+      check()
+    }
+    case FinishedCloning(_, false) => {
+      // TODO close?
+    }
+    case Terminated(ref) => {
       check()
     }
     case msg => {
@@ -39,22 +97,53 @@ class Keeper(val processs: Processs, val watcher: ActorRef, val artifactServer: 
   }
 
   def check() {
-    if (context.children.isEmpty) {
-      start(queuedPresences.headOption orElse queuedClones.headOption)
+
+    // TODO can do much better query here.
+
+    def waitingPresences(): List[Presence] = {
+      transaction(
+        sourcesQuery()
+          .toList
+          .filter(x => x._1.state == PresenceState.called && x._2.id == gatewayId)
+          .map(_._1)
+      )
+    }
+
+    def waitingClones(): List[Clone] = {
+      transaction(
+        sinksQuery()
+          .toList
+          .filter(x => x._1.state == CloneState.awaiting && x._2.id == gatewayId && x._3.map(_.state) == Some(PresenceState.present))
+          .map(_._1)
+      )
+    }
+
+    // only do either presence or clone, not both (?) ... do presences first ... though perhaps that decision should be made by the locker?
+    if (open && context.children.isEmpty) {
+      start(waitingPresences().headOption orElse waitingClones().headOption)
     }
   }
 
   def start(item: AnyRef) {
+    Logger.debug(self + " start " + item)
     item match {
-      case p: Presence => {
+      case Some(p: Presence) => {
         val presenter: ActorRef = context.actorOf(Props(new Presenter(processs, watcher, artifactServer)))
+        context.watch(presenter)
         presenter ! StartPresenting(p)
       }
-      case c: Clone => {
+      case Some(c: Clone) => {
         val cloner: ActorRef = context.actorOf(Props(new Cloner(processs, watcher, artifactServer)))
+        context.watch(cloner)
         cloner ! StartCloning(c)
       }
-      case _ => {}
+      case None => {
+        // Nothing to do, let the watcher know so it can close this
+        watcher ! 'Wake
+      }
+      case other => {
+        Logger.debug("Can't start unexpected " + other)
+      }
     }
   }
 }

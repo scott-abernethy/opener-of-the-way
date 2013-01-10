@@ -11,7 +11,7 @@ import play.api.Logger
 // TODO merge with Cloner
 
 case class StartPresenting(job: Presence)
-case class FinishedPresenting(job: Presence)
+case class FinishedPresenting(job: Presence, success: Boolean)
 case object CancelPresenting
 
 class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServer: ActorRef) extends Actor {
@@ -27,6 +27,9 @@ class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServe
     case CancelPresenting => {
       cancel
     }
+    case 'Cancel => {
+      cancel
+    }
     case exit: Exit => {
       cur.foreach(attempted(_, exit))
     }
@@ -36,6 +39,7 @@ class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServe
   }
 
   def start(presence: Presence) {
+    Logger.debug(this + " start " + presence)
     presence.state = PresenceState.presenting
     presence.attempted = T.now
     transaction { presences.insertOrUpdate(presence) }
@@ -88,7 +92,7 @@ class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServe
       watcher ! PresenceFailed(p)
     }
     artifactServer ! ArtifactTouched(if (success) ArtifactPresented else ArtifactPresentFailed, p.artifactId)
-    requester ! FinishedPresenting(p)
+    requester ! FinishedPresenting(p, success)
     context.stop(self)
   }
 

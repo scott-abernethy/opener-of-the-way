@@ -55,8 +55,10 @@ object Summoner {
   }
 }
 
-class Summoner(lurker: ActorRef, watcher: ActorRef) extends Actor {
+class Summoner(lurker: ActorRef, watcher: ActorRef, keepers: ActorRef) extends Actor {
   import Summoner._
+  import KeeperRouterApi._
+  import KeeperApi._
 
   def receive = {
 
@@ -109,25 +111,28 @@ class Summoner(lurker: ActorRef, watcher: ActorRef) extends Actor {
 
   private def call(artifactId: Long) {
     transaction {
-      Presence.forArtifact(artifactId).headOption match {
-        case Some(presence) if presence.state == PresenceState.unknown => {
+      Presence.withArtifact(artifactId).headOption match {
+        case Some((artifact, Some(presence))) if presence.state == PresenceState.unknown => {
           presence.state = PresenceState.called
           presences.update(presence)
           logSummonerInfo()
           watcher ! 'Source
-          // TODO notify manipulator?
+          keepers ! ToKeeper(artifact.gatewayId, Admit(presence :: Nil))
         }
-        case Some(presence) if presence.state == PresenceState.present => {
+        case Some((artifact, Some(presence))) if presence.state == PresenceState.present => {
+          // TODO is that necessary?
           watcher ! 'Sink
+          // TODO don't use a shotgun
+          keepers ! ToAll(Release(Nil))
         }
-        case None => {
+        case Some((artifact, None)) => {
           val p = new Presence()
           p.artifactId = artifactId
           p.state = PresenceState.called
           presences.insert(p)
           logSummonerInfo()
           watcher ! 'Source
-          // TODO notify manipulator?
+          keepers ! ToKeeper(artifact.gatewayId, Admit(p :: Nil))
         }
         case _ =>
       }

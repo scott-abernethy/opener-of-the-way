@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 // TODO merge with Presenter
 
 case class StartCloning(job: Clone)
-case class FinishedCloning(job: Clone)
+case class FinishedCloning(job: Clone, success: Boolean)
 case class CancelCloning(job: Clone)
 
 class Cloner(val processs: Processs, val watcher: ActorRef, val artifactServer: ActorRef) extends Actor {
@@ -33,12 +33,16 @@ class Cloner(val processs: Processs, val watcher: ActorRef, val artifactServer: 
     case exit: Exit => {
       cur.foreach(attempted(_, exit))
     }
+    case 'Cancel => {
+      cancel
+    }
     case msg => {
       unhandled(msg)
     }
   }
 
   def start(job: Clone) {
+    Logger.debug(this + " start " + job)
     cur = Some(job)
     job.state = CloneState.cloning
     job.attempted = T.now
@@ -84,7 +88,7 @@ class Cloner(val processs: Processs, val watcher: ActorRef, val artifactServer: 
     cur = None
     if (!success) watcher ! CloneFailed(c)
     artifactServer ! ArtifactTouched(if (success) ArtifactCloned(c.forCultistId) else ArtifactCloneFailed(c.forCultistId), c.artifactId)
-    requester ! FinishedCloning(c)
+    requester ! FinishedCloning(c, success)
     context.stop(self)
   }
 
