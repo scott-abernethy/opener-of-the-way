@@ -21,7 +21,7 @@ object ProcesssImpl extends Processs {
   def start(cmds: Seq[String]): (Future[Exit], Destroyable) = {
     val startMsec = System.currentTimeMillis
     var lines: Seq[String] = Nil
-    val process = cmds.run(ProcessLogger(lines ++: _), false)
+    val process = cmds.run(ProcessLogger(line => lines = lines :+ line), false)
     // TODO?
     import scala.concurrent.ExecutionContext.Implicits.global
     val future = Future {

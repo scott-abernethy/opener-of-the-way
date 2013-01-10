@@ -9,7 +9,7 @@
   <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/font-awesome.min.css")">
   <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/horror.css")">
   <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/horror.ico")">
-  <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("javascripts/jquery-1.8.3.min.js")" type="text/javascript"></script>
   <script src="@routes.Assets.at("javascripts/angular-1.0.3.min.js")" type="text/javascript"></script>
   <script src="@routes.Assets.at("javascripts/app.js")" type="text/javascript"></script>
   <script src="@routes.Assets.at("javascripts/controllers.js")" type="text/javascript"></script>
@@ -61,7 +61,7 @@
         <div class="bb-t">
           <ol class="unstyled">
             <li ng-repeat="clone in cloned" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{clone.desc}}">
-              <span><i class="icon-asterisk icon-2x"></i> {{clone.abbr}}</span>
+              <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x" ng-click="artifactSelect(clone)"></i> {{clone.abbr}}</span>
             </li>
           </ol>
         </div>

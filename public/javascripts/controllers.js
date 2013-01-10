@@ -4,7 +4,6 @@ ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSocket'];
 function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   $scope.log = ArtifactLog.query();
   $scope.artifactSelect = function(artifact) {
-    // TODO "Are you sure you want to clone this artifact AGAIN?"
     $http.put('artifact/' + artifact.id + '/touch')
   };
 
@@ -30,17 +29,37 @@ function GatewayCtrl($scope, Gateway) {
   $scope.gateways = Gateway.query();
 }
 
-ClonedCtrl.$inject = ['$scope', 'Cloned'];
-function ClonedCtrl($scope, Cloned) {
+ClonedCtrl.$inject = ['$http', '$scope', 'Cloned', 'ArtifactSocket'];
+function ClonedCtrl($http, $scope, Cloned, ArtifactSocket) {
   $scope.cloned = Cloned.query();
-//  $('li').popover();
+  $scope.artifactSelect = function(artifact) {
+    $http.put('artifact/' + artifact.id + '/touch')
+  };
+
+  var cloned = function(a) {
+    $scope.cloned.unshift(a)
+    $scope.$digest();
+  }
+  var removeCheck = function(a) {
+    var xs = $scope.cloned
+    var xs2 = []
+    for (var i = 0; i < xs.length; i++) {
+      if (xs[i].id != a.id) {
+        xs2.push(xs[i])
+      }
+    }
+    $scope.cloned = xs2;
+    $scope.$digest();
+  }
+
+  ArtifactSocket.subscribe(cloned, "ArtifactCloned");
+  ArtifactSocket.subscribe(removeCheck, "ArtifactAwaiting");
 }
 
 AwaitingCtrl.$inject = ['$http', '$scope', 'Awaiting', 'ArtifactSocket'];
 function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
   $scope.awaitings = Awaiting.query();
   $scope.artifactSelect = function(artifact) {
-    // TODO "Are you sure you want to clone this artifact AGAIN?"
     $http.put('artifact/' + artifact.id + '/touch')
   };
 
