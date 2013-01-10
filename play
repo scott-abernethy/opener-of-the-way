@@ -1,5 +1,5 @@
 #!/bin/bash
-PLAY_HOME=/opt/play-2.1-RC1
+PLAY_HOME=/opt/play-2.1-RC2
 if [ -z "$PLAY_HOME" ]; then
   PLAY_HOME=/opt/play
 fi

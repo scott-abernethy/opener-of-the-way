@@ -10,7 +10,7 @@ object ApplicationBuild extends Build {
   val appDependencies = Seq(
     // Add your project dependencies here,
     //"com.typesafe.akka" % "akka-testkit_2.10.0-RC1" % "2.1.0-RC1",
-    "org.squeryl" % "squeryl_2.10.0-RC1" % "0.9.5-4" % "compile->default",
+    "org.squeryl" % "squeryl_2.10" % "0.9.5-6" % "compile->default",
     "org.mockito" % "mockito-all" % "1.8.5" % "test->default",
     "c3p0" % "c3p0" % "0.9.1.2",
     "mysql" % "mysql-connector-java" % "5.1.21",
