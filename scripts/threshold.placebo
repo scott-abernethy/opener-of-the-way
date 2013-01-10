@@ -24,7 +24,7 @@ fi
 sleep 2s
 
 gate_crypt="$gate_mount_root/placebo"
-mkdir -p $gatecrypt
+mkdir -p $gate_crypt
 
 # Spit this out regardless of request
 echo Placebo threshold done

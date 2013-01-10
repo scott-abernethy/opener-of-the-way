@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sleep 5s
+sleep 15s
 
 echo Placebo presenter done
