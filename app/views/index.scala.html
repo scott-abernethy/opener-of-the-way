@@ -25,7 +25,7 @@
         <div class="bb-t">
           <ol>
             <li ng-repeat="gateway in gateways" data-trigger="hover" data-placement="right" data-content="Hmm" data-original-title="{{gateway.path}}">
-              <span><i class="icon-folder-close-alt icon-2x"></i> {{gateway.abbr}}</span>
+              <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span>
             </li>
           </ol>
         </div>

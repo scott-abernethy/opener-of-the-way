@@ -28,9 +28,16 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
 }
 
-GatewayCtrl.$inject = ['$scope', 'Gateway'];
-function GatewayCtrl($scope, Gateway) {
+GatewayCtrl.$inject = ['$scope', 'Gateway', 'ArtifactSocket'];
+function GatewayCtrl($scope, Gateway, ArtifactSocket) {
   $scope.gateways = Gateway.query();
+
+  var update = function(gs) {
+    $scope.gateways = gs;
+    $scope.$digest();
+  }
+
+  ArtifactSocket.subscribe(update, "GatewayReload");
 }
 
 ClonedCtrl.$inject = ['$http', '$scope', 'Cloned', 'ArtifactSocket'];

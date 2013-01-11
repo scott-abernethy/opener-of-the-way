@@ -48,6 +48,11 @@
 .s-cloning {
     color: purple;
 }
+.s-open {
+    color: purple;
+}
+.s-transient {
+}
 .s-lost {
     color: red;
     text-decoration: line-through;

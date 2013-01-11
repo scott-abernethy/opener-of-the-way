@@ -60,9 +60,15 @@ class Gateway extends MythosObject {
   def toJson = {
     Json.obj(
       "id" -> id,
-      "cultistId" -> cultistId,
       "path" -> path,
-      "abbr" -> FileUtil.abbr(path)
+      "abbr" -> FileUtil.abbr(path),
+      "icon" -> (if (state == GateState.open || state == GateState.transient) "icon-folder-open" else "icon-folder-close-alt"),
+      "class" -> (state match {
+        case GateState.open => "s-open"
+        case GateState.transient => "s-transient"
+        case GateState.lost => "s-lost"
+        case _ => ""
+      })
     )
   }
 }

@@ -44,39 +44,39 @@ class StateStream extends Actor {
           broadcast(artifactMsg("ArtifactCreated", pack))
         }
         case ArtifactAwaiting(forCultistId) => {
-          unicast(ownerId, artifactMsg("ArtifactUpdate", pack)(ownerId))
-          unicast(forCultistId, artifactMsg("ArtifactAwaiting", pack)(forCultistId))
+          unicast(ownerId, artifactMsg("ArtifactUpdate", pack))
+          unicast(forCultistId, artifactMsg("ArtifactAwaiting", pack))
         }
         case ArtifactUnawaiting(forCultistId) => {
-          unicast(ownerId, artifactMsg("ArtifactUpdate", pack)(ownerId))
-          unicast(forCultistId, artifactMsg("ArtifactUnawaiting", pack)(forCultistId))
+          unicast(ownerId, artifactMsg("ArtifactUpdate", pack))
+          unicast(forCultistId, artifactMsg("ArtifactUnawaiting", pack))
         }
         case ArtifactPresented => {
           broadcast(artifactMsg("ArtifactUpdate", pack))
         }
         case ArtifactCloning(forCultistId) => {
-          unicast(forCultistId, artifactMsg("ArtifactCloning", pack)(forCultistId))
+          unicast(forCultistId, artifactMsg("ArtifactCloning", pack))
         }
         case ArtifactCloneFailed(forCultistId) => {
-          unicast(forCultistId, artifactMsg("ArtifactCloneFailed", pack)(forCultistId))
+          unicast(forCultistId, artifactMsg("ArtifactCloneFailed", pack))
         }
         case ArtifactCloned(forCultistId) => {
-          unicast(forCultistId, artifactMsg("ArtifactCloned", pack)(forCultistId))
+          unicast(forCultistId, artifactMsg("ArtifactCloned", pack))
         }
         case ignored => {}
       }
     }
     case FlushAllGateways => {
-      broadcast(_ => 'GatewayChanged)
+      broadcast(gatewaysMsg)
     }
     case ToState(_, _, cultistId) => {
-      unicast(cultistId, 'GatewayChanged)
+      unicast(cultistId, gatewaysMsg)
     }
     case ChangedGateway(_, cultistId) => {
-      unicast(cultistId, 'GatewayChanged)
+      unicast(cultistId, gatewaysMsg)
     }
     case ChangedGateways(cultistId) => {
-      unicast(cultistId, 'GatewayChanged)
+      unicast(cultistId, gatewaysMsg)
     }
     case Quit(cid) => {
       streams.get(cid) match {
@@ -91,8 +91,8 @@ class StateStream extends Actor {
     }
   }
 
-  def unicast(cultistId: Long, msg: Any) {
-    streams.get(cultistId).foreach(_ ! msg)
+  def unicast(cultistId: Long, msg: Long => Any) {
+    streams.get(cultistId).foreach(_ ! msg(cultistId))
   }
 
   def broadcast(msg: Long => Any) {
@@ -101,6 +101,10 @@ class StateStream extends Actor {
 
   def artifactMsg(msgType: String, pack: ArtifactPack)(cid: Long): JsObject = {
     Json.obj("type" -> msgType, "message" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid)))
+  }
+
+  def gatewaysMsg(cid: Long): JsObject = {
+    Json.obj("type" -> "GatewayReload", "message" -> Json.toJson(Gateway.forCultist(cid).map(_.toJson)))
   }
 
 }
