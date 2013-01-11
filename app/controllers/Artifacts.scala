@@ -1,17 +1,13 @@
 package controllers
 
-import play.api.mvc.{WebSocket, Action, Controller}
-import play.api.libs.json.{JsValue, JsObject, Json}
+import play.api.mvc.{Controller}
+import play.api.libs.json.{JsObject, Json}
 import model._
 import concurrent.Future
-import util.{ConcurrentUtil, Permission}
+import util.{Permission}
 import scala.concurrent.ExecutionContext.Implicits.global
-import state.{ArtifactUnawaiting, ArtifactStream, ArtifactTouched, ArtifactAwaiting}
+import state.{ArtifactUnawaiting, ArtifactTouched, ArtifactAwaiting}
 import gate.Summon
-import play.api.libs.iteratee.{Enumerator, Iteratee}
-import play.Logger
-import gate.KeeperRouterApi._
-import gate.KeeperApi._
 
 object Artifacts extends Controller with Permission {
 
@@ -68,24 +64,5 @@ object Artifacts extends Controller with Permission {
       }
     }
   }
-
-//  def itemDeselected(id: Long) {
-//    // todo return faster?
-//    Cultist.attending.is.toOption.map(c => (c, Artifact.find(id).map(_.cancelClone(c)))) match {
-//      case Some( (c, Some(newStatus)) ) =>
-//        ArtifactServer ! ArtifactTouched(ArtifactUnawaiting(c.id), id)
-//      case _ =>
-//    }
-//  }
-
-  def stream() =
-    WebSocket.async[JsValue] { 
-      request =>
-        getCultistId(request).map { cultistId =>
-          ArtifactStream.follow(cultistId)
-        }.getOrElse{
-          Future(ConcurrentUtil.errorSocket("Unauthorized"))
-        }
-    }
 
 }

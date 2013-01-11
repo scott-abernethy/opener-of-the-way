@@ -106,7 +106,7 @@ trait Db {
           g3.localPath = ""
           g3.password = "cowsaregreen"
           g3.source = true
-          g3.sink = false
+          g3.sink = true
           g3 = Mythos.gateways.insert(g3)
 
           var a = new Artifact
@@ -183,6 +183,13 @@ trait Db {
           k.witnessed = T.now
           k.length = 43582342343L
           k = Mythos.artifacts.insert(k)
+          var l = new Artifact
+          l.gatewayId = g1.id
+          l.path = "/give.it.er"
+          l.discovered = T.yesterday
+          l.witnessed = T.now
+          l.length = 435892343L
+          l = Mythos.artifacts.insert(l)
 
           val clone1 = new Clone
           clone1.artifactId = a.id

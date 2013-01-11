@@ -116,6 +116,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
         val wantOpen = (sources ::: sinks ::: scour).distinct.toSet
         val toOpen = (wantOpen -- unopenable).filterNot(transientLocations contains _.location)
         val toTransient = open -- wantOpen
+        val keepOpen = open intersect wantOpen
 
         Logger.debug("Watcher CHANGE: " + (Map.empty ++ toOpen.map("open" -> _) ++ toTransient.map("transient" -> _)))
 
@@ -138,6 +139,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
         }
 
         toOpen.foreach( g => thresholdFor(g) ! OpenGateway(g) )
+        keepOpen.foreach( g => keepers ! ToKeeper(g.id, StillOpen) )
       }
     }
     case 'Close => {
@@ -208,6 +210,9 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
     }
     case OpenGateFailed(g) => {
       markTransient(g)
+    }
+    case GateFailed(gid) => {
+      Gateway.find(gid) foreach markTransient
     }
     case CloseGateSuccess(g) => {
       markClosed(g)

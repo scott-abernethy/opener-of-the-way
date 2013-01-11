@@ -23,7 +23,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactCloning");
   ArtifactSocket.subscribe(update, "ArtifactCloneFailed");
   ArtifactSocket.subscribe(update, "ArtifactCloned");
-  ArtifactSocket.subscribe(update, "ArtifactPresented");
+  ArtifactSocket.subscribe(update, "ArtifactUpdate");
   ArtifactSocket.subscribe(update, "ArtifactAwaiting");
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
 }
@@ -94,7 +94,7 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
 
   ArtifactSocket.subscribe(awaiting, "ArtifactAwaiting");
   ArtifactSocket.subscribe(unawaiting, "ArtifactUnawaiting");
-  ArtifactSocket.subscribe(update, "ArtifactPresented");
+  ArtifactSocket.subscribe(update, "ArtifactUpdate");
   ArtifactSocket.subscribe(update, "ArtifactCloning");
   ArtifactSocket.subscribe(update, "ArtifactCloneFailed");
   ArtifactSocket.subscribe(unawaiting, "ArtifactCloned");

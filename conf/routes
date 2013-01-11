@@ -4,12 +4,12 @@
 
 # Home page
 GET     /                           controllers.Application.index
+GET     /stream                     controllers.Application.stream
 
 # Artifacts
 GET     /artifact/log               controllers.Artifacts.log
 GET     /artifact/list              controllers.Artifacts.list(q: String ?= "")
 PUT     /artifact/:id/touch         controllers.Artifacts.touch(id: Long)
-GET     /artifact/stream            controllers.Artifacts.stream
 
 # Clones
 GET     /clone/awaiting             controllers.Clones.awaiting

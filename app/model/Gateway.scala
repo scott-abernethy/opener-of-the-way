@@ -110,6 +110,10 @@ object Gateway {
     decodeModeMap.get( (source, sink) ).getOrElse(Gateway.defaultMode)
   }
 
+  def find(id: Long): Option[Gateway] = {
+    inTransaction( gateways.lookup(id) )
+  }
+
   def forCultist(id: Long): List[Gateway] = {
     inTransaction ( from(gateways)(g => where(g.cultistId === id) select(g)).toList )
   }

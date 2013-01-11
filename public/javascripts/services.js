@@ -67,7 +67,7 @@ angular.module('ootwServices', ['ngResource']).
     }).
     factory('ArtifactSocket', function() {
       console.log("created ArtifactSocket");
-      var url = "ws://" + location.hostname + ":" + location.port + "/artifact/stream";
+      var url = "ws://" + location.hostname + ":" + location.port + "/stream";
       var obj = {
         init : function() {
           var self = this;

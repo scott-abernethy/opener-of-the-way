@@ -12,6 +12,7 @@ case class OpenGateway(gateway: Gateway)
 case class CloseGateway(gateway: Gateway)
 case class OpenGateSuccess(gateway: Gateway, localPath: String)
 case class OpenGateFailed(gateway: Gateway)
+case class GateFailed(gatewayId: Long)
 case class CloseGateSuccess(gateway: Gateway)
 case class CloseGateFailed(gateway: Gateway)
 

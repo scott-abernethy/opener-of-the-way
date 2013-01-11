@@ -3,9 +3,11 @@ package comet
 //import org.squeryl.PrimitiveTypeMode._
 //import xml.{Text, Node, Unparsed, NodeSeq}
 
-import akka.actor.Actor
+import akka.actor.{ActorRef, Actor}
 import model._
 import gate.{Unlock, Lock, ScourAsap}
+import play.api.Logger
+
 //import util.DatePresentation
 
 //class GatewayInfo extends CometActor with CometListener with RegardToCultist {
@@ -123,17 +125,9 @@ import gate.{Unlock, Lock, ScourAsap}
 //  }
 //}
 
-class GatewayServer extends Actor {
-  def receive = {
-    case msg =>
-      // TODO
-      //updateListeners(msg)
-  }
-}
-
 sealed abstract class GatewayChange
 
-case object FlushAllGateways
-case class ToState(state: GateState.Value, gatewayId: Long, cultistId: Long)
-case class ChangedGateway(gatewayId: Long, cultistId: Long)
-case class ChangedGateways(cultistId: Long)
+case object FlushAllGateways extends GatewayChange
+case class ToState(state: GateState.Value, gatewayId: Long, cultistId: Long) extends GatewayChange
+case class ChangedGateway(gatewayId: Long, cultistId: Long) extends GatewayChange
+case class ChangedGateways(cultistId: Long) extends GatewayChange

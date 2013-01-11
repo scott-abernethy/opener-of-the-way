@@ -15,6 +15,7 @@ import gate.KeeperRouterApi.ToAll
 
 object KeeperApi {
   case object Open
+  case object StillOpen
   case object Closed
   case class Admit(xs: Seq[Presence])
   case class Release(xs: Seq[Clone])
@@ -39,15 +40,22 @@ class Keeper(gatewayId: Long, locker: ActorRef, processs: Processs, watcher: Act
 
   def receive = {
     case Open => {
-      Logger.debug(self + " open")
       open = true
       // scour (currently done in lurker)
       // check queue against db
       // process
       check()
     }
+    case StillOpen => {
+      if (open) {
+        check()
+      }
+      else {
+        Logger.warn("ODD STATE!")
+        watcher ! GateFailed(gatewayId)
+      }
+    }
     case Closed => {
-      Logger.debug(self + " closed")
       open = false
       // stop processing
       for (child <- context.children) {
@@ -55,18 +63,14 @@ class Keeper(gatewayId: Long, locker: ActorRef, processs: Processs, watcher: Act
       }
     }
     case Admit(xs) => {
-      Logger.debug(self + " admit")
-//      Logger.debug(self + " admit " + xs)
 //      queuedPresences = (queuedPresences ++ xs).distinct
       check()
     }
     case Release(xs) => {
-      Logger.debug(self + " release")
 //      queuedClones = (queuedClones ++ xs).distinct
       check()
     }
     case Cancel(xs) => {
-      Logger.debug(self + " cancel")
       // TODO
 //      queuedClones = queuedClones.filterNot(xs.toSet.contains)
 //      for (child <- context.children; job <- xs) {
@@ -79,14 +83,14 @@ class Keeper(gatewayId: Long, locker: ActorRef, processs: Processs, watcher: Act
       context.parent ! ToAll(Release(Nil))
     }
     case FinishedPresenting(_, false) => {
-      // TODO close?
+      open = false
     }
     case FinishedCloning(clone, true) => {
 //      queuedClones = queuedClones.filterNot(clone ==)
       check()
     }
     case FinishedCloning(_, false) => {
-      // TODO close?
+      open = false
     }
     case Terminated(ref) => {
       check()
@@ -138,8 +142,7 @@ class Keeper(gatewayId: Long, locker: ActorRef, processs: Processs, watcher: Act
         cloner ! StartCloning(c)
       }
       case None => {
-        // Nothing to do, let the watcher know so it can close this
-        watcher ! 'Wake
+        // TODO Nothing to do, let the watcher know so it can close this?
       }
       case other => {
         Logger.debug("Can't start unexpected " + other)

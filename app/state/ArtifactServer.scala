@@ -9,7 +9,6 @@ import play.api.Logger
 sealed abstract class ArtifactChange
 
 case object ArtifactCreated extends ArtifactChange
-case class ArtifactRefresh(selectCultistId: Option[Long]) extends ArtifactChange
 case class ArtifactAwaiting(forCultistId: Long) extends ArtifactChange
 case class ArtifactUnawaiting(forCultistId: Long) extends ArtifactChange
 case object ArtifactPresenting extends ArtifactChange
@@ -38,14 +37,7 @@ case class ArtifactPack(change: ArtifactChange, artifact: Artifact, ownerId: Lon
 
 class ArtifactServer extends Actor {
 
-  var createUpdate: AnyRef = "ignore"
-  var artifactStream: ActorRef = context.system.deadLetters
-
-
-  override def preStart() {
-    super.preStart()
-    artifactStream = context.system.actorFor("/user/ArtifactStream")
-  }
+  lazy val stream: ActorRef = context.system.actorFor("/user/StateStream")
 
   def receive = {
     // todo replace this lameness with extractors for change type to logger level
@@ -79,7 +71,7 @@ class ArtifactServer extends Actor {
       case Some( (a, ownerId, p, cs) ) => {
         val pack: ArtifactPack = ArtifactPack(change, a, ownerId, p, cs)
         logMethod(pack.change + " -> " + a)
-        artifactStream ! pack
+        stream ! pack
       }
       case _ => {
         Logger.warn("Argh")
