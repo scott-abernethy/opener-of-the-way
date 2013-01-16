@@ -20,9 +20,9 @@ GET     /gateway                    controllers.Gateways.list
 
 # Cultists
 GET     /cultist/become             controllers.Cultists.become(id: Long)
-GET     /cultist/approach           controllers.Cultists.approach
-POST    /cultist/approach           controllers.Cultists.approachSubmit
-GET     /cultist/withdraw           controllers.Cultists.withdraw
+GET     /approach                   controllers.Cultists.approach
+POST    /approach                   controllers.Cultists.approachSubmit
+GET     /withdraw                   controllers.Cultists.withdraw
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

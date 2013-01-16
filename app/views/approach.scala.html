@@ -1,39 +1,19 @@
 @(approachForm: Form[(String, String)])
 
-@main("Who approaches?!") {
+@import views.MyHelpers.minimal
 
-    @helper.form(routes.Cultists.approachSubmit()) {
+@main("Approach") {
+   <div>
+   <h2 class="muted">Who approaches?!</h2>
+   @helper.form(routes.Cultists.approachSubmit(), 'class -> "form-inline") {
+       <fieldset>
         @approachForm.globalError.map{ error =>
             <p class="error">@error.message</p>
         }
-        <h2>Who approaches?!</h2>
-        <h3>Email</h3>
-        @helper.inputText(approachForm("email"))
-        <h3>Password</h3>
-        @helper.inputPassword(approachForm("password"))
-        <input type="submit" value="Submit">
+        @helper.inputText(approachForm("email"), 'placeholder -> "Email", 'class -> "input-medium")
+        @helper.inputPassword(approachForm("password"), 'placeholder -> "Password", 'class -> "input-medium")
+        <input type="submit" value="Submit" class="btn">
+       </fieldset>
     }
+   </div>
 }
-
-@*
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta content="text/html; charset=UTF-8" http-equiv="content-type" />
-    <title>Home</title>
-  </head>
-  <body class="lift:content_id=main">
-    <div id="main" class="lift:surround?with=plain;at=content prepend-8 span-8 prepend-top-more">
-      <form class="lift:snippet?type=Cultist.approach roundbox">
-        <h2>Who approaches?!</h2>
-        <h3>Email</h3>
-        <input class="approach:email" value="gone@insane.yet" />
-        <h3>Password</h3>
-        <input type="password" class="approach:password" value="" />
-        <div><span class="lift:Msg?id=approach-messages&amp;errorClass=notice-error&amp;warningClass=notice-warning&amp;noticeClass=notice-notice"></span></div>
-        <input value="Submit" type="submit" id="approach:submit" />
-      </form>
-    </div>
-  </body>
-</html>
-*@

@@ -41,6 +41,6 @@ object Cultists extends Controller {
   }
 
   def withdraw = Action { request =>
-    Redirect(routes.Application.index()).withNewSession
+    Redirect(routes.Cultists.approach()).withNewSession
   }
 }

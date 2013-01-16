@@ -4,6 +4,7 @@ import play.api.mvc._
 import model.Cultist
 import org.squeryl.PrimitiveTypeMode._
 import scala.Some
+import controllers.routes
 
 case class PermittedRequest[A](cultistId: Long, private val request: Request[A]) extends WrappedRequest(request)
 
@@ -23,7 +24,7 @@ trait Permission extends Controller {
     Action(p) { request =>
       getCultistId(request).map { cultistId =>
         f(PermittedRequest(cultistId, request))
-      }.getOrElse(Unauthorized("Unauthorized"))
+      }.getOrElse(Redirect(routes.Cultists.approach()))
     }
   }
 
