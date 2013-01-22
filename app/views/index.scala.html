@@ -38,7 +38,7 @@
   <div class="row">
     <div ng-controller="GatewayCtrl" class="span4">
       <div ng-controller="GatewayCtrl">
-        <div class="bb-h"><i class="icon-hdd"></i></div>
+        <div class="bb-h"><i class="icon-hdd"></i> gateways</div>
         <div class="bb-t">
           <ol>
             <li class="bb-i" ng-repeat="gateway in gateways" data-trigger="hover" data-placement="right" data-content="Hmm" data-original-title="{{gateway.path}}">
@@ -49,12 +49,17 @@
         </div>
       </div>
       <div class="bb-h">
-        <div><i class="icon-comment-alt"></i></div>
+        <div><i class="icon-comment-alt"></i> babblings</div>
       </div>
+       <div class="bb-t">
+          <ol class="unstyled">
+             <li class="bb-i"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
+          </ol>
+       </div>
     </div>
 
     <div ng-controller="ArtifactLogCtrl" class="span4">
-      <div class="bb-h"><i class="icon-cloud-download"></i></div>
+      <div class="bb-h"><i class="icon-cloud-download"></i> log</div>
       <div class="bb-t"><div ng-repeat="day in log">
         <div class="bb-h2">{{day.name}}</div>
         <ol class="unstyled">
@@ -67,7 +72,7 @@
 
     <div class="span4">
       <div ng-controller="AwaitingCtrl">
-        <div class="bb-h"><i class="icon-signin"></i></div>
+        <div class="bb-h"><i class="icon-cogs"></i> awaiting...</div>
         <div class="bb-t"><ol class="unstyled">
           <li class="bb-i handy" ng-repeat="awaiting in awaitings" ng-click="artifactSelect(awaiting)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{awaiting.desc}}" >
             <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.abbr}}</span>
@@ -76,7 +81,7 @@
         </ol></div>
       </div>
       <div ng-controller="ClonedCtrl">
-        <div class="bb-h"><i class="icon-asterisk"></i></div>
+        <div class="bb-h"><i class="icon-asterisk"></i> cloned</div>
         <div class="bb-t">
           <ol class="unstyled">
             <li class="bb-i handy" ng-repeat="clone in cloned" ng-click="artifactSelect(clone)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{clone.desc}}">
