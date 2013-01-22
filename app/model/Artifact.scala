@@ -139,16 +139,9 @@ class Artifact extends MythosObject {
   def toJson: JsObject = {
     Json.obj(
       "id" -> id,
-      "abbr" -> FileUtil.abbr(description),
-      "desc" -> splitable(description)
+      "abbr" -> FileUtil.splitable(description),
+      "desc" -> FileUtil.splitable(description)
     )
-  }
-
-//  val zeroWidthSpace = "&#8203;"
-  val zeroWidthSpace = " "
-
-  def splitable(in: String): String = {
-    in.replaceAll("\\.", "." + zeroWidthSpace).replaceAll("_", "_" + zeroWidthSpace).replaceAll("/", "/" + zeroWidthSpace)
   }
 }
 

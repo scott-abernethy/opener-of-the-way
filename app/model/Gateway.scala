@@ -61,7 +61,7 @@ class Gateway extends MythosObject {
     Json.obj(
       "id" -> id,
       "path" -> path,
-      "abbr" -> FileUtil.abbr(path),
+      "abbr" -> FileUtil.splitable(path),
       "icon" -> (if (state == GateState.open || state == GateState.transient) "icon-folder-open" else "icon-folder-close-alt"),
       "class" -> (state match {
         case GateState.open => "s-open"

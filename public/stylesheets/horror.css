@@ -1,6 +1,6 @@
 .bb-h {
     font-size: 14px;
-    background-color: darkgray;
+    background-color: #aaaaaa;
     color: white;
     padding: 6px;
     margin: 0;
@@ -13,6 +13,12 @@
     border-top: 1px solid #aaaaaa;
     border-right: 1px solid #aaaaaa;
     border-left: 1px solid #aaaaaa;
+}
+.bb-h2 {
+    font-size: 10px;
+    background-color: #cccccc;
+    color: white;
+    padding: 2px;
 }
 .bb-t {
     font-size: 14px;
@@ -34,13 +40,17 @@
 }
 .bb-t li {
     line-height: 1em;
-    margin-bottom: 0.3em;
 }
-.bb-t li i {
-    cursor: pointer;
+.bb-i {
+  margin: 0;
+    padding-top: 2px;
+    padding-right: 4px;
+    padding-left: 4px;
+    padding-bottom: 2px;
+    border-top: 1px #e8eed5 solid;
 }
-.bb-sml {
-  font-size: 10px;
+.handy {
+  cursor: pointer;
 }
 .s-present {
     color: #006400;

@@ -36,15 +36,15 @@
   </div>
 
   <div class="row">
-    <div ng-controller="GatewayCtrl" class="span2">
+    <div ng-controller="GatewayCtrl" class="span4">
       <div ng-controller="GatewayCtrl">
         <div class="bb-h"><i class="icon-hdd"></i></div>
         <div class="bb-t">
           <ol>
-            <li ng-repeat="gateway in gateways" data-trigger="hover" data-placement="right" data-content="Hmm" data-original-title="{{gateway.path}}">
+            <li class="bb-i" ng-repeat="gateway in gateways" data-trigger="hover" data-placement="right" data-content="Hmm" data-original-title="{{gateway.path}}">
               <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span>
             </li>
-            <li ng-show="!gateways.length">None</li>
+            <li class="bb-i" ng-show="!gateways.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
           </ol>
         </div>
       </div>
@@ -53,36 +53,36 @@
       </div>
     </div>
 
-    <div ng-controller="ArtifactLogCtrl" class="span2">
+    <div ng-controller="ArtifactLogCtrl" class="span4">
       <div class="bb-h"><i class="icon-cloud-download"></i></div>
-      <div class="bb-t" ng-repeat="day in log">
-        <p class="bb-sml">{{day.name}}</p>
+      <div class="bb-t"><div ng-repeat="day in log">
+        <div class="bb-h2">{{day.name}}</div>
         <ol class="unstyled">
-          <li ng-repeat="artifact in day.items" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{artifact.desc}}">
-            <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x" ng-click="artifactSelect(artifact)"></i> {{artifact.abbr}}</span>
+          <li class="bb-i handy" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{artifact.desc}}">
+            <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x"></i> {{artifact.abbr}}</span>
           </li>
         </ol>
-      </div>
+      </div></div>
     </div>
 
-    <div class="span2">
+    <div class="span4">
       <div ng-controller="AwaitingCtrl">
         <div class="bb-h"><i class="icon-signin"></i></div>
         <div class="bb-t"><ol class="unstyled">
-          <li ng-repeat="awaiting in awaitings" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{awaiting.desc}}" >
-            <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x" ng-click="artifactSelect(awaiting)"></i> {{awaiting.abbr}}</span>
+          <li class="bb-i handy" ng-repeat="awaiting in awaitings" ng-click="artifactSelect(awaiting)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{awaiting.desc}}" >
+            <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.abbr}}</span>
           </li>
-          <li ng-show="!awaitings.length">None</li>
+          <li class="bb-i" ng-show="!awaitings.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
         </ol></div>
       </div>
       <div ng-controller="ClonedCtrl">
         <div class="bb-h"><i class="icon-asterisk"></i></div>
         <div class="bb-t">
           <ol class="unstyled">
-            <li ng-repeat="clone in cloned" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{clone.desc}}">
-              <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x" ng-click="artifactSelect(clone)"></i> {{clone.abbr}}</span>
+            <li class="bb-i handy" ng-repeat="clone in cloned" ng-click="artifactSelect(clone)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{clone.desc}}">
+              <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x"></i> {{clone.abbr}}</span>
             </li>
-            <li ng-show="!cloned.length">None</li>
+            <li class="bb-i" ng-show="!cloned.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
           </ol>
         </div>
       </div>
