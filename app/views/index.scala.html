@@ -19,8 +19,8 @@
           <div><i class="icon-comment-alt"></i> babblings</div>
         </div>
         <div class="bb-t">
-          <form ng-submit="addBabble()">
-            <input type="text" ng-model="babbleText" placeholder="Add your babblings here">
+          <form class="form-inline" ng-submit="addBabble()">
+            <input class="input-block-level" type="text" ng-model="babbleText" placeholder="Add your babblings here">
           </form>
           <ol class="unstyled">
             <li class="bb-i" ng-repeat="babble in babblings">

@@ -46,6 +46,10 @@
     padding: 2px 4px;
     border-top: 1px #e8eed5 solid;
 }
+.bb-t form {
+  margin: 0px;
+  padding: 2px;
+}
 .handy {
   cursor: pointer;
 }
