@@ -65,6 +65,11 @@ angular.module('ootwServices', ['ngResource']).
         query: {method:'GET', params:{}, isArray:true}
       })
     }).
+    factory('Babble', function($resource){
+      return $resource('babble', {}, {
+        query: {method:'GET', params:{}, isArray:true}
+      })
+    }).
     factory('ArtifactSocket', function() {
       console.log("created ArtifactSocket");
       var url = "ws://" + location.hostname + ":" + location.port + "/stream";

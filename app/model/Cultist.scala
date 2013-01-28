@@ -11,6 +11,8 @@ import gate.T
 import java.sql.Timestamp
 import xml.Node
 import scala.util.matching.Regex
+import play.api.Play
+import play.api.Play.current
 
 sealed abstract class ApproachResult
 case object ApproachSuccess extends ApproachResult
@@ -26,8 +28,6 @@ class Cultist extends MythosObject {
   var recruitedBy: Long = -1
   var seen: Option[Timestamp] = None
   var shut: Option[Timestamp] = None
-
-  def sign: String = Cultist.loadCodename(id.toString) // lame but simple
 
   def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.sink === true) select(g) orderBy(g.id asc)).headOption
 
@@ -74,11 +74,6 @@ object Cultist {
   }
   def find(id: Long): Option[Cultist] = cultists.lookup(id)
   val cultistCookie = "theyWhomAttendethIt"
-  lazy val codenames: Properties = {
-    val p = new Properties
-    p.load(Cultist.getClass.getClassLoader.getResourceAsStream("props/codename.props"))
-    p
-  }
 
   def withdraw() {
     // TODO
@@ -99,6 +94,7 @@ object Cultist {
 //    val text = attending.is.map(_.id.toString).openOr("###")
 //    S.addCookie(HTTPCookie(cultistCookie, text).setMaxAge(3600 * 24 * 7).setPath("/"))
   }
+
   def checkForCookie: Option[Cultist] = {
     // TODO
 //    S.cookieValue(cultistCookie) match {
@@ -107,17 +103,16 @@ object Cultist {
 //    }
     None
   }
-  def loadCodename(index: String): String = codenames.getProperty(index, index + "?")
 
-  def signFor(cultist: Option[Cultist]): String =
-  {
-    cultist.map(_.sign).filter(x => x != null && x.size > 0).getOrElse("???")
-  }
-
-  def sigalFor(cultist: Option[Cultist]): Node =
-  {
-    <span class="sigal">{ signFor(cultist) }</span>
-  }
+//  def signFor(cultist: Option[Cultist]): String =
+//  {
+//    cultist.map(_.sign).filter(x => x != null && x.size > 0).getOrElse("???")
+//  }
+//
+//  def sigalFor(cultist: Option[Cultist]): Node =
+//  {
+//    <span class="sigal">{ signFor(cultist) }</span>
+//  }
 
   lazy val unlockAfter = 4 * 60 * 60 * 1000L
 }

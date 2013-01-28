@@ -10,7 +10,7 @@ import akka.util.Timeout
 import play.api.Logger
 import concurrent.Await
 import concurrent.duration._
-import state.{StateStream, ArtifactServer}
+import state.{BabbleServer, StateStream, ArtifactServer}
 
 // TODO is this right in a play app?
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,6 +27,7 @@ object Environment {
     val lurker = actorSystem.actorOf(Props(new Lurker(actorSystem.deadLetters, artifactServer, stateStream)), "Lurker")
     val threshold = actorSystem.actorOf(Props(new Threshold(ProcesssImpl)), "Threshold")
     val watcher = actorSystem.actorOf(Props(new Watcher(threshold, keepers, lurker, stateStream)), "Watcher")
+    actorSystem.actorOf(Props[BabbleServer], "BabbleServer")
     actorSystem.scheduler.schedule(1 minute, 5 minutes, watcher, 'Wake)
     actorSystem.scheduler.schedule(2 minutes, 2 minutes, watcher, 'Close)
     actorSystem.scheduler.schedule(10 minutes, 10 minutes, watcher, 'Unlockable)

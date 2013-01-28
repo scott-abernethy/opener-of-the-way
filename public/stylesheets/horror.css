@@ -49,17 +49,20 @@
 .handy {
   cursor: pointer;
 }
+.handy:hover {
+  background-color: #eeeeee;
+}
 .s-present {
     color: #006400;
 }
 .s-cloning {
-    color: #ff4500;
+    color: #8a2be2;
 }
 .s-open {
-    color: #ff4500;
+    color: #8a2be2;
 }
 .s-transient {
-    color: #ff4500;
+    color: #8a2be2;
 }
 .s-lost {
     color: #a9a9a9;
@@ -67,6 +70,10 @@
 }
 .s-error {
     color: red;
+}
+.s-error-lost {
+    color: red;
+    text-decoration: line-through;
 }
 .header {
   margin-bottom: 2em;
@@ -94,9 +101,6 @@
 body {
   margin: 1em;
 }
-a {
-  color: #956380;
-}
 tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
 .nonelist ol {
 	margin:0;
@@ -109,20 +113,6 @@ tbody tr:nth-child(even) td, tbody tr.even td {background-color:transparent;}
 }
 .artifacts img {
     margin-top: 1px;
-}
-h1 {
-    color: #93a1a1;
-}
-h2 {
-    color: #93a1a1;
-}
-h3 {
-    color: #93a1a1;
-    margin-top: 1em;
-    margin-bottom: 0.6em;
-}
-h4 {
-    color: #93a1a1;
 }
 .stripmenu ul {
     display: inline;
@@ -294,22 +284,22 @@ h4 {
 /**
  * http://ethanschoonover.com/solarized
  */
-.solarized-base03 { color: #002b36; }
-.solarized-base02 { color: #073642; }
-.solarized-base01 { color: #586e75; }
-.solarized-base00 { color: #657b83; }
-.solarized-base0 { color: #839496; }
-.solarized-base1 { color: #93a1a1; }
-.solarized-base2 { color: #eee8d5; }
-.solarized-base3 { color: #fdf6e3; }
-.solarized-yellow { color: #b58900; }
-.solarized-orange { color: #cb4b16; }
-.solarized-red { color: #dc322f; }
-.solarized-magenta { color: #d33682; }
-.solarized-violet { color: #6c71c4; }
-.solarized-blue { color: #268bd2; }
-.solarized-cyan { color: #2aa198; }
-.solarized-green { color: #859900; }
+/*.solarized-base03 { color: #002b36; }*/
+/*.solarized-base02 { color: #073642; }*/
+/*.solarized-base01 { color: #586e75; }*/
+/*.solarized-base00 { color: #657b83; }*/
+/*.solarized-base0 { color: #839496; }*/
+/*.solarized-base1 { color: #93a1a1; }*/
+/*.solarized-base2 { color: #eee8d5; }*/
+/*.solarized-base3 { color: #fdf6e3; }*/
+/*.solarized-yellow { color: #b58900; }*/
+/*.solarized-orange { color: #cb4b16; }*/
+/*.solarized-red { color: #dc322f; }*/
+/*.solarized-magenta { color: #d33682; }*/
+/*.solarized-violet { color: #6c71c4; }*/
+/*.solarized-blue { color: #268bd2; }*/
+/*.solarized-cyan { color: #2aa198; }*/
+/*.solarized-green { color: #859900; }*/
 
 /*
  from bf96b8
@@ -327,32 +317,6 @@ A3BF95
 95BFB1
  */
 
-
-/* Stolen from bootstrap css - Move to bootstrap soon */
-.label {
-padding: 1px 3px 2px;
-font-size: 9.75px;
-font-weight: bold;
-color: white;
-text-transform: uppercase;
-white-space: nowrap;
-background-color: #BFBFBF;
--webkit-border-radius: 3px;
--moz-border-radius: 3px;
-border-radius: 3px;
-}
-.label-warning {
-background-color: #F89406;
-}
-.label-important {
-background-color: #C43C35;
-}
-.label-notice {
-background-color: #62CFFC;
-}
-.label-success {
-background-color: #46A546;
-}
 .sigal {
   padding: 1px 3px 2px;
   font-size: 9.75px;

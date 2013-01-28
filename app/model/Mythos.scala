@@ -13,6 +13,7 @@ object Mythos extends Schema {
   val artifacts = table[Artifact]
   val clones = table[Clone]
   val presences = table[Presence]
+  val pseudonyms = table[Pseudonym]
 
   on(cultists)(c => declare(
     c.email is(indexed, unique)

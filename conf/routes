@@ -5,6 +5,7 @@
 # Home page
 GET     /                           controllers.Application.index
 GET     /stream                     controllers.Application.stream
+GET     /tome                       controllers.Application.tome
 
 # Artifacts
 GET     /artifact/log               controllers.Artifacts.log
@@ -23,6 +24,10 @@ GET     /cultist/become             controllers.Cultists.become(id: Long)
 GET     /approach                   controllers.Cultists.approach
 POST    /approach                   controllers.Cultists.approachSubmit
 GET     /withdraw                   controllers.Cultists.withdraw
+
+# Babble
+GET     /babble                     controllers.Babbling.list
+POST    /babble                     controllers.Babbling.add
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

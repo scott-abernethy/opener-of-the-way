@@ -107,3 +107,19 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
   ArtifactSocket.subscribe(unawaiting, "ArtifactCloned");
 }
 
+BabbleCtrl.$inject = ['$http', '$scope', 'Babble', 'ArtifactSocket'];
+function BabbleCtrl($http, $scope, Babble, ArtifactSocket) {
+  $scope.babblings = Babble.query();
+  $scope.addBabble = function() {
+    $http.post('babble', {'text': $scope.babbleText});
+    $scope.babbleText = '';
+  };
+
+  var append = function(b) {
+    $scope.babblings.unshift(b)
+    $scope.$digest();
+  }
+
+  ArtifactSocket.subscribe(append, "BabbleAdd");
+}
+

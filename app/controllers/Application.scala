@@ -14,12 +14,18 @@ object Application extends Controller with Permission {
     Ok(views.html.index())
   }
 
+  def tome = PermittedAction { request =>
+    Ok(views.html.tome())
+  }
+
   def stream() =
     WebSocket.async[JsValue] {
       request =>
         getCultistId(request).map { cultistId =>
+          Logger.debug("Stream socket request for " + cultistId)
           StateStream.follow(cultistId)
         }.getOrElse{
+          Logger.warn("Unauthorized stream socket request!")
           Future(ConcurrentUtil.errorSocket("Unauthorized"))
         }
     }

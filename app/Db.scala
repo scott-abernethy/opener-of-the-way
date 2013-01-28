@@ -64,6 +64,19 @@ trait Db {
 //      case Props.RunModes.Development =>
 //        clear
         transaction {
+
+          val p1 = new Pseudonym
+          p1.name = "Oneman"
+          val p2 = new Pseudonym
+          p2.name = "Twofoo"
+          val p3 = new Pseudonym
+          p3.name = "Threepeet"
+          val p4 = new Pseudonym
+          p4.name = "Fournith"
+          val p5 = new Pseudonym
+          p5.name = "Fivv"
+          Mythos.pseudonyms.insert(List(p1, p2, p3, p4, p5))
+
           val c1 = new Cultist
           c1.email = "foo@bar.com"
           c1.password = "foo"
@@ -71,15 +84,20 @@ trait Db {
           val c2 = new Cultist
           c2.email = "two@bar.com"
           c2.password = "two"
-          c2.expired = true
+          c2.expired = false
           val c3 = new Cultist
           c3.email = "fee@bar.com"
           c3.password = "fi"
           c3.expired = false
+          val c4 = new Cultist
+          c4.email = "four@bar.com"
+          c4.password = "c4"
+          c4.expired = true
 
           val foo = Mythos.cultists.insert(c1)
           val two = Mythos.cultists.insert(c2)
           val fee = Mythos.cultists.insert(c3)
+          Mythos.cultists.insert(c4)
 
           var g1: Gateway = new Gateway
           g1.cultistId = foo.id

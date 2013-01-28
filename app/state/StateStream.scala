@@ -1,7 +1,7 @@
 package state
 
 import _root_.util.ConcurrentUtil
-import akka.actor.{ActorRef, Actor, Props}
+import akka.actor.{Terminated, ActorRef, Actor, Props}
 import model._
 import concurrent.Future
 import play.api.libs.iteratee._
@@ -9,31 +9,45 @@ import play.api.libs.json._
 import akka.pattern.Patterns
 import concurrent.ExecutionContext.Implicits.global
 import controllers.Artifacts
-import play.Logger
+import play.api.Logger
 import comet.{FlushAllGateways, ChangedGateway, ChangedGateways, ToState}
 import concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
 
 case class Follow(cultistId: Long)
+case class Stream(id: Long)
 
 case class Streaming(id: Long, out: Enumerator[JsValue])
 
-case class Quit(id: Long)
+case class Quit(cultistId: Long, id: Long)
+case class StopStream(id: Long)
 
 class StateStream extends Actor {
 
+  var nextId: Long = 0L
   var streams = Map.empty[Long, ActorRef]
+
+
+  override def preStart() {
+    super.preStart()
+    Logger.debug(self + " started")
+  }
 
   def receive = {
     case Follow(cid) => {
+      val id = nextId
+      nextId = nextId + 1
       val ref = streams.get(cid).getOrElse {
         val x = context.actorOf(Props[CultistStream])
+        context.watch(x)
         streams = streams + (cid -> x)
         x
       }
 
-      val streamingFuture = Patterns.ask(ref, 'Channel, 10000L).map {
-        case CultistStreamReady(channel) => Streaming(cid, channel)
+      // There is a chance that the follow request comes in exactly 10 seconds later, as the stream quits but before termination notification has been received.
+
+      val streamingFuture = Patterns.ask(ref, Stream(id), 10000L).map {
+        case CultistStreamReady(channel) => Streaming(id, channel)
       }
 
       Patterns.pipe(streamingFuture, context.dispatcher).to(sender)
@@ -78,13 +92,20 @@ class StateStream extends Actor {
     case ChangedGateways(cultistId) => {
       unicast(cultistId, gatewaysMsg)
     }
-    case Quit(cid) => {
+    case Babble(who, text) => {
+      broadcast(_ => Json.obj("type" -> "BabbleAdd", "message" -> Json.obj("who" -> who, "text" -> text)))
+    }
+    case Quit(cid, id) => {
       streams.get(cid) match {
         case Some(ref) => {
-          ref ! 'QuitLater
+          ref ! StopStream(id)
         }
         case _ => {}
       }
+    }
+    case Terminated(t) => {
+      Logger.debug("Terminated " + t)
+      streams = streams.filter( x => !t.equals(x._2) )
     }
     case other => {
       unhandled(other)
@@ -113,21 +134,24 @@ case class CultistStreamReady(channel: Enumerator[JsValue])
 
 class CultistStream extends Actor {
 
-  var streaming = true
+  var followers = Set.empty[Long]
   lazy val channel = Concurrent.broadcast[JsValue]
 
   def receive = {
-    case 'Channel => {
-      streaming = true
+    case Stream(id) => {
+      followers = followers + id
+      Logger.debug("Cultist stream start " + id + " now " + followers)
       sender ! CultistStreamReady(channel._1)
     }
-    case 'QuitLater => {
-      streaming = false
-      context.system.scheduler.scheduleOnce(FiniteDuration.apply(10, TimeUnit.SECONDS), self, 'Quit)
+    case StopStream(id) => {
+      followers = followers - id
+      Logger.debug("Cultist stream stop " + id + " now " + followers)
+      context.system.scheduler.scheduleOnce(FiniteDuration.apply(60, TimeUnit.SECONDS), self, 'Quit)
     }
     case 'Quit => {
-      if (!streaming) {
+      if (followers.isEmpty) {
         context.stop(self)
+        Logger.debug("Cultist stream quit " + self)
       }
     }
     case json: JsValue => {
@@ -147,14 +171,15 @@ object StateStream {
     Patterns.ask(stream, Follow(cultistId), 10000l).map {
       case Streaming(id, enumerator) => {
         val iteratee = Iteratee.foreach[JsValue] { event =>
-          println("Stream input ignored " + event)
+          Logger.debug("Stream " + id + " input ignored " + event)
         }.mapDone { _ =>
-           println("Stream quit " + id)
-           stream ! Quit(id)
+          Logger.debug("Stream " + id + " quit")
+          stream ! Quit(cultistId, id)
         }
         (iteratee, enumerator)
       }
       case other => {
+        Logger.warn("Stream follow failure")
         ConcurrentUtil.errorSocket("Follow failure")
       }
     }

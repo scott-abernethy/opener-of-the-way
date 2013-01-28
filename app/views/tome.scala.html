@@ -1,0 +1,103 @@
+@()
+
+@full("Tome", 'Tome) {
+  <div class="row">
+    <div class="span6">
+      <h2>On oOoo*</h2>
+      <ol>
+        <li>There is no oOoo*</li>
+      </ol>
+      <h2>On gateways</h2>
+      <ol>
+        <li>Gateways are encrypted TrueCrypt volumes shared on the local network.</li>
+        <li>
+          Source gateways are used to proffer (share) artifacts (files) to other cultists (users)
+          <ul>
+            <li>Used in a read only mode.</li>
+            <li>Opened regularly to scan for newly proffered artifacts.</li>
+            <li>
+              Artifacts are available for other cultists to clone only while the original is available in your source gateway.
+            </li>
+            <li>
+              Some artifacts are ignored:
+              <ul>
+                <li>Any files under the following special folders: <code>/clones/</code> or <code>/ignored/</code></li>
+                <li>
+                  Any hidden files (prefixed with a &quot;.&quot; character), for example <code>
+                  /.Trash-41231/Deleted-file.txt
+                </code> or <code>/.settings</code>
+                </li>
+                <li>Known system files, for example <code>/System Volume Information/</code> or <code>/Recycled</code></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <li>
+          Sink gateways are used to clone (copy) artifacts (files) that were proffered (shared) by other cultists (users).
+          <ul>
+            <li>Used in a write only mode.</li>
+            <li>Opened only to clone artifacts.</li>
+            <li>Cloned artifacts are placed under the folder <code>/clones/</code></li>
+          </ul>
+        </li>
+        <li>In this way artifacts are never stored on disk in plain-text.</li>
+        <li>
+          Cultists should never locally mount a gateway TrueCrypt volume while oOoo* has the gateway open. To do so may cause corruption.
+        </li>
+      </ol>
+    </div>
+    <div class="span6">
+      <h3>On creating a gateway</h3>
+      <ol>
+        <li>
+          Create a (windows) network share, with appropriate permissions...
+          <ul>
+            <li>
+              Sink: The share must allow <em>write access</em> to &quot;Everyone&quot; if you wish to receive clones.
+            </li> <li>Source: The share must allow <em>read access</em> to &quot;Everyone&quot;.</li>
+          </ul>
+        </li>
+        <li>
+          Create a <a href="http://www.truecrypt.org/downloads">TrueCrypt 7</a> encrypted volume in that share, using the "create volume" wizard following the instructions below:
+          <ol>
+            <li>Create an encrypted file container</li>
+            <li>Standard TrueCrypt volume</li>
+            <li>
+              Volume location should be in the network-share created earlier, with any name. The name should be either obscure or the name of commonly large files such as: <code>
+              pc123.vmdk
+            </code> or <code>install.GHO</code> or <code>hiberfil.sys</code>
+            </li>
+            <li>Default encryption options</li>
+            <li>
+              Volume size should be fixed (as variable sized volumes can cause corruption), and recommend &gt;15GB size if possible (it will fill fast)
+            </li>
+            <li>FAT, NTFS, ext3, ext4 file systems are supported. With FAT you will be limited to &lt;4GB file size.</li>
+            <li>Format</li>
+          </ol>
+        </li>
+        <li>
+          Ensure the encrypted volume file has appropriate permissions...
+          <ul><li>Sink: <em>read-write</em> permissions</li> <li>Source: <em>read-only</em> permissions</li></ul>
+        </li>
+        <li>
+          In oOoo* <a href="/gateway/add">add a gateway</a> with these details, selecting the correct mode, source or sink, depending on the use.
+        </li>
+      </ol>
+      <h2>On avoiding insanity</h2>
+      <ol>
+        <li>
+          Cultists using Ubuntu should ensure that when removing unwanted files from a gateway that they permanently remove (e.g. shift-delete) the files, as otherwise the file is just moved to a hidden .Trash directory in the gateway root directory.
+        </li>
+        <li>
+          Cultists using Windows 7 may have clones fail repeatedly. If so this is likely due to a known Windows 7 issue. Please refer to <a href="http://alan.lamielle.net/2009/09/03/windows-7-nonpaged-pool-srv-error-2017">
+          http://alan.lamielle.net/2009/09/03/windows-7-nonpaged-pool-srv-error-2017
+        </a>
+        </li>
+        <li>
+          Gateways on USB disks may sometimes fail due to timeout in data send/receive. Recommend using USB 3.0 devices in a USB 3.0 SS compatible port (look for SS mark on USB port, super speed).
+        </li>
+        <li>Cultists code-names are plucked at random from the ether.</li>
+      </ol>
+    </div>
+  </div>
+}

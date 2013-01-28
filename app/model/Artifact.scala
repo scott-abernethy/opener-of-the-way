@@ -221,7 +221,7 @@ object ArtifactState extends Enumeration {
     case Some(ArtifactState.profferedLost) => ("icon-gift", "Proffered, lost", "s-lost")
     case Some(ArtifactState.profferedPresent) => ("icon-gift", "Proffered, present", "s-present")
     case Some(ArtifactState.awaiting) => ("icon-ok-circle", "Awaiting", "s-glimpsed")
-    case Some(ArtifactState.awaitingLost) => ("icon-ok-circle", "Awaiting, lost", "s-error")
+    case Some(ArtifactState.awaitingLost) => ("icon-ok-circle", "Awaiting, lost", "s-error-lost")
     case Some(ArtifactState.awaitingPresent) => ("icon-ok-sign", "Awaiting, present", "s-present")
     case Some(ArtifactState.glimpsed) => ("icon-circle-blank", "Glimpsed", "s-glimpsed")
     case Some(ArtifactState.lost) => ("icon-ban-circle", "Glimpsed, lost", "s-lost")
