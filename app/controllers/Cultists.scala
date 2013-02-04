@@ -4,8 +4,11 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import model.{ApproachSuccess, ApproachExpired, Cultist}
+import play.api.libs.json.Json
+import util.Permission
+import org.squeryl.PrimitiveTypeMode._
 
-object Cultists extends Controller {
+object Cultists extends Controller with Permission {
 
   val approachForm = Form(
     tuple(
@@ -42,5 +45,21 @@ object Cultists extends Controller {
 
   def withdraw = Action { request =>
     Redirect(routes.Cultists.approach()).withNewSession
+  }
+
+  def me = PermittedAction { request =>
+    transaction( Cultist.find(request.cultistId) ).map{ c =>
+      Ok(c.toJson)
+    }.getOrElse{
+      BadRequest
+    }
+  }
+
+  def who(id: Long) = Action { request =>
+    transaction( Cultist.find(id) ).map{ c =>
+      Ok(c.toJson)
+    }.getOrElse{
+      BadRequest
+    }
   }
 }

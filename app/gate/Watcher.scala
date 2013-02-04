@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
 case class Flush(gatewayId: Long)
-case class ScourAsap(gatewayId: Long, cultistId: Long)
+case class ScourAsap(cultistId: Long)
 case class Lock(cultistId: Long)
 case class Unlock(cultistId: Long)
 
@@ -164,14 +164,14 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
         }
       }
     }
-    case ScourAsap(gatewayId, cultistId) => {
+    case ScourAsap(cultistId) => {
       transaction {
         update(gateways)(g =>
-          where(g.id === gatewayId)
+          where(g.cultistId === cultistId and g.source === true)
           set(g.scourAsap := true)
         )
       }
-      gatewayServer ! ChangedGateway(gatewayId, cultistId)
+      gatewayServer ! ChangedGateways(cultistId)
       self ! 'Wake
     }
     case Lock(cultistId) => {

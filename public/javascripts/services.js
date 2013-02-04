@@ -55,6 +55,10 @@ angular.module('ootwServices', ['ngResource']).
         query: {method:'GET', params:{}, isArray:true}
       })
     }).
+    factory('Cultist', function($resource){
+      return $resource('cultist/:id', {id:-1}, {
+      })
+    }).
     factory('Cloned', function($resource){
       return $resource('clone/history', {}, {
         query: {method:'GET', params:{}, isArray:true}

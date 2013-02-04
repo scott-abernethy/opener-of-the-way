@@ -10,7 +10,7 @@ import java.sql.Timestamp
 import xml.{NodeSeq, Unparsed, Node}
 import gate.{Millis, T}
 import scala.util.matching.Regex
-import play.api.libs.json.Json
+import play.api.libs.json.{JsBoolean, Json}
 import concurrent.Future
 import util.FileUtil
 
@@ -58,10 +58,13 @@ class Gateway extends MythosObject {
   override def toString = "Gateway[" + location + "/" + path + "=" + source + sink + "]"
 
   def toJson = {
-    Json.obj(
+    val obj = Json.obj(
       "id" -> id,
       "path" -> path,
       "abbr" -> FileUtil.splitable(path),
+      "source" -> source,
+      "open" -> (state == GateState.open || state == GateState.transient),
+      "mode" -> Gateway.decode(source, sink),
       "icon" -> (if (state == GateState.open || state == GateState.transient) "icon-folder-open" else "icon-folder-close-alt"),
       "class" -> (state match {
         case GateState.open => "s-open"
@@ -70,6 +73,12 @@ class Gateway extends MythosObject {
         case _ => ""
       })
     )
+    if (source) {
+      obj + ("scourAsap" -> JsBoolean(scourAsap))
+    }
+    else {
+      obj
+    }
   }
 }
 
@@ -87,6 +96,10 @@ object Gateway {
     Mythos.gateways.deleteWhere(x => x.id === gateway.id and x.source === false)
   }
 
+  def save(gateway: Gateway) {
+    transaction( gateways.insertOrUpdate(gateway) )
+  }
+
   lazy val scourPeriod = Millis.hours(4)
   lazy val reopenTestAfter = Millis.minutes(30)
   lazy val rerequestableAfter = Millis.minutes(15)
@@ -101,14 +114,14 @@ object Gateway {
   val encodeModeMap = Map(
     "Source" -> (true, false),
     "Sink" -> (false, true),
-    "Source + Sink (beta)" -> (true, true),
+    "Source + Sink" -> (true, true),
     "Disabled" -> (false, false)
   )
 
   val decodeModeMap = Map(
     (true, false) -> "Source",
     (false, true) -> "Sink",
-    (true, true) -> "Source + Sink (beta)",
+    (true, true) -> "Source + Sink",
     (false, false) -> "Disabled"
   )
 

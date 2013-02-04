@@ -217,15 +217,15 @@ object ArtifactState extends Enumeration {
   }
 
   def info(state: Option[ArtifactState.Value]): (String, String, String) = state match {
-    case Some(ArtifactState.proffered) => ("icon-gift", "Proffered", "s-glimpsed")
+    case Some(ArtifactState.proffered) => ("icon-gift", "Proffered", "")
     case Some(ArtifactState.profferedLost) => ("icon-gift", "Proffered, lost", "s-lost")
-    case Some(ArtifactState.profferedPresent) => ("icon-gift", "Proffered, present", "s-present")
-    case Some(ArtifactState.awaiting) => ("icon-ok-circle", "Awaiting", "s-glimpsed")
+    case Some(ArtifactState.profferedPresent) => ("icon-gift", "Proffered, present", "")
+    case Some(ArtifactState.awaiting) => ("icon-ok-circle", "Awaiting", "s-awaiting")
     case Some(ArtifactState.awaitingLost) => ("icon-ok-circle", "Awaiting, lost", "s-error-lost")
-    case Some(ArtifactState.awaitingPresent) => ("icon-ok-sign", "Awaiting, present", "s-present")
-    case Some(ArtifactState.glimpsed) => ("icon-circle-blank", "Glimpsed", "s-glimpsed")
+    case Some(ArtifactState.awaitingPresent) => ("icon-ok-sign", "Awaiting, present", "s-awaiting")
+    case Some(ArtifactState.glimpsed) => ("icon-circle-blank", "Glimpsed", "")
     case Some(ArtifactState.lost) => ("icon-ban-circle", "Glimpsed, lost", "s-lost")
-    case Some(ArtifactState.present) => ("icon-circle", "Present", "s-present")
+    case Some(ArtifactState.present) => ("icon-circle", "Present", "")
     case Some(ArtifactState.cloning) => ("icon-cog icon-spin", "Cloning...", "s-cloning")
     case Some(ArtifactState.cloned) => ("icon-asterisk", "Cloned", "")
     case _ => ("icon-question-sign", "???", "s-error")

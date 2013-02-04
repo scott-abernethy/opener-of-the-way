@@ -28,13 +28,71 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
 }
 
-GatewayCtrl.$inject = ['$scope', 'Gateway', 'ArtifactSocket'];
-function GatewayCtrl($scope, Gateway, ArtifactSocket) {
-  $scope.gateways = Gateway.query();
+GatewayCtrl.$inject = ['$http', '$scope', 'Gateway', 'Cultist', 'ArtifactSocket'];
+function GatewayCtrl($http, $scope, Gateway, Cultist, ArtifactSocket) {
+  var scope = $scope;
+
+  var recalc = function() {
+    var open = false;
+    for (var i = 0; i < scope.gateways.length; i++) {
+      if (scope.gateways[i].open) {
+        open = true;
+        break;
+      }
+    }
+    if (open) {
+      scope.noteClass = "label-warning";
+      scope.isNote = true;
+      scope.noteTitle = "In Use!";
+      scope.noteText = "Please do not mount locally or disconnect network.";
+    }
+    else if (scope.locked) {
+      scope.noteClass = "label-success";
+      scope.isNote = true;
+      scope.noteTitle = "Locked";
+      scope.noteText = "The system will not attempt to access locked gateways, so they are safe to mount locally.";
+    }
+    else {
+      scope.noteClass = "";
+      scope.isNote = false;
+      scope.noteTitle = "-";
+      scope.noteText = "-";
+    }
+  }
+
+  scope.$watch('gateways', recalc);
+  scope.$watch('locked', recalc);
+
+  scope.locked = false;
+  scope.gateways = [];
+  recalc();
+
+  var gateways = Gateway.query(function() {
+    scope.gateways = gateways;
+  });
+  var cultist = Cultist.get(function() {
+    scope.locked = cultist.shut
+  });
+
+  scope.lock = function() {
+    scope.locked = true
+    $http.put('gateway/lock', {"enable": true})
+  };
+  scope.unlock = function() {
+    scope.locked = false
+    $http.put('gateway/lock', {"enable": false})
+  };
+  scope.scour = function() {
+    $http.put('gateway/scour')
+  };
 
   var update = function(gs) {
-    $scope.gateways = gs;
-    $scope.$digest();
+    scope.gateways = gs;
+    scope.$digest();
+
+    var cultist = Cultist.get(function() {
+      scope.locked = cultist.shut
+    });
   }
 
   ArtifactSocket.subscribe(update, "GatewayReload");

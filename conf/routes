@@ -18,9 +18,14 @@ GET     /clone/history              controllers.Clones.history
 
 # Gateways
 GET     /gateway                    controllers.Gateways.list
+POST    /gateway                    controllers.Gateways.add
+PUT     /gateway/lock               controllers.Gateways.lock
+PUT     /gateway/scour              controllers.Gateways.scour
 
 # Cultists
 GET     /cultist/become             controllers.Cultists.become(id: Long)
+GET     /cultist/-1                 controllers.Cultists.me
+GET     /cultist/:id                controllers.Cultists.who(id: Long)
 GET     /approach                   controllers.Cultists.approach
 POST    /approach                   controllers.Cultists.approachSubmit
 GET     /withdraw                   controllers.Cultists.withdraw

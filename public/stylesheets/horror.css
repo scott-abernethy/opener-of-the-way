@@ -15,8 +15,8 @@
     border-left: 1px solid #666666;
 }
 .bb-h2 {
-    font-size: 14px;
-    background-color: #cccccc;
+    font-size: 13px;
+    background-color: #bbbbbb;
     color: white;
     padding: 2px 4px;
 }
@@ -56,28 +56,35 @@
 .handy:hover {
   background-color: #eeeeee;
 }
-.s-present {
-    color: #006400;
+.s-awaiting {
+    color: #0088cc;
 }
 .s-cloning {
     color: #8a2be2;
 }
 .s-open {
-    color: #8a2be2;
+    color: #F89406;
 }
 .s-transient {
-    color: #8a2be2;
+    color: #F89406;
 }
 .s-lost {
     color: #a9a9a9;
     text-decoration: line-through;
 }
 .s-error {
-    color: red;
+    color: #B94A48;
 }
 .s-error-lost {
-    color: red;
+    color: #B94A48;
     text-decoration: line-through;
+}
+.alt-a {
+    color: black;
+}
+.alt-a:hover {
+    color: #0088cc;
+    text-decoration: none;
 }
 .header {
   margin-bottom: 2em;

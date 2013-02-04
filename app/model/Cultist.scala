@@ -11,8 +11,8 @@ import gate.T
 import java.sql.Timestamp
 import xml.Node
 import scala.util.matching.Regex
-import play.api.Play
-import play.api.Play.current
+import play.api.libs.json.Json
+import util.DatePresentation
 
 sealed abstract class ApproachResult
 case object ApproachSuccess extends ApproachResult
@@ -52,6 +52,14 @@ class Cultist extends MythosObject {
         ApproachSuccess
       }
     }
+  }
+
+  def toJson = {
+    Json.obj(
+      "id" -> id,
+      "shut" -> shut.isDefined,
+      "shutUntil" -> (shut.map(t => DatePresentation.atAbbreviation(t.getTime)).getOrElse("-").toString)
+    )
   }
 }
 
