@@ -1,5 +1,13 @@
 'use strict';
 
+NavCtrl.$inject = ['$scope', '$location'];
+function NavCtrl($scope, $location) {
+  $scope.isPage = function(page) {
+    var currentRoute = $location.path().substring(1) || 'home';
+    return page === currentRoute;
+  };
+}
+
 ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSocket'];
 function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   $scope.log = ArtifactLog.query();
@@ -165,8 +173,8 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
   ArtifactSocket.subscribe(unawaiting, "ArtifactCloned");
 }
 
-BabbleCtrl.$inject = ['$http', '$scope', 'Babble', 'ArtifactSocket'];
-function BabbleCtrl($http, $scope, Babble, ArtifactSocket) {
+BabbleCtrl.$inject = ['$http', '$scope', 'Babble', 'ArtifactSocket', '$location'];
+function BabbleCtrl($http, $scope, Babble, ArtifactSocket, $location) {
   $scope.babblings = Babble.query();
   $scope.addBabble = function() {
     $http.post('babble', {'text': $scope.babbleText});
@@ -174,7 +182,8 @@ function BabbleCtrl($http, $scope, Babble, ArtifactSocket) {
   };
 
   var append = function(b) {
-    $scope.babblings.unshift(b)
+    console.log($location.url());
+    $scope.babblings.unshift(b);
     $scope.$digest();
   }
 

@@ -22,11 +22,11 @@
   <body>
     <div class="container">
       <div class="row">
-        <div class="span4"><a href="/" class="alt-a"><i class="icon-cloud icon-4x"></i></a></div>
+        <div class="span4"><a href="#/home" class="alt-a"><i class="icon-cloud icon-4x"></i></a></div>
         <div class="span8">
-          <ul class="pull-right nav nav-pills">
-            <li @if(page == 'Home) { class="active" }><a href="@routes.Application.index()">Home</a></li>
-            <li @if(page == 'Tome) { class="active" }><a href="@routes.Application.tome()">Tome</a></li>
+          <ul class="pull-right nav nav-pills" ng-controller="NavCtrl">
+            <li ng-class="{active: isPage('home')}"><a href="#/home">Home</a></li>
+            <li ng-class="{active: isPage('tome')}"><a href="#/tome">Tome</a></li>
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cultist <b class="caret"></b></a>
               <ul class="dropdown-menu">

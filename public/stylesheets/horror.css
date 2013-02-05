@@ -56,11 +56,17 @@
 .handy:hover {
   background-color: #eeeeee;
 }
+a.no-a {
+  color: #333;
+}
+a.no-a:hover {
+  text-decoration: none;
+}
 .s-awaiting {
     color: #0088cc;
 }
 .s-cloning {
-    color: #8a2be2;
+    color: #F89406;
 }
 .s-open {
     color: #F89406;
@@ -80,7 +86,7 @@
     text-decoration: line-through;
 }
 .alt-a {
-    color: black;
+    color: #333;
 }
 .alt-a:hover {
     color: #0088cc;
