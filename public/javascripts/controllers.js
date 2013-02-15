@@ -190,3 +190,31 @@ function BabbleCtrl($http, $scope, Babble, ArtifactSocket, $location) {
   ArtifactSocket.subscribe(append, "BabbleAdd");
 }
 
+AddGatewayCtrl.$inject = ['$http', '$scope', '$location'];
+function AddGatewayCtrl($http, $scope, $location) {
+  $scope.modes = [
+    {name: "Disabled", source: false, sink: false},
+    {name: "Source", source: true, sink: false},
+    {name: "Sink", source: false, sink: true},
+    {name: "Source + Sink", source: true, sink: true}
+  ];
+  $scope.cleared = {};
+  $scope.saveError = false;
+
+  $scope.save = function(gateway) {
+    $http.post('/gateway', gateway).
+        success(function(data){
+          $location.path('#/home');
+        }).
+        error(function(data){
+          $scope.saveError = true;
+        });
+  };
+
+  $scope.cancel = function() {
+    $location.path('#/home');
+  };
+
+  $scope.gateway = angular.copy($scope.cleared);
+}
+

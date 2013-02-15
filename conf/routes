@@ -36,6 +36,7 @@ POST    /babble                     controllers.Babbling.add
 # Partials
 GET     /partials/home              controllers.Partials.home
 GET     /partials/tome              controllers.Partials.tome
+GET     /partials/gateway/add       controllers.Partials.addGateway
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

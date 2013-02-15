@@ -345,3 +345,16 @@ A3BF95
   -moz-border-radius: 3px;
   border-radius: 3px;
 }
+.css-form input.ng-invalid.ng-dirty {
+  background-color: #FA787E;
+}
+.css-form input.ng-valid.ng-dirty {
+  background-color: #78FA89;
+}
+.css-form select.ng-invalid.ng-dirty {
+  background-color: #FA787E;
+}
+
+.css-form select.ng-valid.ng-dirty {
+  background-color: #78FA89;
+}

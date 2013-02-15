@@ -23,14 +23,14 @@ object Gateways extends Controller with Permission {
 
   def add = PermittedAction(parse.json) { request =>
     val json: JsValue = request.body
-    (json \ "uri", json \ "path", json \ "password", json \ "mode") match {
-      case (JsString(uri), JsString(path), JsString(password), JsString(mode)) => {
+    (json \ "uri", json \ "path", json \ "password", json \ "mode" \ "source", json \ "mode" \ "sink") match {
+      case (JsString(uri), JsString(path), JsString(password), JsBoolean(source), JsBoolean(sink)) => {
         val gateway = new Gateway
         gateway.cultistId = 1L//request.cultistId
         gateway.location = uri.trim
         gateway.path = path.trim
         gateway.password = password.trim
-        val (source, sink) = Gateway.encodeModeMap.get(mode.trim).getOrElse((false, false))
+        //val (source, sink) = Gateway.encodeModeMap.get(mode.trim).getOrElse((false, false))
         gateway.source = source
         gateway.sink = sink
         Gateway.save(gateway)

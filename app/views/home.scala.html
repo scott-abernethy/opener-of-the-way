@@ -4,7 +4,7 @@
   <div class="span4">
     <div ng-controller="GatewayCtrl">
       <div class="bb-h"><i class="icon-hdd"></i> gateways <div class="pull-right btn-group">
-        <a class="btn btn-mini" title="Add a new gateway" href="gateway/add"><i class="icon-plus"></i></a>
+        <a class="btn btn-mini" title="Add a new gateway" href="#/gateway/add"><i class="icon-plus"></i></a>
         <button ng-show="!locked" class="btn btn-mini" ng-click="lock()" title="Shut and lock shut all of your gateways for a period of time"><i class="icon-unlock"></i></button>
         <button ng-show="locked" class="btn btn-mini" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
         <button class="btn btn-mini" ng-click="scour()" title="Check your source gateways for new artifacts"><i class="icon-refresh"></i></button>
