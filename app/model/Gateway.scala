@@ -60,11 +60,15 @@ class Gateway extends MythosObject {
   def toJson = {
     val obj = Json.obj(
       "id" -> id,
+      "uri" -> location,
       "path" -> path,
       "abbr" -> FileUtil.splitable(path),
-      "source" -> source,
       "open" -> (state == GateState.open || state == GateState.transient),
-      "mode" -> Gateway.decode(source, sink),
+      "mode" -> Json.obj(
+        "name" -> Gateway.decode(source, sink),
+        "source" -> source,
+        "sink" -> sink
+      ),
       "icon" -> (if (state == GateState.open || state == GateState.transient) "icon-folder-open" else "icon-folder-close-alt"),
       "class" -> (state match {
         case GateState.open => "s-open"

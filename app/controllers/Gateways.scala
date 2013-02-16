@@ -8,6 +8,7 @@ import concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import comet.ChangedGateway
 import gate.{Lock,Unlock,ScourAsap}
+import play.api.Logger
 
 object Gateways extends Controller with Permission {
 
@@ -26,20 +27,49 @@ object Gateways extends Controller with Permission {
     (json \ "uri", json \ "path", json \ "password", json \ "mode" \ "source", json \ "mode" \ "sink") match {
       case (JsString(uri), JsString(path), JsString(password), JsBoolean(source), JsBoolean(sink)) => {
         val gateway = new Gateway
-        gateway.cultistId = 1L//request.cultistId
+        gateway.cultistId = request.cultistId
         gateway.location = uri.trim
         gateway.path = path.trim
         gateway.password = password.trim
-        //val (source, sink) = Gateway.encodeModeMap.get(mode.trim).getOrElse((false, false))
         gateway.source = source
         gateway.sink = sink
         Gateway.save(gateway)
-        stream ! ChangedGateway(gateway.id, 1L/*request.cultistId*/)
+        stream ! ChangedGateway(gateway.id, request.cultistId)
         Ok("Ok")
       }
       case _ => {
         BadRequest
       }
+    }
+  }
+
+  def get(id: Long) = PermittedAction { request =>
+    val fGateway = Future( Gateway.find(id) )
+    Async {
+      fGateway.map{
+        case Some(g) if (g.cultistId == request.cultistId) => Ok(g.toJson)
+        case _ => BadRequest
+      }
+    }
+  }
+
+  def update(id: Long) = PermittedAction(parse.json) { request =>
+    val json: JsValue = request.body
+    (Gateway.find(id), json \ "uri", json \ "path", json \ "password", json \ "mode" \ "source", json \ "mode" \ "sink") match {
+      case (Some(g), JsString(uri), JsString(path), passwordJs, JsBoolean(source), JsBoolean(sink)) if (g.cultistId == request.cultistId) => {
+        g.location = uri.trim
+        g.path = path.trim
+        g.source = source
+        g.sink = sink
+        passwordJs match {
+          case JsString(password) if (password.trim.length > 0) => g.password = password.trim
+          case _ =>
+        }
+        Gateway.save(g)
+        stream ! ChangedGateway(g.id, request.cultistId)
+        Ok("Ok")
+      }
+      case _ => BadRequest
     }
   }
 

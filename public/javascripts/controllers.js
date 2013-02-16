@@ -200,6 +200,7 @@ function AddGatewayCtrl($http, $scope, $location) {
   ];
   $scope.cleared = {};
   $scope.saveError = false;
+  $scope.passwordRequired = true;
 
   $scope.save = function(gateway) {
     $http.post('/gateway', gateway).
@@ -216,5 +217,50 @@ function AddGatewayCtrl($http, $scope, $location) {
   };
 
   $scope.gateway = angular.copy($scope.cleared);
+}
+
+EditGatewayCtrl.$inject = ['$http', '$scope', '$location', '$routeParams', 'Gateway'];
+function EditGatewayCtrl($http, $scope, $location, $routeParams, Gateway) {
+  $scope.modes = [
+    {name: "Disabled", source: false, sink: false},
+    {name: "Source", source: true, sink: false},
+    {name: "Sink", source: false, sink: true},
+    {name: "Source + Sink", source: true, sink: true}
+  ];
+  $scope.gateway = Gateway.get({id:$routeParams.gatewayId}, function() {
+    var source = $scope.gateway.mode.source
+    var sink = $scope.gateway.mode.sink
+    if (source && sink) {
+      $scope.gateway.mode = $scope.modes[3];
+    }
+    else if (sink) {
+      $scope.gateway.mode = $scope.modes[2];
+    }
+    else if (source) {
+      $scope.gateway.mode = $scope.modes[1];
+    }
+    else {
+      $scope.gateway.mode = $scope.modes[0];
+    }
+  });
+  $scope.cleared = {};
+  $scope.saveError = false;
+  $scope.passwordRequired = false;
+
+  $scope.save = function(gateway) {
+    gateway.$save();
+    $location.path('#/home');
+    /*$http.post('/gateway', gateway).
+        success(function(data){
+          $location.path('#/home');
+        }).
+        error(function(data){
+          $scope.saveError = true;
+        });*/
+  };
+
+  $scope.cancel = function() {
+    $location.path('#/home');
+  };
 }
 

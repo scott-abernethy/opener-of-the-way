@@ -13,7 +13,11 @@ object Partials extends Controller {
   }
 
   def addGateway() = Action { request =>
-    Ok(views.html.addGateway())
+    Ok(views.html.addGateway("Add Gateway"))
+  }
+
+  def editGateway() = Action { request =>
+    Ok(views.html.addGateway("Edit Gateway"))
   }
 
 }

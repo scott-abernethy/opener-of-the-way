@@ -12,8 +12,8 @@
       <div class="bb-t">
         <div class="bb-h2" ng-show="isNote"><span class="label {{noteClass}}">{{noteTitle}}</span><span> {{noteText}}</span></div>
         <ol class="unstyled">
-          <a ng-href="gateway/{{gateway.id}}/edit" ng-repeat="gateway in gateways" class="no-a"><li class="bb-i handy" data-trigger="hover" data-placement="right" data-content="Hmm" data-original-title="{{gateway.path}}">
-            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span> <small>{{gateway.mode}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="icon-refresh"></i></span>
+          <a ng-href="#/gateway/{{gateway.id}}/edit" ng-repeat="gateway in gateways" class="no-a"><li class="bb-i handy">
+            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="icon-refresh"></i></span>
           </li></a>
           <li class="bb-i" ng-show="!gateways.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
         </ol>
@@ -42,7 +42,7 @@
     <div class="bb-t"><div ng-repeat="day in log">
       <div class="bb-h2">{{day.name}}</div>
       <ol class="unstyled">
-        <li class="bb-i handy" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{artifact.desc}}">
+        <li class="bb-i handy" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)">
           <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x"></i> {{artifact.abbr}}</span>
         </li>
       </ol>
@@ -53,7 +53,7 @@
     <div ng-controller="AwaitingCtrl">
       <div class="bb-h"><i class="icon-cogs"></i> awaiting</div>
       <div class="bb-t"><ol class="unstyled">
-        <li class="bb-i handy" ng-repeat="awaiting in awaitings" ng-click="artifactSelect(awaiting)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{awaiting.desc}}" >
+        <li class="bb-i handy" ng-repeat="awaiting in awaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.abbr}}</span>
         </li>
         <li class="bb-i" ng-show="!awaitings.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
@@ -63,7 +63,7 @@
       <div class="bb-h"><i class="icon-asterisk"></i> cloned</div>
       <div class="bb-t">
         <ol class="unstyled">
-          <li class="bb-i handy" ng-repeat="clone in cloned" ng-click="artifactSelect(clone)" data-trigger="hover" data-placement="right" data-content="Click to clone" data-original-title="{{clone.desc}}">
+          <li class="bb-i handy" ng-repeat="clone in cloned" ng-click="artifactSelect(clone)">
             <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x"></i> {{clone.abbr}}</span>
           </li>
           <li class="bb-i" ng-show="!cloned.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>

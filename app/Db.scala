@@ -101,7 +101,7 @@ trait Db {
 
           var g1: Gateway = new Gateway
           g1.cultistId = foo.id
-          g1.location = "10.16.15.43/public"
+          g1.location = "smb://10.16.15.43/public"
           g1.path = "foobar"
           g1.localPath = ""
           g1.password = "treesaregreen"
@@ -110,7 +110,7 @@ trait Db {
           g1 = Mythos.gateways.insert(g1)
           var g2: Gateway = new Gateway
           g2.cultistId = foo.id
-          g2.location = "10.16.15.43/public"
+          g2.location = "smb://10.16.15.43/public"
           g2.path = "foobar-sink"
           g2.localPath = ""
           g2.password = "treesaregreen"
@@ -119,7 +119,7 @@ trait Db {
           g2 = Mythos.gateways.insert(g2)
           var g3: Gateway = new Gateway
           g3.cultistId = two.id
-          g3.location = "10.16.15.43/public"
+          g3.location = "smb://10.16.15.43/public"
           g3.path = "frog/sheep/cow"
           g3.localPath = ""
           g3.password = "cowsaregreen"

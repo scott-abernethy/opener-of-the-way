@@ -18,6 +18,8 @@ GET     /clone/history              controllers.Clones.history
 # Gateways
 GET     /gateway                    controllers.Gateways.list
 POST    /gateway                    controllers.Gateways.add
+GET     /gateway/:id                controllers.Gateways.get(id: Long)
+POST    /gateway/:id                controllers.Gateways.update(id: Long)
 PUT     /gateway/lock               controllers.Gateways.lock
 PUT     /gateway/scour              controllers.Gateways.scour
 
@@ -37,6 +39,7 @@ POST    /babble                     controllers.Babbling.add
 GET     /partials/home              controllers.Partials.home
 GET     /partials/tome              controllers.Partials.tome
 GET     /partials/gateway/add       controllers.Partials.addGateway
+GET     /partials/gateway/edit      controllers.Partials.editGateway
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

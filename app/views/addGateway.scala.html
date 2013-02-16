@@ -1,5 +1,7 @@
-<div ng-controller="AddGatewayCtrl">
-  <h2> Add Gateway </h2>
+@(title: String)
+
+<div>
+  <h2>@title</h2>
   <div class="alert" ng-show="saveError">
     <strong>Error!</strong> Save operation failed.
   </div>
@@ -20,7 +22,7 @@
       <div class="control-group">
         <label class="control-label" for="inputPassword">TrueCrypt password</label>
         <div class="controls">
-          <input type="password" id="inputPassword" ng-model="gateway.password" required><span class="help-inline">No one else need know this password, so make it secure</span>
+          <input type="password" id="inputPassword" ng-model="gateway.password" ng-required="passwordRequired"><span class="help-inline">No one else need know this password, so make it secure</span>
         </div>
       </div>
       <div class="control-group">

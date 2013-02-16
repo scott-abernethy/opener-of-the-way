@@ -51,8 +51,7 @@ angular.module('ootwServices', ['ngResource']).
       });
     }).
     factory('Gateway', function($resource){
-      return $resource('gateway', {}, {
-        query: {method:'GET', params:{}, isArray:true}
+      return $resource('gateway/:id', {id: '@id'}, {
       })
     }).
     factory('Cultist', function($resource){
