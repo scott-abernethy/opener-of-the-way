@@ -36,70 +36,72 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
 }
 
-GatewayCtrl.$inject = ['$http', '$scope', 'Gateway', 'Cultist', 'ArtifactSocket'];
-function GatewayCtrl($http, $scope, Gateway, Cultist, ArtifactSocket) {
-  var scope = $scope;
-
+GatewayCtrl.$inject = ['$http', '$scope', '$location', 'Gateway', 'Cultist', 'ArtifactSocket'];
+function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket) {
   var recalc = function() {
     var open = false;
-    for (var i = 0; i < scope.gateways.length; i++) {
-      if (scope.gateways[i].open) {
+    for (var i = 0; i < $scope.gateways.length; i++) {
+      if ($scope.gateways[i].open) {
         open = true;
         break;
       }
     }
     if (open) {
-      scope.noteClass = "label-warning";
-      scope.isNote = true;
-      scope.noteTitle = "In Use!";
-      scope.noteText = "Please do not mount locally or disconnect network.";
+      $scope.noteClass = "label-warning";
+      $scope.isNote = true;
+      $scope.noteTitle = "In Use!";
+      $scope.noteText = "Please do not mount locally or disconnect network.";
     }
-    else if (scope.locked) {
-      scope.noteClass = "label-success";
-      scope.isNote = true;
-      scope.noteTitle = "Locked";
-      scope.noteText = "The system will not attempt to access locked gateways, so they are safe to mount locally.";
+    else if ($scope.locked) {
+      $scope.noteClass = "label-success";
+      $scope.isNote = true;
+      $scope.noteTitle = "Locked";
+      $scope.noteText = "The system will not attempt to access locked gateways, so they are safe to mount locally.";
     }
     else {
-      scope.noteClass = "";
-      scope.isNote = false;
-      scope.noteTitle = "-";
-      scope.noteText = "-";
+      $scope.noteClass = "";
+      $scope.isNote = false;
+      $scope.noteTitle = "-";
+      $scope.noteText = "-";
     }
   }
 
-  scope.$watch('gateways', recalc);
-  scope.$watch('locked', recalc);
+  $scope.$watch('gateways', recalc);
+  $scope.$watch('locked', recalc);
 
-  scope.locked = false;
-  scope.gateways = [];
+  $scope.locked = false;
+  $scope.gateways = [];
   recalc();
 
   var gateways = Gateway.query(function() {
-    scope.gateways = gateways;
+    $scope.gateways = gateways;
   });
   var cultist = Cultist.get(function() {
-    scope.locked = cultist.shut
+    $scope.locked = cultist.shut
   });
 
-  scope.lock = function() {
-    scope.locked = true
+  $scope.lock = function() {
+    $scope.locked = true
     $http.put('gateway/lock', {"enable": true})
   };
-  scope.unlock = function() {
-    scope.locked = false
+  $scope.unlock = function() {
+    $scope.locked = false
     $http.put('gateway/lock', {"enable": false})
   };
-  scope.scour = function() {
+  $scope.scour = function() {
     $http.put('gateway/scour')
+  };
+  $scope.gatewaySelect = function(gateway) {
+    var uri = '/gateway/'+gateway.id+'/edit';
+    $location.path(uri);
   };
 
   var update = function(gs) {
-    scope.gateways = gs;
-    scope.$digest();
+    $scope.gateways = gs;
+    $scope.$digest();
 
     var cultist = Cultist.get(function() {
-      scope.locked = cultist.shut
+      $scope.locked = cultist.shut
     });
   }
 
@@ -205,7 +207,7 @@ function AddGatewayCtrl($http, $scope, $location) {
   $scope.save = function(gateway) {
     $http.post('/gateway', gateway).
         success(function(data){
-          $location.path('#/home');
+          $location.path('/home');
         }).
         error(function(data){
           $scope.saveError = true;
@@ -213,7 +215,7 @@ function AddGatewayCtrl($http, $scope, $location) {
   };
 
   $scope.cancel = function() {
-    $location.path('#/home');
+    $location.path('/home');
   };
 
   $scope.gateway = angular.copy($scope.cleared);
@@ -249,7 +251,7 @@ function EditGatewayCtrl($http, $scope, $location, $routeParams, Gateway) {
 
   $scope.save = function(gateway) {
     gateway.$save();
-    $location.path('#/home');
+    $location.path('/home');
     /*$http.post('/gateway', gateway).
         success(function(data){
           $location.path('#/home');
@@ -260,7 +262,7 @@ function EditGatewayCtrl($http, $scope, $location, $routeParams, Gateway) {
   };
 
   $scope.cancel = function() {
-    $location.path('#/home');
+    $location.path('/home');
   };
 }
 

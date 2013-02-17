@@ -56,12 +56,6 @@
 .handy:hover {
   background-color: #eeeeee;
 }
-a.no-a {
-  color: #333;
-}
-a.no-a:hover {
-  text-decoration: none;
-}
 .s-awaiting {
     color: #0088cc;
 }

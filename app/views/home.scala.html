@@ -12,9 +12,9 @@
       <div class="bb-t">
         <div class="bb-h2" ng-show="isNote"><span class="label {{noteClass}}">{{noteTitle}}</span><span> {{noteText}}</span></div>
         <ol class="unstyled">
-          <a ng-href="#/gateway/{{gateway.id}}/edit" ng-repeat="gateway in gateways" class="no-a"><li class="bb-i handy">
-            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="icon-refresh"></i></span>
-          </li></a>
+          <li ng-repeat="gateway in gateways" class="bb-i handy" ng-click="gatewaySelect(gateway)">
+            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="s-open icon-refresh"></i></span>
+          </li>
           <li class="bb-i" ng-show="!gateways.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
         </ol>
       </div>
