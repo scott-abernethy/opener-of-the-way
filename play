@@ -3,4 +3,4 @@ if [ -z "$PLAY_HOME" ]; then
   PLAY_HOME=/opt/play
 fi
 export PATH=$PATH:$PLAY_HOME
-$PLAY_HOME/play -Dhttps.port=8443
+$PLAY_HOME/play -Dhttps.port=8443 -Dhttps.keyStore="/etc/ootw/keystore" -Dhttps.keyStorePassword="developmentonly"
