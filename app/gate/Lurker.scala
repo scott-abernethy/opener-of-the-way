@@ -11,9 +11,11 @@ import state.{ArtifactCreated, ArtifactTouched, ArtifactServer}
 import akka.event.Logging
 import akka.actor.{ActorRef, Actor}
 import play.api.Logger
+import java.sql.Timestamp
 
 case class WayFound(gateway: Gateway, localPath: String)
 case class WayLost(gateway: Gateway)
+case class AddArtifact(gatewayId: Long, path: String, length: Long, found: Timestamp)
 
 class Lurker(val manipulator: ActorRef, val artifactServer: ActorRef, val gatewayServer: ActorRef) extends Actor {
 
@@ -37,6 +39,10 @@ class Lurker(val manipulator: ActorRef, val artifactServer: ActorRef, val gatewa
               set(g.state := GateState.closed)
             ) )
             gatewayServer ! FlushAllGateways
+
+          case AddArtifact(gatewayId, path, length, found) => {
+            addArtifact(gatewayId, path, length, found)
+          }
 
           case Ping =>
             sender ! Pong
@@ -65,27 +71,7 @@ class Lurker(val manipulator: ActorRef, val artifactServer: ActorRef, val gatewa
 //        _._1.matches("^/?(ignored/|clones/|System Volume Information/|Recycled/|README|\\..+|\\$.+).*")).filterNot(_._1.matches("^.+(nfo/|nzb/|System Volume Information/|Recycled/|README|\\..+|\\$.+).*"))
       // TODO (when) do we remove missing files?
       filesFound.foreach { i =>
-        val path = i._1
-        val length = i._2
-        transaction {
-          from(g.artifacts)(a => where(a.path === path) select(a)).headOption match {
-            case Some(a) => {
-              a.witnessed = now
-              a.length = length
-              artifacts.update(a)
-              // TODO update ArtifactServer?
-            }
-            case None => {
-              val a = new Artifact
-              a.gatewayId = g.id
-              a.path = path
-              a.discovered = now
-              a.witnessed = now
-              a.length = length
-              artifactServer ! ArtifactTouched(ArtifactCreated, artifacts.insert(a).id)
-            }
-          }
-        }
+        addArtifact(g.id, i._1, i._2, now)
       }
       transaction {
         // TODO do this in Watcher instead?
@@ -98,7 +84,30 @@ class Lurker(val manipulator: ActorRef, val artifactServer: ActorRef, val gatewa
       gatewayServer ! ChangedGateway(g.id, g.cultistId)
     }
 
-    private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {
+
+  def addArtifact(gatewayId: Long, path: String, length: Long, found: Timestamp) {
+    transaction {
+      Artifact.findUnique(gatewayId, path) match {
+        case Some(a) => {
+          a.witnessed = found
+          a.length = length
+          artifacts.update(a)
+          // TODO update ArtifactServer?
+        }
+        case None => {
+          val a = new Artifact
+          a.gatewayId = gatewayId
+          a.path = path
+          a.discovered = found
+          a.witnessed = found
+          a.length = length
+          artifactServer ! ArtifactTouched(ArtifactCreated, artifacts.insert(a).id)
+        }
+      }
+    }
+  }
+
+  private def updateGate(g: Gateway, updater: (Gateway) => Gateway) {
       gateways.lookup(g.id) match {
         case Some(x) => gateways.update(updater(x))
         case _ => // oop

@@ -1,25 +1,32 @@
 package controllers
 
-import play.api.mvc.{Controller}
+import play.api.mvc.{Action, Controller}
 import play.api.libs.json.{JsBoolean, JsObject, Json}
 import model._
 import concurrent.Future
 import util.{Permission}
 import scala.concurrent.ExecutionContext.Implicits.global
 import state.{ArtifactUnawaiting, ArtifactTouched, ArtifactAwaiting}
-import gate.Summon
+import gate.{T, AddArtifact, Summon}
 
 object Artifacts extends Controller with Permission {
 
   lazy val artifactServer = Environment.actorSystem.actorFor("/user/ArtifactServer")
   lazy val summoner = Environment.actorSystem.actorFor("/user/Summoner")
   lazy val keepers = Environment.actorSystem.actorFor("/user/Keepers")
+  lazy val lurker = Environment.actorSystem.actorFor("/user/Lurker")
 
   def artifactWithStateJson(artifact: Artifact, state: Option[ArtifactState.Value]): JsObject = {
     artifact.toJson + ("state" -> ArtifactState.toJson(state)) + ("proffered" -> (state match {
       case Some(state) if ArtifactState.proffered_?(state) => JsBoolean(true)
       case _ => JsBoolean(false)
     }))
+  }
+
+  def add = Action(parse.json) { request =>
+    // TODO dev only
+    lurker ! AddArtifact(1, request.body \ "path" toString, 1234L, T.now)
+    Ok("Added")
   }
 
   def log = PermittedAction { request =>

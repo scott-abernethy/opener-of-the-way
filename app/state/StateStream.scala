@@ -13,6 +13,7 @@ import play.api.Logger
 import comet.{FlushAllGateways, ChangedGateway, ChangedGateways, ToState}
 import concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
+import java.util.Date
 
 case class Follow(cultistId: Long)
 case class Stream(id: Long)
@@ -55,7 +56,7 @@ class StateStream extends Actor {
     case pack @ ArtifactPack(change, _, ownerId, _, _) => {
       change match {
         case ArtifactCreated => {
-          broadcast(artifactMsg("ArtifactCreated", pack))
+          broadcast(artifactCreatedMsg(pack))
         }
         case ArtifactAwaiting(forCultistId) => {
           unicast(ownerId, artifactMsg("ArtifactUpdate", pack))
@@ -120,12 +121,29 @@ class StateStream extends Actor {
     streams.foreach{ case (cid, ref) => ref ! msg(cid) }
   }
 
+  def artifactCreatedMsg(pack: ArtifactPack)(cid: Long): JsObject = {
+    val group = ArtifactCloneSnapshot.groupName(new Date(pack.artifact.discovered.getTime))
+    Json.obj(
+      "type" -> "ArtifactCreated",
+      "message" -> Json.obj(
+        "group" -> group,
+        "artifact" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid))
+      )
+    )
+  }
+
   def artifactMsg(msgType: String, pack: ArtifactPack)(cid: Long): JsObject = {
-    Json.obj("type" -> msgType, "message" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid)))
+    Json.obj(
+      "type" -> msgType,
+      "message" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid))
+    )
   }
 
   def gatewaysMsg(cid: Long): JsObject = {
-    Json.obj("type" -> "GatewayReload", "message" -> Json.toJson(Gateway.forCultist(cid).map(_.toJson)))
+    Json.obj(
+      "type" -> "GatewayReload",
+      "message" -> Json.toJson(Gateway.forCultist(cid).map(_.toJson))
+    )
   }
 
 }

@@ -149,7 +149,16 @@ object Artifact {
   def find(id: Long): Option[Artifact] = inTransaction(artifacts.lookup(id))
 
   def all: List[Artifact] = inTransaction(from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path desc)).toList)
-  
+
+  def findUnique(gatewayId: Long, path: String): Option[Artifact] = {
+    inTransaction(
+      from(artifacts)(x =>
+        where(x.gatewayId === gatewayId and x.path === path)
+        select(x)
+      ).headOption
+    )
+  }
+
   lazy val viableSources: Query[Artifact] = from(artifacts, gateways)((a, g) =>
     where(a.gatewayId === g.id and g.state === GateState.open)
     select(a)

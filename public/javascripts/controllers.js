@@ -37,6 +37,21 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     $scope.$digest();
   }
 
+  var append = function(data) {
+    var group = data.group;
+    var artifact = data.artifact;
+    if ($scope.log[0].name == group) {
+      $scope.log[0].items.unshift(artifact);
+    }
+    else {
+      $scope.log.unshift({
+        name: group,
+        items: [artifact]
+      })
+    }
+    $scope.$digest();
+  };
+
   var noResults = {
     show: false,
     items: [],
@@ -76,6 +91,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
   ArtifactSocket.subscribe(update, "ArtifactUpdate");
   ArtifactSocket.subscribe(update, "ArtifactAwaiting");
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
+  ArtifactSocket.subscribe(append, "ArtifactCreated");
 
   $scope.clear();
 }
@@ -228,7 +244,6 @@ function BabbleCtrl($http, $scope, Babble, ArtifactSocket, $location) {
   };
 
   var append = function(b) {
-    console.log($location.url());
     $scope.babblings.unshift(b);
     $scope.$digest();
   }

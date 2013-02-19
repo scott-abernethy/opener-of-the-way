@@ -7,6 +7,7 @@ GET     /                           controllers.Application.index
 GET     /stream                     controllers.Application.stream
 
 # Artifacts
+POST    /artifact                   controllers.Artifacts.add
 GET     /artifact/log               controllers.Artifacts.log
 GET     /artifact/list              controllers.Artifacts.list(q: String ?= "")
 PUT     /artifact/:id/touch         controllers.Artifacts.touch(id: Long)

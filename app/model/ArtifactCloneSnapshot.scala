@@ -35,11 +35,7 @@ which does it's thing with a single DB round trip.
 case class ArtifactCloneInfo(state: ArtifactState.Value, clones: Int)
 
 class ArtifactCloneSnapshot(val notNewsAfter: Long) {
-  val dateF = {
-    val f = new SimpleDateFormat("yyyy-MM-dd")
-    f.setTimeZone(TimeZone.getDefault)
-    f
-  }
+
   var currentCultistId: Long = -1L
   var items: TreeMap[String, List[Artifact]] = new TreeMap[String, List[Artifact]]
   var states: Map[Long, ArtifactCloneInfo] = _
@@ -115,7 +111,7 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
       timestamp <- Option(a.discovered)
       time = new Date(timestamp.getTime)
     }
-    yield dateF.format(time)
+    yield ArtifactCloneSnapshot.groupName(time)
   }
 
   def latestDayGroup(): String = {
@@ -124,5 +120,13 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
 
   def indexForGroup(group: String): String = {
     group.substring(0, group.indexOf(','))
+  }
+}
+
+object ArtifactCloneSnapshot {
+  def groupName(time: Date): String = {
+    val f = new SimpleDateFormat("yyyy-MM-dd")
+    f.setTimeZone(TimeZone.getDefault)
+    f.format(time)
   }
 }
