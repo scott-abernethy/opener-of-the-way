@@ -1,15 +1,15 @@
 @()
 
 <div class="row">
-  <div class="span4">
+  <div class="span5">
     <div>
-      <div class="bb-h bb-h-important"><i class="icon-bullhorn"></i> notice</div>
+      <div class="bb-h bb-h-important"><i class="icon-bullhorn icon-large"></i> notice</div>
       <div class="bb-t">
         <div class="bb-i"><span class="label label-inverse">App Upgrade</span><span> Major changes have been made to the app, which in the long term will provide better performance, but in the short term will cause problems. Please bear with it as any issues are found and remedied.</span></div>
       </div>
     </div>
     <div ng-controller="GatewayCtrl">
-      <div class="bb-h"><i class="icon-hdd"></i> gateways <div class="pull-right btn-group">
+      <div class="bb-h"><i class="icon-hdd icon-large"></i> gateways <div class="pull-right btn-group">
         <a class="btn btn-mini" title="Add a new gateway" href="#/gateway/add"><i class="icon-plus"></i></a>
         <button ng-show="!locked" class="btn btn-mini" ng-click="lock()" title="Shut and lock shut all of your gateways for a period of time"><i class="icon-unlock"></i></button>
         <button ng-show="locked" class="btn btn-mini" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
@@ -27,12 +27,12 @@
     </div>
     <div ng-controller="BabbleCtrl">
       <div class="bb-h">
-        <div><i class="icon-comment-alt"></i> babblings</div>
+        <div><i class="icon-comment-alt icon-large"></i> babblings</div>
       </div>
       <div class="bb-t">
-        <form class="form-inline" ng-submit="addBabble()">
+        <div class="bb-i"><form class="form-inline" ng-submit="addBabble()">
           <input class="input-block-level" type="text" ng-model="babbleText" placeholder="Add your babblings here">
-        </form>
+        </form></div>
         <ol class="unstyled">
           <li class="bb-i" ng-repeat="babble in babblings">
             <span><span class="label">{{babble.who}}</span> {{babble.text}}</span>
@@ -43,12 +43,12 @@
     </div>
   </div>
 
-  <div ng-controller="ArtifactLogCtrl" class="span4">
-    <div class="bb-h"><i class="icon-cloud-download"></i> log</div>
+  <div ng-controller="ArtifactLogCtrl" class="span7">
+    <div class="bb-h"><i class="icon-cloud-download icon-large"></i> log</div>
     <div class="bb-t">
-      <form class="form-inline" ng-submit="search(searchText)">
+      <div class="bb-i"><form class="form-inline" ng-submit="search(searchText)">
         <input class="input-block-level" type="text" ng-model="searchText" placeholder="Search">
-      </form>
+      </form></div>
       <div ng-show="results.show">
         <div class="bb-h2"><span class="label label-info">Search</span> Results <button class="pull-right btn btn-mini" ng-click="clear()">Clear</button></div>
         <ol class="unstyled">
@@ -69,11 +69,8 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="span4">
     <div ng-controller="AwaitingCtrl">
-      <div class="bb-h"><i class="icon-cogs"></i> awaiting</div>
+      <div class="bb-h"><i class="icon-cogs icon-large"></i> awaiting</div>
       <div class="bb-t"><ol class="unstyled">
         <li class="bb-i handy" ng-repeat="awaiting in awaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.abbr}}</span>
@@ -82,7 +79,7 @@
       </ol></div>
     </div>
     <div ng-controller="ClonedCtrl">
-      <div class="bb-h"><i class="icon-asterisk"></i> cloned</div>
+      <div class="bb-h"><i class="icon-asterisk icon-large"></i> cloned</div>
       <div class="bb-t">
         <ol class="unstyled">
           <li class="bb-i handy" ng-repeat="clone in cloned" ng-click="artifactSelect(clone)">
