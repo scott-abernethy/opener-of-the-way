@@ -39,14 +39,30 @@
 
   <div ng-controller="ArtifactLogCtrl" class="span4">
     <div class="bb-h"><i class="icon-cloud-download"></i> log</div>
-    <div class="bb-t"><div ng-repeat="day in log">
-      <div class="bb-h2">{{day.name}}</div>
-      <ol class="unstyled">
-        <li class="bb-i handy" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)">
-          <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x"></i> {{artifact.abbr}}</span>
-        </li>
-      </ol>
-    </div></div>
+    <div class="bb-t">
+      <form class="form-inline" ng-submit="search(searchText)">
+        <input class="input-block-level" type="text" ng-model="searchText" placeholder="Search">
+      </form>
+      <div ng-show="results.show">
+        <div class="bb-h2"><span class="label label-info">Search</span> Results <button class="pull-right btn btn-mini" ng-click="clear()">Clear</button></div>
+        <ol class="unstyled">
+          <li class="bb-i" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in results.items" ng-click="artifactSelect(artifact)">
+            <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x"></i> {{artifact.abbr}}</span>
+          </li>
+          <li class="bb-i" ng-show="!results.items.length"><span class="muted"><i class="{{results.icon}} icon-2x"></i> {{results.desc}}</span></li>
+        </ol>
+      </div>
+      <div ng-show="!results.show">
+        <div ng-repeat="day in log">
+          <div class="bb-h2">{{day.name}}</div>
+          <ol class="unstyled">
+            <li class="bb-i" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)">
+              <span class="{{artifact.state.class}}"><i class="{{artifact.state.icon}} icon-2x"></i> {{artifact.abbr}}</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="span4">

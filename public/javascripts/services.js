@@ -50,6 +50,11 @@ angular.module('ootwServices', ['ngResource']).
         query: {method:'GET', params:{}, isArray:true}
       });
     }).
+    factory('ArtifactSearch', function($resource){
+      return $resource('artifact/list?q=:query', {}, {
+        query: {method:'GET', params:{query:'fake'}, isArray:true}
+      });
+    }).
     factory('Gateway', function($resource){
       return $resource('gateway/:id', {id: '@id'}, {
       })

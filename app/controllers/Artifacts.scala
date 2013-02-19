@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.mvc.{Controller}
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsBoolean, JsObject, Json}
 import model._
 import concurrent.Future
 import util.{Permission}
@@ -16,7 +16,10 @@ object Artifacts extends Controller with Permission {
   lazy val keepers = Environment.actorSystem.actorFor("/user/Keepers")
 
   def artifactWithStateJson(artifact: Artifact, state: Option[ArtifactState.Value]): JsObject = {
-    artifact.toJson + ("state" -> ArtifactState.toJson(state))
+    artifact.toJson + ("state" -> ArtifactState.toJson(state)) + ("proffered" -> (state match {
+      case Some(state) if ArtifactState.proffered_?(state) => JsBoolean(true)
+      case _ => JsBoolean(false)
+    }))
   }
 
   def log = PermittedAction { request =>
@@ -36,11 +39,7 @@ object Artifacts extends Controller with Permission {
 
   def list(q: String) = PermittedAction { request =>
     val items = new ArtifactCloneSearchFactory().create(request.cultistId, q)
-    Ok(Json.obj(
-      "q" -> q,
-      "size" -> items.size,
-      "items" -> items.map(_._1.toJson)
-    ))
+    Ok(Json.toJson(items.map(x => artifactWithStateJson(x._1, x._2))))
   }
 
   def touch(id: Long) = PermittedAction { request =>

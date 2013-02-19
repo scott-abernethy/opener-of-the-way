@@ -8,11 +8,13 @@ function NavCtrl($scope, $location) {
   };
 }
 
-ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSocket'];
-function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
+ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSearch', 'ArtifactSocket'];
+function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSocket) {
   $scope.log = ArtifactLog.query();
   $scope.artifactSelect = function(artifact) {
-    $http.put('artifact/' + artifact.id + '/touch')
+    if (!artifact.proffered) {
+      $http.put('artifact/' + artifact.id + '/touch')
+    }
   };
 
   var update = function(a) {
@@ -25,8 +27,48 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
         }
       }
     }
+
+    for (var k = 0; k < $scope.results.items.length; k++) {
+      var item = $scope.results.items[k];
+      if (item.id == a.id) {
+        $scope.results.items[k] = a;
+      }
+    }
     $scope.$digest();
   }
+
+  var noResults = {
+    show: false,
+    items: [],
+    icon: "icon-minus",
+    desc: "None"
+  };
+
+  $scope.search = function(text) {
+    if (text) {
+      $scope.results = {
+        show: true,
+        items: [],
+        icon: "icon-spinner icon-spin",
+        desc: "Searching..."
+      };
+      var data = ArtifactSearch.query({query:text}, function(result) {
+        $scope.results = {
+          show: true,
+          items: data,
+          icon: "icon-minus",
+          desc: "None"
+        }
+      });
+    }
+    else {
+      $scope.results = noResults;
+    }
+  };
+  $scope.clear = function() {
+    $scope.searchText = "";
+    $scope.results = noResults;
+  };
 
   ArtifactSocket.subscribe(update, "ArtifactCloning");
   ArtifactSocket.subscribe(update, "ArtifactCloneFailed");
@@ -34,6 +76,8 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactUpdate");
   ArtifactSocket.subscribe(update, "ArtifactAwaiting");
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
+
+  $scope.clear();
 }
 
 GatewayCtrl.$inject = ['$http', '$scope', '$location', 'Gateway', 'Cultist', 'ArtifactSocket'];
