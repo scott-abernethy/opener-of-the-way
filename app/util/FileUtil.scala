@@ -11,6 +11,7 @@ object FileUtil {
   val zeroWidthSpace = " "
 
   def splitable(in: String): String = {
-    in.replaceAll("\\.", "." + zeroWidthSpace).replaceAll("_", "_" + zeroWidthSpace).replaceAll("/", "/" + zeroWidthSpace)
+    //in.replaceAll("\\.", "." + zeroWidthSpace).replaceAll("_", "_" + zeroWidthSpace).replaceAll("/", "/" + zeroWidthSpace)
+    in
   }
 }

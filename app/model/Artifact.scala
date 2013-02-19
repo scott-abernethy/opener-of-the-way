@@ -139,8 +139,8 @@ class Artifact extends MythosObject {
   def toJson: JsObject = {
     Json.obj(
       "id" -> id,
-      "abbr" -> FileUtil.splitable(description),
-      "desc" -> FileUtil.splitable(description)
+      "abbr" -> description,
+      "desc" -> description
     )
   }
 }

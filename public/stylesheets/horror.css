@@ -45,6 +45,7 @@
   margin: 0;
     padding: 2px 4px;
     border-top: 1px #e8eed5 solid;
+    overflow-wrap: break-word;
 }
 .bb-t form {
   margin: 0px;
