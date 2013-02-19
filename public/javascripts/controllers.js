@@ -106,29 +106,12 @@ function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket)
         break;
       }
     }
-    if (open) {
-      $scope.noteClass = "label-warning";
-      $scope.isNote = true;
-      $scope.noteTitle = "In Use!";
-      $scope.noteText = "Please do not mount locally or disconnect network.";
-    }
-    else if ($scope.locked) {
-      $scope.noteClass = "label-success";
-      $scope.isNote = true;
-      $scope.noteTitle = "Locked";
-      $scope.noteText = "The system will not attempt to access locked gateways, so they are safe to mount locally.";
-    }
-    else {
-      $scope.noteClass = "";
-      $scope.isNote = false;
-      $scope.noteTitle = "-";
-      $scope.noteText = "-";
-    }
-  }
-
+    $scope.open = open;
+  };
   $scope.$watch('gateways', recalc);
   $scope.$watch('locked', recalc);
 
+  $scope.open = false;
   $scope.locked = false;
   $scope.gateways = [];
   recalc();

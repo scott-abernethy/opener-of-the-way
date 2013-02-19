@@ -357,3 +357,6 @@ A3BF95
 .css-form select.ng-valid.ng-dirty {
   background-color: #78FA89;
 }
+.footer {
+  margin-top: 2em;
+}

@@ -11,12 +11,13 @@
     <div ng-controller="GatewayCtrl">
       <div class="bb-h"><i class="icon-hdd icon-large"></i> gateways <div class="pull-right btn-group">
         <a class="btn btn-mini" title="Add a new gateway" href="#/gateway/add"><i class="icon-plus"></i></a>
-        <button ng-show="!locked" class="btn btn-mini" ng-click="lock()" title="Shut and lock shut all of your gateways for a period of time"><i class="icon-unlock"></i></button>
+        <button ng-show="!locked" class="btn btn-mini" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
         <button ng-show="locked" class="btn btn-mini" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
         <button class="btn btn-mini" ng-click="scour()" title="Check your source gateways for new artifacts"><i class="icon-refresh"></i></button>
       </div></div>
       <div class="bb-t">
-        <div class="bb-h2" ng-show="isNote"><span class="label {{noteClass}}">{{noteTitle}}</span><span> {{noteText}}</span></div>
+        <div class="bb-h2" ng-show="open"><span class="label label-warning">In Use!</span><span ng-show="open && locked"> <span class="label">Waiting to Lock</span></span> Please do not mount truecrypt volume locally or disconnect network.</div>
+        <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-mini" ng-click="unlock()">Cancel</button></div>
         <ol class="unstyled">
           <li ng-repeat="gateway in gateways" class="bb-i handy" ng-click="gatewaySelect(gateway)">
             <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.abbr}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="s-open icon-refresh"></i></span>
@@ -67,6 +68,7 @@
             </li>
           </ol>
         </div>
+        <div class="bb-h2">Only showing 7 days history <button class="pull-right btn btn-mini" ng-click="search('*')">Show All</button></div>
       </div>
     </div>
     <div ng-controller="AwaitingCtrl">
@@ -90,4 +92,7 @@
       </div>
     </div>
   </div>
+</div>
+<div class="row footer">
+  <div class="span12 text-center"><span class="muted">Best viewed with Google Chrome.</span></div>
 </div>
