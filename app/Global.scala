@@ -19,8 +19,6 @@ object Global extends GlobalSettings {
 
     val data = new Db{}
     data.init
-    data.clear
-    data.populate
     db = Some(data)
 
     Environment.start
