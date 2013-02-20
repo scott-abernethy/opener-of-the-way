@@ -5,12 +5,8 @@ import model._
 import play.Logger
 import org.squeryl.PrimitiveTypeMode._
 import Watcher._
-import gate.FinishedCloning
 import scala.Some
 import akka.actor.Terminated
-import gate.StartCloning
-import gate.FinishedPresenting
-import gate.StartPresenting
 import gate.KeeperRouterApi.ToAll
 
 object KeeperApi {

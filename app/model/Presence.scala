@@ -5,6 +5,8 @@ import java.sql.Timestamp
 import gate.T
 import org.squeryl.Query
 import org.squeryl.PrimitiveTypeMode._
+import play.api.Play
+import play.api.Play.current
 
 class Presence extends MythosObject {
   var artifactId: Long = 0
@@ -45,9 +47,9 @@ object Presence {
     )
   }
 
-  // Set this in properties file? YES AS THEN DON'T NEED TO CHANGE TEST EVERY TIME.
-  lazy val gigaByteLength = 1024L * 1024 * 1024;
-  lazy val maxPresenceLength = gigaByteLength * 320
+  lazy val megaByteLength = 1024L * 1024;
+  lazy val gigaByteLength = megaByteLength * 1024;
+  lazy val maxPresenceLength = megaByteLength * Play.configuration.getLong("presence.storage").getOrElse(1024L)
 }
 
 object PresenceState extends Enumeration {
