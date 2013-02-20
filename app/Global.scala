@@ -10,6 +10,12 @@ object Global extends GlobalSettings {
     super.beforeStart(app)
 
     Logger.info("It is coming")
+  }
+
+  override def onStart(app: Application) {
+    super.onStart(app)
+
+    Logger.info("It is here")
 
     val data = new Db{}
     data.init
@@ -18,12 +24,6 @@ object Global extends GlobalSettings {
     db = Some(data)
 
     Environment.start
-  }
-
-  override def onStart(app: Application) {
-    super.onStart(app)
-
-    Logger.info("It is here")
   }
 
   override def onStop(app: Application) {

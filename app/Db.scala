@@ -5,41 +5,14 @@ import model._
 import org.squeryl._
 import internals.DatabaseAdapter
 import org.squeryl.PrimitiveTypeMode._
-import com.mchange.v2.c3p0.ComboPooledDataSource
+import play.api.Play
+import play.api.Play.current
 
 trait Db {
-  lazy val driver = "org.h2.Driver" //Props.get("db.driver") openOr "org.h2.Driver"
-  lazy val adapter = "org.squeryl.adapters.H2Adapter" //Props.get("db.adapter") openOr "org.squeryl.adapters.H2Adapter"
-  lazy val url = "jdbc:h2:test" //Props.get("db.url") openOr "jdbc:h2:test"
-  lazy val user = "" //Props.get("db.user") openOr ""
-  lazy val password = "" //Props.get("db.password") openOr ""
-
-  lazy val pool = {
-    // Connection pooling with c3p0
-    val pool = new ComboPooledDataSource
-    pool.setDriverClass(driver)
-    pool.setJdbcUrl(url)
-    pool.setUser(user)
-    pool.setPassword(password)
-    pool.setMinPoolSize(3)
-    pool.setAcquireIncrement(1)
-    pool.setMaxPoolSize(10)
-
-    // Work around MySQL connection timeouts.
-    pool.setMaxIdleTime(1 * 60 * 60) // 1 hour
-    pool.setMaxConnectionAge(6 * 60 * 60) // 6 hours
-    pool.setIdleConnectionTestPeriod(1 * 60 * 60) // 1 hour
-    pool.setPreferredTestQuery("SELECT 1")
-    pool.setAcquireRetryAttempts(30)
-    pool.setAcquireRetryDelay(1000) // 1 second (this setting is in millis)
-
-    pool
-  }
-
   def init {
-    Class.forName(driver)
+    val adapter = Play.configuration.getString("db.default.adapter").getOrElse("org.squeryl.adapters.H2Adapter")
     val adapterInstance: DatabaseAdapter = Class.forName(adapter).newInstance.asInstanceOf[DatabaseAdapter]
-    SessionFactory.concreteFactory = Some(() => Session.create(pool.getConnection, adapterInstance))
+    SessionFactory.concreteFactory = Some(() => Session.create(play.api.db.DB.getConnection(), adapterInstance))
   }
 
   def clear {
@@ -50,7 +23,7 @@ trait Db {
   }
 
   def close {
-    pool.close()
+    // do nothing, I guess play handles it.
   }
 
   def describe {

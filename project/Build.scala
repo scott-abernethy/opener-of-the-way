@@ -8,13 +8,12 @@ object ApplicationBuild extends Build {
   val appVersion      = "0.7.0"
 
   val appDependencies = Seq(
+    jdbc,
     // Add your project dependencies here,
     //"com.typesafe.akka" % "akka-testkit_2.10.0-RC1" % "2.1.0-RC1",
     "org.squeryl" % "squeryl_2.10" % "0.9.5-6" % "compile->default",
     "org.mockito" % "mockito-all" % "1.8.5" % "test->default",
-    "c3p0" % "c3p0" % "0.9.1.2",
     "mysql" % "mysql-connector-java" % "5.1.21",
-    //"log4j" % "log4j" % "1.2.16",
     "com.h2database" % "h2" % "1.2.147"
   )
 
