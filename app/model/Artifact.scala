@@ -10,7 +10,7 @@ import gate.{Millis, T}
 import collection.immutable.TreeMap
 import xml.Node
 import play.api.libs.json.{JsObject, Json, JsValue}
-import util.FileUtil
+import util.{Size, FileUtil}
 
 class Artifact extends MythosObject {
   var gatewayId: Long = 0
@@ -139,8 +139,8 @@ class Artifact extends MythosObject {
   def toJson: JsObject = {
     Json.obj(
       "id" -> id,
-      "abbr" -> description,
-      "desc" -> description
+      "desc" -> description,
+      "size" -> Size.short(length)
     )
   }
 }

@@ -127,7 +127,7 @@ class StateStream extends Actor {
       "type" -> "ArtifactCreated",
       "message" -> Json.obj(
         "group" -> group,
-        "artifact" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid))
+        "artifact" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid), pack.cloneCount())
       )
     )
   }
@@ -135,7 +135,7 @@ class StateStream extends Actor {
   def artifactMsg(msgType: String, pack: ArtifactPack)(cid: Long): JsObject = {
     Json.obj(
       "type" -> msgType,
-      "message" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid))
+      "message" -> Artifacts.artifactWithStateJson(pack.artifact, pack.stateFor(cid), pack.cloneCount())
     )
   }
 

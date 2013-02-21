@@ -1,5 +1,5 @@
-import play.api.{Application, GlobalSettings}
-import play.api.Logger
+import play.api.{Play, Application, GlobalSettings, Logger}
+import play.api.Play.current
 import model.Environment
 
 object Global extends GlobalSettings {
@@ -19,6 +19,10 @@ object Global extends GlobalSettings {
 
     val data = new Db{}
     data.init
+    if (Play.isDev) {
+      data.clear
+      data.populate
+    }
     db = Some(data)
 
     Environment.start

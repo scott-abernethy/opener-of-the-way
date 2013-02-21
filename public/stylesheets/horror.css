@@ -1,3 +1,6 @@
+body {
+  background-color: #f0f1f2;
+}
 .bb-h {
     font-size: 14px;
     background-color: #666666;
@@ -36,6 +39,7 @@
     border-left: 1px solid #666666;
     border-bottom: 1px solid #666666;
     margin-bottom: 16px;
+    background-color: white;
 }
 .bb-t ol {
     padding: 0;
@@ -47,9 +51,15 @@
 }
 .bb-i {
   margin: 0;
-    padding: 2px 4px;
+    padding: 4px 8px 4px 8px;
     border-top: 1px #e8eed5 solid;
     overflow-wrap: break-word;
+}
+.bb-icon {
+  margin-right: 2px;
+}
+.bb-text {
+  margin-top: 4px;
 }
 .bb-t form {
   margin: 0px;
@@ -58,7 +68,7 @@
 .handy {
   cursor: pointer;
 }
-.handy:hover {
+.hovery:hover {
   background-color: #eeeeee;
 }
 .s-awaiting {
@@ -359,4 +369,7 @@ A3BF95
 }
 .footer {
   margin-top: 2em;
+}
+.tiny {
+  font-size: 75%;
 }

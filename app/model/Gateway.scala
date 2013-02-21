@@ -62,7 +62,6 @@ class Gateway extends MythosObject {
       "id" -> id,
       "uri" -> location,
       "path" -> path,
-      "abbr" -> path,
       "open" -> (state == GateState.open || state == GateState.transient),
       "mode" -> Json.obj(
         "name" -> Gateway.decode(source, sink),
