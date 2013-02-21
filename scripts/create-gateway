@@ -14,7 +14,7 @@ echo [public]\
   read only = no\
   writable = yes >> /etc/samba/smb.conf
 
-echo "Creating samba user account for sqatest, please enter password \"***REMOVED***\" at prompt..."
+echo "Creating samba user account for sqatest, please enter password \"pUtPaSsWoRdHeRe\" at prompt..."
 smbpasswd -a sqatest
 
 service smbd restart

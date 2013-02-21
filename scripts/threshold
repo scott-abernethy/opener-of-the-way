@@ -64,13 +64,13 @@ function do_stage {
   if [ $(mount | grep $gate_mount -c) == 0 ] ; then
     echo "Staging"
     #TODO  rw / ro depending on gate mode
-    mount_gate_mount sqatest ***REMOVED***
+    mount_gate_mount sqatest pUtPaSsWoRdHeRe
     local result=$?
     if [ $result != 0 ] ; then
       return $result
     fi
     #if [ $? != 0 ] ; then
-    #  mount_gate_mount wmtdev ***REMOVED***
+    #  mount_gate_mount wmtdev pUtPaSsWoRdHeRe
     #  local result=$?
     #  if [ $result != 0 ] ; then
     #    return $result
