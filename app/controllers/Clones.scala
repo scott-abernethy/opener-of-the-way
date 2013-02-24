@@ -1,9 +1,9 @@
 package controllers
 
 import play.api.mvc.{Action, Controller}
-import model.{ClonedSnapshotFactory, AwaitingSnapshotFactory}
+import model.{PresenceState, Clone, ClonedSnapshotFactory, AwaitingSnapshotFactory}
 import play.api.libs.json.Json
-import util.Permission
+import util.{DatePresentation, Permission}
 
 object Clones extends Controller with Permission {
 
@@ -19,5 +19,37 @@ object Clones extends Controller with Permission {
     val factory = new ClonedSnapshotFactory
     val snapshot = factory.create(request.cultistId)
     Ok(Json.toJson(snapshot.cloned.map(x => Artifacts.artifactWithStateJson(x._1, x._2, None))))
+  }
+
+  def report = PermittedAction { request =>
+    // TODO admin only
+    // TODO async
+
+    /*
+    list awaiting clones
+    per user
+    with
+      what
+      requested date
+      presence
+      attempts
+      last attempt at
+
+    implies join clones, presences, artifacts, pseudonym
+
+     */
+
+    val report = Clone.report
+
+    Ok(Json.toJson(report.map(line =>
+      Json.obj(
+        "for" -> line._4,
+        "what" -> line._3,
+        "requested" -> DatePresentation.atAbbreviation(line._1.requested.getTime),
+        "presence" -> line._2.exists(_.state == PresenceState.present),
+        "attempts" -> line._1.attempts,
+        "attempted" -> DatePresentation.atAbbreviation(line._1.attempted.getTime)
+      )
+    )))
   }
 }

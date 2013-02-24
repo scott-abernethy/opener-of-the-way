@@ -55,7 +55,7 @@
       <div class="bb-h"><i class="icon-asterisk icon-large"></i> Cloned ({{cloned.length}} in the last 7 days)</div>
       <div class="bb-t">
         <ol class="unstyled">
-          <li class="bb-i hovery handy" ng-repeat="clone in cloned" ng-click="artifactSelect(clone)">
+          <li class="bb-i hovery" ng-repeat="clone in cloned">
             <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x"></i> {{clone.desc}}</span>
           </li>
           <li class="bb-i" ng-show="!cloned.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>

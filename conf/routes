@@ -15,6 +15,7 @@ PUT     /artifact/:id/touch         controllers.Artifacts.touch(id: Long)
 # Clones
 GET     /clone/awaiting             controllers.Clones.awaiting
 GET     /clone/history              controllers.Clones.history
+GET     /clone/report               controllers.Clones.report
 
 # Gateways
 GET     /gateway                    controllers.Gateways.list

@@ -68,6 +68,17 @@ object Clone {
   lazy val marginalWaitAfter = 30 * 60 * 1000L
   lazy val poorWaitAfter = 4 * 60 * 60 * 1000L
   lazy val terribleWaitAfter = 3 * 24 * 60 * 60 * 1000L
+
+  def report(): List[(Clone, Option[Presence], String, String)] = {
+    inTransaction (
+      join(clones, presences.leftOuter, artifacts, pseudonyms)( (c, p, a, n) =>
+        where(c.state <> CloneState.cloned)
+        select( (c, p, a.path, n.name) )
+        orderBy(n.name desc, c.requested desc)
+        on(c.artifactId === p.map(_.artifactId), c.artifactId === a.id, c.forCultistId === n.id)
+      ).toList
+    )
+  }
 }
 
 object CloneState extends Enumeration {
