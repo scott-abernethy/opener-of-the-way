@@ -20,6 +20,7 @@ GET     /clone/report               controllers.Clones.report
 # Gateways
 GET     /gateway                    controllers.Gateways.list
 POST    /gateway                    controllers.Gateways.add
+GET     /gateway/sourceReport       controllers.Gateways.sourceReport
 GET     /gateway/:id                controllers.Gateways.get(id: Long)
 POST    /gateway/:id                controllers.Gateways.update(id: Long)
 PUT     /gateway/lock               controllers.Gateways.lock

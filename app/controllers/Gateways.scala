@@ -2,8 +2,8 @@ package controllers
 
 import play.api.mvc.{Action, Controller}
 import play.api.libs.json.{JsBoolean, JsString, JsValue, Json}
-import util.Permission
-import model.{Environment, Gateway}
+import util.{DatePresentation, Permission}
+import model.{PresenceState, Environment, Gateway}
 import concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import comet.ChangedGateway
@@ -85,5 +85,25 @@ object Gateways extends Controller with Permission {
   def scour = PermittedAction { request =>
     watcher ! ScourAsap(request.cultistId)
     Ok("Ok")
+  }
+
+  def sourceReport = PermittedAction { request =>
+    // TODO Admin only
+    // TODO async
+
+    val report = Gateway.sourceReport
+
+    Ok(Json.toJson(report.map(line =>
+      Json.obj(
+        "who" -> line._2,
+        "location" -> line._1.location,
+        "path" -> line._1.path,
+        "mode" -> Gateway.decode(line._1.source, line._1.sink),
+        "seen" -> DatePresentation.atAbbreviation(line._1.seen.getTime),
+        "scoured" -> DatePresentation.atAbbreviation(line._1.scoured.getTime),
+        "requested" -> DatePresentation.atAbbreviation(line._1.requested.getTime),
+        "failed" -> DatePresentation.atAbbreviation(line._1.failed.getTime)
+      )
+    )))
   }
 }

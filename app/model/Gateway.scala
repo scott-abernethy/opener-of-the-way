@@ -137,7 +137,18 @@ object Gateway {
   }
 
   def forCultist(id: Long): List[Gateway] = {
-    inTransaction ( from(gateways)(g => where(g.cultistId === id) select(g)).toList )
+    inTransaction( from(gateways)(g => where(g.cultistId === id) select(g)).toList )
+  }
+
+  def sourceReport(): List[(Gateway, String)] = {
+    inTransaction(
+      join( gateways, pseudonyms )( (g, n) =>
+        where( g.source === true )
+        select( (g, n.name) )
+        orderBy( g.scoured asc, g.id asc )
+        on( g.cultistId === n.id )
+      ).toList
+    )
   }
 }
 

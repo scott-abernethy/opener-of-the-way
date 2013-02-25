@@ -25,20 +25,6 @@ object Clones extends Controller with Permission {
     // TODO admin only
     // TODO async
 
-    /*
-    list awaiting clones
-    per user
-    with
-      what
-      requested date
-      presence
-      attempts
-      last attempt at
-
-    implies join clones, presences, artifacts, pseudonym
-
-     */
-
     val report = Clone.report
 
     Ok(Json.toJson(report.map(line =>
