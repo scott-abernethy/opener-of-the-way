@@ -3,10 +3,9 @@ package controllers
 import play.api._
 import libs.json.JsValue
 import play.api.mvc._
-import util.{ConcurrentUtil, Permission}
+import util.{Context, ConcurrentUtil, Permission}
 import state.StateStream
 import concurrent.Future
-import concurrent.ExecutionContext.Implicits.global
 
 object Application extends Controller with Permission {
   
@@ -14,7 +13,8 @@ object Application extends Controller with Permission {
     Ok(views.html.index())
   }
 
-  def stream() =
+  def stream() = {
+    import Context.playDefault
     WebSocket.async[JsValue] {
       request =>
         getCultistId(request).map { cultistId =>
@@ -25,5 +25,10 @@ object Application extends Controller with Permission {
           Future(ConcurrentUtil.errorSocket("Unauthorized"))
         }
     }
+  }
+
+  def modeTest = NonProductionAction( request =>
+    Ok("Current mode is " + Play.mode(Play.current).toString)
+  )
 
 }

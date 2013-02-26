@@ -22,12 +22,10 @@ object ProcesssImpl extends Processs {
     val startMsec = System.currentTimeMillis
     var lines: Seq[String] = Nil
     val process = cmds.run(ProcessLogger(line => lines = lines :+ line), false)
-    // TODO?
-    import scala.concurrent.ExecutionContext.Implicits.global
     val future = Future {
       val value = process.exitValue() // blocks until result
       Exit(value, lines, System.currentTimeMillis - startMsec)
-    }
+    }(util.Context.ioOperations)
     val destroyable = new Destroyable {
       def destroy { process.destroy() }
     }

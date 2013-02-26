@@ -5,7 +5,6 @@ import play.api.libs.json.{JsNumber, JsBoolean, JsObject, Json}
 import model._
 import concurrent.Future
 import util.{Permission}
-import scala.concurrent.ExecutionContext.Implicits.global
 import state.{ArtifactUnawaiting, ArtifactTouched, ArtifactAwaiting}
 import gate.{T, AddArtifact, Summon}
 
@@ -27,8 +26,7 @@ object Artifacts extends Controller with Permission {
       ("clones" -> JsNumber(cloneCount))
   }
 
-  def add = Action(parse.json) { request =>
-    // TODO dev only
+  def add = NonProductionAction(parse.json) { request =>
     lurker ! AddArtifact(1, request.body \ "path" toString, 1234L, T.now)
     Ok("Added")
   }
@@ -42,7 +40,9 @@ object Artifacts extends Controller with Permission {
         "name" -> group._1,
         "items" -> group._2.map(a => artifactWithStateJson(a, snapshot.stateFor(a.id), snapshot.clonesFor(a.id)))
       )
-    }
+    }(util.Context.dbOperations)
+
+    import util.Context.playDefault
     Async {
       future.map(as => Ok(Json.toJson(as)))
     }
@@ -66,7 +66,9 @@ object Artifacts extends Controller with Permission {
           "Unawaiting"
         }
       }
-    }
+    }(util.Context.dbOperations)
+
+    import util.Context.playDefault
     Async {
       future.map{
         case Some(res) => Ok(res)

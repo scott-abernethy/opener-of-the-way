@@ -8,7 +8,7 @@ import akka.actor.ActorRef
 import model.{Pseudonym, Cultist, Environment}
 import state.Babble
 import akka.pattern.Patterns
-import scala.concurrent.ExecutionContext.Implicits.global
+import util.Context.playDefault
 
 object Babbling extends Controller with Permission {
 
@@ -29,6 +29,7 @@ object Babbling extends Controller with Permission {
   }
 
   def list = PermittedAction { request =>
+    import util.Context.playDefault
     val future = Patterns.ask(server, 'List, 10000L)
     Async {
       future.map {

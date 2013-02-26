@@ -2,9 +2,10 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
+# Application
 GET     /                           controllers.Application.index
 GET     /stream                     controllers.Application.stream
+GET     /modeTest                   controllers.Application.modeTest
 
 # Artifacts
 POST    /artifact                   controllers.Artifacts.add
@@ -15,12 +16,13 @@ PUT     /artifact/:id/touch         controllers.Artifacts.touch(id: Long)
 # Clones
 GET     /clone/awaiting             controllers.Clones.awaiting
 GET     /clone/history              controllers.Clones.history
-GET     /clone/report               controllers.Clones.report
+GET     /report/queue               controllers.Clones.queue
+GET     /report/load                controllers.Clones.load
 
 # Gateways
 GET     /gateway                    controllers.Gateways.list
 POST    /gateway                    controllers.Gateways.add
-GET     /gateway/sourceReport       controllers.Gateways.sourceReport
+GET     /report/sources             controllers.Gateways.sources
 GET     /gateway/:id                controllers.Gateways.get(id: Long)
 POST    /gateway/:id                controllers.Gateways.update(id: Long)
 PUT     /gateway/lock               controllers.Gateways.lock

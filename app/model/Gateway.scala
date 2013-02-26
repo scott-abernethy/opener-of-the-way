@@ -12,7 +12,7 @@ import gate.{Millis, T}
 import scala.util.matching.Regex
 import play.api.libs.json.{JsBoolean, Json}
 import concurrent.Future
-import util.FileUtil
+import util.FutureTransaction._
 
 class Gateway extends MythosObject {
   var cultistId: Long = 0
@@ -140,8 +140,8 @@ object Gateway {
     inTransaction( from(gateways)(g => where(g.cultistId === id) select(g)).toList )
   }
 
-  def sourceReport(): List[(Gateway, String)] = {
-    inTransaction(
+  def sourceReport(): Future[List[(Gateway, String)]] = {
+    inFutureTransaction(
       join( gateways, pseudonyms )( (g, n) =>
         where( g.source === true )
         select( (g, n.name) )

@@ -57,8 +57,7 @@ class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServe
       case Some(command) => {
         val (future, destroyable) = processs.start(command)
         destroyHandle = destroyable
-        // TODO?
-        import scala.concurrent.ExecutionContext.Implicits.global
+        import util.Context.defaultOperations
         future.onFailure {
           case e: Exception => self ! Exit(-1, e.getMessage :: Nil, -1)
         }

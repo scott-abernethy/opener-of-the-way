@@ -17,7 +17,7 @@ object Cultists extends Controller with Permission {
     )
   )
 
-  def become(id: Long) = Action { request =>
+  def become(id: Long) = NonProductionAction { request =>
     Ok("Became " + id).withSession(
       request.session + ("cultist" -> id.toString)
     )
@@ -55,7 +55,7 @@ object Cultists extends Controller with Permission {
     }
   }
 
-  def who(id: Long) = Action { request =>
+  def who(id: Long) = NonProductionAction { request =>
     transaction( Cultist.find(id) ).map{ c =>
       Ok(c.toJson)
     }.getOrElse{

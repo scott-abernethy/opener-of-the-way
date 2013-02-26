@@ -11,9 +11,6 @@ import play.api.Logger
 import gate.KeeperRouterApi._
 import gate.KeeperApi._
 
-// TODO?
-import scala.concurrent.ExecutionContext.Implicits.global
-
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
 case class Flush(gatewayId: Long)
@@ -147,7 +144,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
       transaction {
         val openLocations = openQuery.toList.map(_.location).toSet
         transientQuery.toList.filterNot(openLocations contains _.location).foreach { g =>
-          context.system.scheduler.scheduleOnce(30 seconds, watcher, Flush(g.id))
+          context.system.scheduler.scheduleOnce(30 seconds, watcher, Flush(g.id))(util.Context.defaultOperations)
         }
       }
     }

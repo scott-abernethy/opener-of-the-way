@@ -9,8 +9,6 @@ import state._
 import akka.actor.{ActorRef, Actor}
 import play.api.Logger
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 // TODO merge with Presenter
 
 case class StartCloning(job: Clone)
@@ -59,6 +57,7 @@ class Cloner(val processs: Processs, val watcher: ActorRef, val artifactServer: 
       case Some(command) => {
         val (future, destroyable) = processs.start(command)
         destroyHandle = destroyable
+        import util.Context.defaultOperations
         future.onFailure {
           case e: Exception => self ! Exit(-1, e.getMessage :: Nil, -1)
         }

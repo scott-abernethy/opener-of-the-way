@@ -7,7 +7,6 @@ import concurrent.Future
 import play.api.libs.iteratee._
 import play.api.libs.json._
 import akka.pattern.Patterns
-import concurrent.ExecutionContext.Implicits.global
 import controllers.Artifacts
 import play.api.Logger
 import comet.{FlushAllGateways, ChangedGateway, ChangedGateways, ToState}
@@ -47,6 +46,7 @@ class StateStream extends Actor {
 
       // There is a chance that the follow request comes in exactly 10 seconds later, as the stream quits but before termination notification has been received.
 
+      import _root_.util.Context.defaultOperations
       val streamingFuture = Patterns.ask(ref, Stream(id), 10000L).map {
         case CultistStreamReady(channel) => Streaming(id, channel)
       }
@@ -164,7 +164,7 @@ class CultistStream extends Actor {
     case StopStream(id) => {
       followers = followers - id
       Logger.debug("Cultist stream stop " + id + " now " + followers)
-      context.system.scheduler.scheduleOnce(FiniteDuration.apply(60, TimeUnit.SECONDS), self, 'Quit)
+      context.system.scheduler.scheduleOnce(FiniteDuration.apply(60, TimeUnit.SECONDS), self, 'Quit)(_root_.util.Context.defaultOperations)
     }
     case 'Quit => {
       if (followers.isEmpty) {
@@ -186,6 +186,7 @@ object StateStream {
   lazy val stream = Environment.actorSystem.actorFor("/user/StateStream")
   
   def follow(cultistId: Long): Future[(Iteratee[JsValue,_],Enumerator[JsValue])] = {
+    import _root_.util.Context.defaultOperations
     Patterns.ask(stream, Follow(cultistId), 10000l).map {
       case Streaming(id, enumerator) => {
         val iteratee = Iteratee.foreach[JsValue] { event =>

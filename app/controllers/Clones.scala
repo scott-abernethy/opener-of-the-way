@@ -21,8 +21,7 @@ object Clones extends Controller with Permission {
     Ok(Json.toJson(snapshot.cloned.map(x => Artifacts.artifactWithStateJson(x._1, x._2, None))))
   }
 
-  def report = PermittedAction { request =>
-    // TODO admin only
+  def queue = InsaneAction { request =>
     // TODO async
 
     val report = Clone.report
@@ -37,5 +36,10 @@ object Clones extends Controller with Permission {
         "attempted" -> DatePresentation.atAbbreviation(line._1.attempted.getTime)
       )
     )))
+  }
+
+  def load = InsaneAction { request =>
+    // TODO async
+    Ok("load")
   }
 }

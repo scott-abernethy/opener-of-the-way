@@ -5,7 +5,7 @@ import play.api.libs.json.{JsBoolean, JsString, JsValue, Json}
 import util.{DatePresentation, Permission}
 import model.{PresenceState, Environment, Gateway}
 import concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import util.Context.playDefault
 import comet.ChangedGateway
 import gate.{Lock,Unlock,ScourAsap}
 import play.api.Logger
@@ -16,7 +16,9 @@ object Gateways extends Controller with Permission {
   lazy val watcher = Environment.actorSystem.actorFor("/user/Watcher")
 
   def list = PermittedAction { request =>
-    val futureGs = Future( Gateway.forCultist(request.cultistId) )
+    val futureGs = Future( Gateway.forCultist(request.cultistId) )(util.Context.dbOperations)
+
+    import util.Context.playDefault
     Async {
       futureGs.map(gs => Ok(Json.toJson(gs.map(_.toJson))))
     }
@@ -44,7 +46,9 @@ object Gateways extends Controller with Permission {
   }
 
   def get(id: Long) = PermittedAction { request =>
-    val fGateway = Future( Gateway.find(id) )
+    val fGateway = Future( Gateway.find(id) )(util.Context.dbOperations)
+
+    import util.Context.playDefault
     Async {
       fGateway.map{
         case Some(g) if (g.cultistId == request.cultistId) => Ok(g.toJson)
@@ -87,23 +91,26 @@ object Gateways extends Controller with Permission {
     Ok("Ok")
   }
 
-  def sourceReport = PermittedAction { request =>
-    // TODO Admin only
-    // TODO async
-
+  def sources = InsaneAction { request =>
     val report = Gateway.sourceReport
 
-    Ok(Json.toJson(report.map(line =>
-      Json.obj(
-        "who" -> line._2,
-        "location" -> line._1.location,
-        "path" -> line._1.path,
-        "mode" -> Gateway.decode(line._1.source, line._1.sink),
-        "seen" -> DatePresentation.atAbbreviation(line._1.seen.getTime),
-        "scoured" -> DatePresentation.atAbbreviation(line._1.scoured.getTime),
-        "requested" -> DatePresentation.atAbbreviation(line._1.requested.getTime),
-        "failed" -> DatePresentation.atAbbreviation(line._1.failed.getTime)
+    import util.Context.playDefault
+    Async {
+      report.map(lines =>
+        Ok(Json.toJson(lines.map(line =>
+          Json.obj(
+            "who" -> line._2,
+            "location" -> line._1.location,
+            "path" -> line._1.path,
+            "mode" -> Gateway.decode(line._1.source, line._1.sink),
+            "seen" -> DatePresentation.atAbbreviation(line._1.seen.getTime),
+            "scoured" -> DatePresentation.atAbbreviation(line._1.scoured.getTime),
+            "requested" -> DatePresentation.atAbbreviation(line._1.requested.getTime),
+            "failed" -> DatePresentation.atAbbreviation(line._1.failed.getTime)
+          )
+        )))
       )
-    )))
+    }
+
   }
 }

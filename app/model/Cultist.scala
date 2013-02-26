@@ -122,5 +122,14 @@ object Cultist {
 //    <span class="sigal">{ signFor(cultist) }</span>
 //  }
 
+  def insane_?(id: Long): Boolean = {
+    inTransaction(
+      from(cultists)(c =>
+        where(c.id === id and c.insane === true)
+        select(c.insane)
+      ).headOption.isDefined
+    )
+  }
+
   lazy val unlockAfter = 4 * 60 * 60 * 1000L
 }
