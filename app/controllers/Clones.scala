@@ -24,17 +24,34 @@ object Clones extends Controller with Permission {
 
   def queue = InsaneAction { request =>
     val report = Clone.queue
+    val at = T.now.getTime
     import util.Context.playDefault
     Async {
       report.map(lines =>
-        Ok(Json.toJson(lines.map(line =>
+        lines.groupBy(_._4)
+      ).map( groups =>
+        Ok(Json.toJson(groups.map(group =>
           Json.obj(
-            "for" -> line._4,
-            "what" -> line._3,
-            "requested" -> DatePresentation.atAbbreviation(line._1.requested.getTime),
-            "presence" -> line._2.exists(_.state == PresenceState.present),
-            "attempts" -> line._1.attempts,
-            "attempted" -> DatePresentation.atAbbreviation(line._1.attempted.getTime)
+            "for" -> group._1,
+            "awaiting" -> Json.toJson(group._2.map{line =>
+
+              if ( line._2.exists(_.state == PresenceState.present) ) {
+                Json.obj(
+                  "what" -> line._3,
+                  "requested" -> DatePresentation.ago(line._1.requested.getTime, at),
+                  "cloneAttempts" -> line._1.attempts,
+                  "cloneAttempted" -> DatePresentation.ago(line._1.attempted.getTime, at)
+                )
+              }
+              else {
+                Json.obj(
+                  "what" -> line._3,
+                  "requested" -> DatePresentation.ago(line._1.requested.getTime, at),
+                  "presenceAttempts" -> line._2.map(_.attempts).getOrElse(0l).toLong,
+                  "presenceAttempted" -> line._2.map(p => DatePresentation.ago(p.attempted.getTime, at)).getOrElse("-").toString
+                )
+              }
+            })
           )
         )))
       )
