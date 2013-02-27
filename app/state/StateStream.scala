@@ -1,6 +1,6 @@
 package state
 
-import _root_.util.ConcurrentUtil
+import _root_.util.{DatePresentation, ConcurrentUtil}
 import akka.actor.{Terminated, ActorRef, Actor, Props}
 import model._
 import concurrent.Future
@@ -122,7 +122,7 @@ class StateStream extends Actor {
   }
 
   def artifactCreatedMsg(pack: ArtifactPack)(cid: Long): JsObject = {
-    val group = ArtifactCloneSnapshot.groupName(new Date(pack.artifact.discovered.getTime))
+    val group = DatePresentation.yearMonthDay(pack.artifact.discovered.getTime)
     Json.obj(
       "type" -> "ArtifactCreated",
       "message" -> Json.obj(

@@ -6,6 +6,7 @@ import java.util.{TimeZone, Date}
 import gate.T
 import collection.immutable.{HashMap, TreeMap}
 import java.text.{SimpleDateFormat}
+import util.DatePresentation
 
 /*
 There are probably more than one flavor of the N+1 problem, but a very
@@ -109,9 +110,9 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
   def discoveredGroup(a: Artifact): Option[String] = {
     for {
       timestamp <- Option(a.discovered)
-      time = new Date(timestamp.getTime)
+      time = timestamp.getTime
     }
-    yield ArtifactCloneSnapshot.groupName(time)
+    yield DatePresentation.yearMonthDay(time)
   }
 
   def latestDayGroup(): String = {
@@ -120,13 +121,5 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
 
   def indexForGroup(group: String): String = {
     group.substring(0, group.indexOf(','))
-  }
-}
-
-object ArtifactCloneSnapshot {
-  def groupName(time: Date): String = {
-    val f = new SimpleDateFormat("yyyy-MM-dd")
-    f.setTimeZone(TimeZone.getDefault)
-    f.format(time)
   }
 }

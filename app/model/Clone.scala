@@ -7,6 +7,8 @@ import model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 import gate.T
+import util.FutureTransaction._
+import concurrent.Future
 
 class Clone extends MythosObject {
   var artifactId: Long = 0
@@ -69,13 +71,23 @@ object Clone {
   lazy val poorWaitAfter = 4 * 60 * 60 * 1000L
   lazy val terribleWaitAfter = 3 * 24 * 60 * 60 * 1000L
 
-  def report(): List[(Clone, Option[Presence], String, String)] = {
-    inTransaction (
+  def queue(): Future[List[(Clone, Option[Presence], String, String)]] = {
+    inFutureTransaction (
       join(clones, presences.leftOuter, artifacts, pseudonyms)( (c, p, a, n) =>
         where(c.state <> CloneState.cloned)
         select( (c, p, a.path, n.name) )
         orderBy(n.name desc, c.requested desc)
         on(c.artifactId === p.map(_.artifactId), c.artifactId === a.id, c.forCultistId === n.id)
+      ).toList
+    )
+  }
+
+  def complete(after: Timestamp): Future[List[Clone]] = {
+    inFutureTransaction (
+      from(clones)( c =>
+        where( c.state === CloneState.cloned and c.attempted > after )
+        select( c )
+        orderBy( c.attempted desc )
       ).toList
     )
   }
