@@ -1,7 +1,7 @@
 package controllers
 
 import play.api._
-import libs.json.JsValue
+import libs.json.{Json, JsValue}
 import play.api.mvc._
 import util.{Context, ConcurrentUtil, Permission}
 import state.StateStream
@@ -30,5 +30,15 @@ object Application extends Controller with Permission {
   def modeTest = NonProductionAction( request =>
     Ok("Current mode is " + Play.mode(Play.current).toString)
   )
+
+  def reports = InsaneAction { request =>
+    Ok(
+      Json.toJson(List(
+        "/report/sources",
+        "/report/queue",
+        "/report/load"
+      ))
+    )
+  }
 
 }

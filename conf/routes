@@ -6,6 +6,7 @@
 GET     /                           controllers.Application.index
 GET     /stream                     controllers.Application.stream
 GET     /modeTest                   controllers.Application.modeTest
+GET     /report                     controllers.Application.reports
 
 # Artifacts
 POST    /artifact                   controllers.Artifacts.add
