@@ -1,10 +1,11 @@
 package controllers
 
 import play.api.mvc.{Action, Controller}
-import model.{PresenceState, Clone, ClonedSnapshotFactory, AwaitingSnapshotFactory}
+import model._
 import play.api.libs.json.Json
-import util.{Shifting, DatePresentation, Permission}
+import util.{Size, Shifting, DatePresentation, Permission}
 import gate.T
+import java.sql.Timestamp
 
 object Clones extends Controller with Permission {
 
@@ -30,49 +31,25 @@ object Clones extends Controller with Permission {
       report.map(lines =>
         lines.groupBy(_._4)
       ).map( groups =>
-        Ok(Json.toJson(groups.map(group =>
-          Json.obj(
-            "for" -> group._1,
-            "awaiting" -> Json.toJson(group._2.map{line =>
-
-              if ( line._2.exists(_.state == PresenceState.present) ) {
-                Json.obj(
-                  "what" -> line._3,
-                  "requested" -> DatePresentation.ago(line._1.requested.getTime, at),
-                  "cloneAttempts" -> line._1.attempts,
-                  "cloneAttempted" -> DatePresentation.ago(line._1.attempted.getTime, at)
-                )
-              }
-              else {
-                Json.obj(
-                  "what" -> line._3,
-                  "requested" -> DatePresentation.ago(line._1.requested.getTime, at),
-                  "presenceAttempts" -> line._2.map(_.attempts).getOrElse(0l).toLong,
-                  "presenceAttempted" -> line._2.map(p => DatePresentation.ago(p.attempted.getTime, at)).getOrElse("-").toString
-                )
-              }
-            })
-          )
-        )))
+        Ok(views.html.report.queue(at, groups))
       )
     }
   }
 
   def load = InsaneAction { request =>
-    val report = Clone.complete(T.startOfSevenDayPeriod())
+    val period: Timestamp = T.startOfSevenDayPeriod()
     import util.Context.playDefault
+    val out = Clone.complete(period).map( items =>
+      items.
+        groupBy(i => DatePresentation.yearMonthDay(i._1.attempted.getTime)).
+        toList.
+        sortBy(_._1)
+    )
     Async {
-      report.map(clones =>
-        clones.groupBy(clone => DatePresentation.yearMonthDay(clone.attempted.getTime))
-      ).map(groups =>
-        Ok(Json.toJson(groups.map(group =>
-          Json.obj(
-            "date" -> group._1,
-            "cloned" -> group._2.size,
-            "meanDuration" -> DatePresentation.duration(Shifting.calculateMedian(group._2))
-          )
-        )))
+      out.map(groups =>
+        Ok(views.html.report.load(groups))
       )
     }
   }
+
 }

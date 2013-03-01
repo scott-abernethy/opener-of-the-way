@@ -82,12 +82,13 @@ object Clone {
     )
   }
 
-  def complete(after: Timestamp): Future[List[Clone]] = {
+  def complete(after: Timestamp): Future[List[(Clone, Artifact)]] = {
     inFutureTransaction (
-      from(clones)( c =>
+      join(clones, artifacts)( (c, a) =>
         where( c.state === CloneState.cloned and c.attempted > after )
-        select( c )
+        select( (c, a) )
         orderBy( c.attempted desc )
+        on( c.artifactId === a.id )
       ).toList
     )
   }

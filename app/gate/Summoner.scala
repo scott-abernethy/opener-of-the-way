@@ -7,6 +7,7 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import java.io.File
 import play.api.Logger
+import util.Size
 
 case class Summon(artifactId: Long)
 
@@ -179,10 +180,6 @@ class Summoner(lurker: ActorRef, watcher: ActorRef, keepers: ActorRef) extends A
   private def logSummonerInfo() {
     val ps = presentByPurgeCombined()
     var length = ps.foldLeft(0L)( (sum,i) => sum + i._2.length )
-    Logger.debug("Summoner LENGTH: " + length + " = " + toGiB(length))
-  }
-
-  private def toGiB(length: Long): String = {
-    (length / Presence.gigaByteLength) + " GiB"
+    Logger.debug("Summoner LENGTH: " + length + " = " + Size.printGiB(length))
   }
 }

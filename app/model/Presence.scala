@@ -7,6 +7,7 @@ import org.squeryl.Query
 import org.squeryl.PrimitiveTypeMode._
 import play.api.Play
 import play.api.Play.current
+import util.Size
 
 class Presence extends MythosObject {
   var artifactId: Long = 0
@@ -47,9 +48,7 @@ object Presence {
     )
   }
 
-  lazy val megaByteLength = 1024L * 1024;
-  lazy val gigaByteLength = megaByteLength * 1024;
-  lazy val maxPresenceLength = megaByteLength * Play.configuration.getLong("presence.storage").getOrElse(1024L)
+  lazy val maxPresenceLength = Size.megs(Play.configuration.getLong("presence.storage").getOrElse(1024L))
 }
 
 object PresenceState extends Enumeration {

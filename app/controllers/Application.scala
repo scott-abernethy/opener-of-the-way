@@ -32,13 +32,7 @@ object Application extends Controller with Permission {
   )
 
   def reports = InsaneAction { request =>
-    Ok(
-      Json.toJson(List(
-        "/report/sources",
-        "/report/queue",
-        "/report/load"
-      ))
-    )
+    Redirect(routes.Clones.load())
   }
 
 }

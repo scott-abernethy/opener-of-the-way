@@ -1,0 +1,20 @@
+@(at: Long, lines: List[(model.Gateway, String)])
+@import util.DatePresentation.ago
+@import views.CloneHelpers._
+
+@report.template("Sources") {
+  <table class="table">
+    <thead>
+      <tr><th>Who</th><th>Share</th><th>Mode</th><th>Seen</th><th>Scoured</th></tr>
+    </thead>
+    @for(line <- lines) {
+      <tr>
+        <td>@{line._2}</td>
+        <td>@{line._1.locationAndPath}</td>
+        <td>@{line._1.mode}</td>
+        <td>@{ago(line._1.seen.getTime, at)}</td>
+        <td>@{ago(line._1.scoured.getTime, at)}</td>
+      </tr>
+    }
+  </table>
+}

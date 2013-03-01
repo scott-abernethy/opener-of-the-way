@@ -1,4 +1,4 @@
-import gate.T
+import gate.{Millis, T}
 
 import model._
 
@@ -33,9 +33,6 @@ trait Db {
   }
 
   def populate {
-//    Props.mode match {
-//      case Props.RunModes.Development =>
-//        clear
         transaction {
 
           val p1 = new Pseudonym
@@ -181,13 +178,27 @@ trait Db {
           l.witnessed = T.now
           l.length = 435892343L
           l = Mythos.artifacts.insert(l)
+          var m = new Artifact
+          m.gatewayId = g3.id
+          m.path = "/88888"
+          m.discovered = T.ago(Millis.days(3))
+          m.witnessed = T.now
+          m.length = 12345467L
+          m = Mythos.artifacts.insert(m)
+          var n = new Artifact
+          n.gatewayId = g1.id
+          n.path = "/ploiun/ploiun.p"
+          n.discovered = T.ago(Millis.days(3))
+          n.witnessed = T.now
+          n.length = 54647L
+          n = Mythos.artifacts.insert(n)
 
           val clone1 = new Clone
           clone1.artifactId = a.id
           clone1.forCultistId = foo.id
           clone1.state = CloneState.awaiting
-          clone1.requested = T.now
-          clone1.attempted = T.now
+          clone1.requested = T.yesterday
+          clone1.attempted = T.yesterday
           clone1.attempts = 5
           Mythos.clones.insert(clone1)
           val clone4 = new Clone
@@ -205,7 +216,7 @@ trait Db {
           clone3.state = CloneState.awaiting
           clone3.requested = T.ago(61 * 60 * 1000L)
           clone3.attempted = T.now
-          clone3.attempts = 0
+          clone3.attempts = 1
           Mythos.clones.insert(clone3)
 
           val clone2 = new Clone
@@ -218,7 +229,5 @@ trait Db {
           clone2.duration = 123456
           Mythos.clones.insert(clone2)
         }
-//      case _ =>
-//    }
   }
 }

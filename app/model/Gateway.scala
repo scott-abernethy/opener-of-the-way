@@ -37,25 +37,13 @@ class Gateway extends MythosObject {
 
   def clonesPath: String = new File(localPath, "clones").getPath
 
-  def modesIcon: NodeSeq = {
-    (source, sink) match {
-      case (true, false) => <img src="/static/g_i.png" title="Source"/>
-      case (false, true) => <img src="/static/g_o.png" title="Sink"/>
-      case (true, true) => <img src="/static/g_io.png" title="Source + Sink"/>
-      case _ => <img src="/static/g_disabled.png" title="Disabled"/>
-    }
+  def mode: String = {
+    Gateway.decode(source, sink)
   }
 
-  def modesDescription: NodeSeq = {
-    (source, sink) match {
-      case (true, false) => <span><img src="/static/g_i.png" title="Source"/> Source</span>
-      case (false, true) => <span><img src="/static/g_o.png" title="Sink"/> Sink</span>
-      case (true, true) => <span><img src="/static/g_io.png" title="Source + Sink"/> Source + Sink</span>
-      case _ => <span><img src="/static/g_disabled.png" title="Disabled"/> Disabled</span>
-    }
-  }
+  def locationAndPath() = location + "/" + path
 
-  override def toString = "Gateway[" + location + "/" + path + "=" + source + sink + "]"
+  override def toString = "Gateway[" + locationAndPath + "=" + source + sink + "]"
 
   def toJson = {
     val obj = Json.obj(

@@ -1,0 +1,21 @@
+@(at: Long, groups: Map[String, List[(model.Clone, Option[model.Presence], String, String)]])
+@import util.DatePresentation
+@import views.CloneHelpers._
+
+@report.template("Queue") {
+  <table class="table">
+    <thead>
+      <tr><th>Who</th><th>When</th><th>What</th><th>Status</th></tr>
+    </thead>
+  @for(group <- groups) {
+    @for(item <- group._2) {
+      <tr>
+        <td>@{group._1}</td>
+        <td>@{DatePresentation.ago(item._1.requested.getTime, at)}</td>
+        <td>@{item._3}</td>
+        <td>@{cloneStatus(item._1, item._2)}</td>
+      </tr>
+    }
+  }
+  </table>
+}

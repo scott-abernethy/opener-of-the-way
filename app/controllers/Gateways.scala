@@ -7,7 +7,7 @@ import model.{PresenceState, Environment, Gateway}
 import concurrent.Future
 import util.Context.playDefault
 import comet.ChangedGateway
-import gate.{Lock,Unlock,ScourAsap}
+import gate.{T, Lock, Unlock, ScourAsap}
 import play.api.Logger
 
 object Gateways extends Controller with Permission {
@@ -93,22 +93,12 @@ object Gateways extends Controller with Permission {
 
   def sources = InsaneAction { request =>
     val report = Gateway.sourceReport
+    val at = T.now.getTime
 
     import util.Context.playDefault
     Async {
       report.map(lines =>
-        Ok(Json.toJson(lines.map(line =>
-          Json.obj(
-            "who" -> line._2,
-            "location" -> line._1.location,
-            "path" -> line._1.path,
-            "mode" -> Gateway.decode(line._1.source, line._1.sink),
-            "seen" -> DatePresentation.atAbbreviation(line._1.seen.getTime),
-            "scoured" -> DatePresentation.atAbbreviation(line._1.scoured.getTime),
-            "requested" -> DatePresentation.atAbbreviation(line._1.requested.getTime),
-            "failed" -> DatePresentation.atAbbreviation(line._1.failed.getTime)
-          )
-        )))
+        Ok(views.html.report.sources(at, lines))
       )
     }
 

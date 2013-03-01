@@ -1,0 +1,20 @@
+@(days: List[(String, List[(model.Clone, model.Artifact)])])
+@import util.DatePresentation.duration
+@import util.Shifting.calculateMedian
+@import util.Size
+
+@report.template("Load") {
+  <table class="table">
+    <thead>
+      <tr><th>Date</th><th>In</th><th>Out</th><th>Out Latency</th></tr>
+    </thead>
+    @for(day <- days) {
+      <tr>
+        <td>@{day._1}</td>
+        <td>-</td>
+        <td><span class="label">@{day._2.size}x</span> @{Size.short(Size.total(day._2.map(_._2.length)))}</td>
+        <td>@{duration(calculateMedian(day._2.map(_._1)))}</td>
+      </tr>
+    }
+  </table>
+}

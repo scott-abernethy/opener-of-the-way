@@ -1,12 +1,15 @@
 package util
 
 import java.text.DecimalFormat
+import model.Presence
 
 object Size {
   // 1024s
   // K M G T P
 
   val units = List("B", "K", "M", "G", "T", "P", "E", "Z", "Y")
+  val megaByteLength = 1024L * 1024;
+  val gigaByteLength = megaByteLength * 1024;
 
   def short(length: Long): String = {
     short(length.toDouble, 0)
@@ -37,7 +40,19 @@ object Size {
     }
   }
 
+  def total(lengths: List[Long]): Long = {
+    lengths.foldLeft(0L)( (total,i) => total + i )
+  }
+
   def gigs(count: Long): Long = {
-    count * 1024L * 1024L * 1024L
+    count * gigaByteLength
+  }
+
+  def megs(count: Long): Long = {
+    count * megaByteLength
+  }
+
+  def printGiB(length: Long): String = {
+    (length / gigaByteLength) + " GiB"
   }
 }

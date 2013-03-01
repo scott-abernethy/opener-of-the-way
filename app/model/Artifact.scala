@@ -11,6 +11,9 @@ import collection.immutable.TreeMap
 import xml.Node
 import play.api.libs.json.{JsObject, Json, JsValue}
 import util.{Size, FileUtil}
+import util.FutureTransaction._
+import concurrent.Future
+
 
 class Artifact extends MythosObject {
   var gatewayId: Long = 0
@@ -181,6 +184,16 @@ object Artifact {
   lazy val goneAfter = 12 * 24 * 60 * 60 * 1000L
 
   lazy val notNewsAfter = Millis.days(60)
+
+  def discovered(after: Timestamp): Future[List[Artifact]] = {
+    inFutureTransaction (
+      from(artifacts)( a =>
+        where( a.discovered > after )
+        select( a )
+        orderBy( a.discovered desc )
+      ).toList
+    )
+  }
 }
 
 object ArtifactState extends Enumeration {
