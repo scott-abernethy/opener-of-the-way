@@ -1,22 +1,19 @@
-package code.model
+package model
 
-import org.specs._
-import org.specs.mock.Mockito
-import TestDb
+import org.specs2.mutable._
+import org.specs2.mock.Mockito
 import model.Mythos._
 
-import org.squeryl.PrimitiveTypeMode._
 import gate.T
+import db.TestDb
+import test.WithTestApplication
 
-object CultistTest extends Specification with Mockito {
-
-  val db = new TestDb
-  db.init
+class CultistTest extends Specification with Mockito {
 
   "Cultist" should {
 
-    "detect correct approach" >> {
-      db.clear
+    "detect correct approach" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
@@ -26,8 +23,8 @@ object CultistTest extends Specification with Mockito {
       c.approach("grapes") must be_==(ApproachSuccess)
     }
 
-    "reject approach with incorrect password" >> {
-      db.clear
+    "reject approach with incorrect password" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
@@ -37,8 +34,8 @@ object CultistTest extends Specification with Mockito {
       c.approach("rabbit") must be_==(ApproachRejected)
     }
 
-    "reject approach with incorrect password, on expired account" >> {
-      db.clear
+    "reject approach with incorrect password, on expired account" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
@@ -49,8 +46,8 @@ object CultistTest extends Specification with Mockito {
       c.approach("fruit") must be_==(ApproachRejected)
     }
 
-    "reject bad approach" >> {
-      db.clear
+    "reject bad approach" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
@@ -61,10 +58,5 @@ object CultistTest extends Specification with Mockito {
       c.approach("grapes") must be_==(ApproachExpired)
     }
 
-
-  }
-
-  doAfter {
-    db.close
   }
 }

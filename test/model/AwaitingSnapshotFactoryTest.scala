@@ -1,35 +1,32 @@
-package code.model
+package model
 
-import org.specs.Specification
-import org.specs.mock.Mockito
-import TestDb
+import org.specs2.mutable.Specification
+import org.specs2.mock.Mockito
 import model.Mythos._
 import gate.T
-import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
-import net.liftweb.http.js.JsCmds
 import xml.NodeSeq
+import db.TestDb
+import test.WithTestApplication
 
-object AwaitingSnapshotFactoryTest extends Specification with Mockito {
-  val db = new TestDb
-  db.init
+class AwaitingSnapshotFactoryTest extends Specification with Mockito {
 
-  doBeforeSpec {
-    db.reset
-    inTransaction{
-      val time1 = T.at(2011, 3, 20, 1, 2, 3)
-      val time2 = T.at(2011, 3, 22, 1, 2, 3)
-      artifacts.delete(from(artifacts)(a => select(a)))
-      artifacts.insert(Artifact.create(1L, "a/b/c", time1, T.now))
-      artifacts.insert(Artifact.create(2L, "fudge", time1, T.now))
-      artifacts.insert(Artifact.create(1L, "d/e/f", time2, T.now))
-      artifacts.insert(Artifact.create(2L, "sugar", time2, T.now))
-      artifacts.insert(Artifact.create(2L, "chocolate", time2, T.now))
-    }
-  }
+//  step {
+//    inTransaction{
+//      val time1 = T.at(2011, 3, 20, 1, 2, 3)
+//      val time2 = T.at(2011, 3, 22, 1, 2, 3)
+//      artifacts.delete(from(artifacts)(a => select(a)))
+//      artifacts.insert(Artifact.create(1L, "a/b/c", time1, T.now))
+//      artifacts.insert(Artifact.create(2L, "fudge", time1, T.now))
+//      artifacts.insert(Artifact.create(1L, "d/e/f", time2, T.now))
+//      artifacts.insert(Artifact.create(2L, "sugar", time2, T.now))
+//      artifacts.insert(Artifact.create(2L, "chocolate", time2, T.now))
+//    }
+//  }
 
   "AwaitingSnapshot" should {
-    "add awaiting and cloning items" >> {
+    "add awaiting and cloning items" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val a1 = new Artifact()
       a1.id = 3
       a1.gatewayId = 1
@@ -73,7 +70,8 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       action2 must be_==( Add(c2.id) )
     }
 
-    "update artifact state" >> {
+    "update artifact state" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val a1 = new Artifact()
       a1.id = 3
       a1.gatewayId = 1
@@ -124,7 +122,8 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       action must be_==( Update(c1prime.id) )
     }
 
-    "remove cloned artifacts" >> {
+    "remove cloned artifacts" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       val a1 = new Artifact()
       a1.id = 3
       a1.gatewayId = 1
@@ -176,14 +175,16 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
 
   "AwaitingSnapshotFactory" should {
 
-    "be empty for no clones" >> {
+    "be empty for no clones" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val x = new AwaitingSnapshotFactory
       val xx = x.create(2)
       xx.awaiting must beEmpty
     }
 
-    "only show artifacts cloned by cultist" >> {
+    "only show artifacts cloned by cultist" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
@@ -193,7 +194,8 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       xx.awaiting must haveSize(1)
     }
 
-    "only show artifacts cloned by cultist, in the last 7 days" >> {
+    "only show artifacts cloned by cultist, in the last 7 days" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = Clone.create(i, 2L, CloneState.cloned)
@@ -210,7 +212,8 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       xx.awaiting must haveSize(0)
     }
 
-    "ordered by non-completes by request date, then completes by completion date" >> {
+    "ordered by non-completes by request date, then completes by completion date" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction {
 //        artifacts.delete(from(artifacts)(a => select(a)))
         val a1 = artifacts.insert(Artifact.create(1L, "aa", T.now, T.now))
@@ -235,9 +238,5 @@ object AwaitingSnapshotFactoryTest extends Specification with Mockito {
       }
     }
 
-  }
-
-  doAfter {
-    db.close
   }
 }

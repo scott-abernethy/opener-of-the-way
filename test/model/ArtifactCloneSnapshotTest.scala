@@ -1,21 +1,19 @@
-package code.model
+package model
 
-import org.specs.Specification
-import org.specs.mock.Mockito
-import TestDb
+import org.specs2.mutable.Specification
+import org.specs2.mock.Mockito
 import model.Mythos._
 import gate.{Millis, T}
-import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
+import db.TestDb
+import test.WithTestApplication
 
-object ArtifactCloneSnapshotTest extends Specification with Mockito {
+
+class ArtifactCloneSnapshotTest extends Specification with Mockito {
   val notNewsAfterDefault = Millis.days(365) * 1000;
 
-  val db = new TestDb
-  db.init
-
-  doBeforeSpec {
-    db.reset
+  def clearTransactions() {
+    import org.squeryl.PrimitiveTypeMode._
     inTransaction{
       val time1 = T.at(2011, 3, 20, 1, 2, 3)
       val time2 = T.at(2011, 3, 22, 1, 2, 3)
@@ -27,16 +25,15 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       artifacts.insert(Artifact.create(2L, "chocolate", time2, T.ago(Artifact.lostAfter + 1)))
       artifacts.insert(Artifact.create(2L, "marshmallow", time2, T.ago(Artifact.goneAfter + 1)))
     }
-  }
-
-  def clearTransactions() {
     inTransaction(presences.delete(from(presences)(p => select(p))))
     inTransaction(clones.delete(from(clones)(c => select(c))))
   }
 
   "ArtifactCloneSnapshot" should {
 
-    "load all artifacts" >> {
+    "load all artifacts" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
+      clearTransactions()
       val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
       x.reload(1)
       x.states.size mustEqual(5)
@@ -45,14 +42,17 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.size mustEqual(5)      
     }
 
-    "group artifacts by discovery, order by path" >> {
+    "group artifacts by discovery, order by path" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
+      clearTransactions()
       val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
       x.reload(1)
-      x.items.keys.toSeq mustEqual("2011-04-20, Wednesday" :: "2011-04-22, Friday" :: Nil)
-      x.items.get("2011-04-20, Wednesday").map(as => as.map(a => a.path)) must beSome("a/b/c" :: "fudge" :: Nil)
+      x.items.keys.toSeq mustEqual("2011-04-20" :: "2011-04-22" :: Nil)
+      x.items.get("2011-04-20").map(as => as.map(a => a.path)) must beSome("a/b/c" :: "fudge" :: Nil)
     }
 
-    "default state to mine or available if no clones exist" >> {
+    "default state to mine or available if no clones exist" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
       val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
       x.reload(2)
@@ -65,7 +65,8 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i + 5) must beNone
     }
 
-    "reflect clone state" >> {
+    "reflect clone state" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
@@ -91,7 +92,8 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
     }
 
-    "reflect presence state" >> {
+    "reflect presence state" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       inTransaction(presences.insert(Presence.create(i, PresenceState.present)))
@@ -124,7 +126,8 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
     }
 
-    "allow artifacts to be updated (including bug with present)" >> {
+    "allow artifacts to be updated (including bug with present)" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
       val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
       x.reload(2)
@@ -145,7 +148,8 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.present, 1))
     }
 
-    "not exclude items cloned by others (bug)" >> {
+    "not exclude items cloned by others (bug)" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
 
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
@@ -163,9 +167,5 @@ object ArtifactCloneSnapshotTest extends Specification with Mockito {
       x.states.get(i + 4) must beSome(ArtifactCloneInfo(ArtifactState.profferedLost, 0))
       x.states.get(i + 5) must beNone
     }
-  }
-
-  doAfter {
-    db.close
   }
 }

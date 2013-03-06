@@ -1,3 +1,4 @@
+import db._
 import play.api.{Play, Application, GlobalSettings, Logger}
 import play.api.Play.current
 import model.Environment
@@ -17,9 +18,14 @@ object Global extends GlobalSettings {
 
     Logger.info("It is here")
 
-    val data = new Db{}
+    val data = if (Play.isTest) {
+      new TestDb
+    }
+    else {
+      new Db{}
+    }
     data.init
-    if (Play.isDev) {
+    if (Play.isDev || Play.isTest) {
       data.clear
       data.populate
     }

@@ -1,42 +1,40 @@
-package code.model
+package model
 
-import org.specs.runner.{ConsoleRunner, JUnit4}
-import org.specs.Specification
-import org.specs.mock.Mockito
-import TestDb
+import org.specs2.mutable.Specification
+import org.specs2.mock.Mockito
 import model.Mythos._
 import gate.T
-import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
+import db.TestDb
+import test.WithTestApplication
 
-object ClonedSnapshotFactoryTest extends Specification with Mockito {
-  val db = new TestDb
-  db.init
+class ClonedSnapshotFactoryTest extends Specification with Mockito {
 
-  doBeforeSpec {
-    db.reset
-    inTransaction{
-      val time1 = T.at(2011, 3, 20, 1, 2, 3)
-      val time2 = T.at(2011, 3, 22, 1, 2, 3)
-      artifacts.delete(from(artifacts)(a => select(a)))
-      artifacts.insert(Artifact.create(1L, "a/b/c", time1, T.now))
-      artifacts.insert(Artifact.create(2L, "fudge", time1, T.now))
-      artifacts.insert(Artifact.create(1L, "d/e/f", time2, T.now))
-      artifacts.insert(Artifact.create(2L, "sugar", time2, T.now))
-      artifacts.insert(Artifact.create(2L, "chocolate", time2, T.now))
-    }
-  }
+//  step {
+//    inTransaction{
+//      val time1 = T.at(2011, 3, 20, 1, 2, 3)
+//      val time2 = T.at(2011, 3, 22, 1, 2, 3)
+//      artifacts.delete(from(artifacts)(a => select(a)))
+//      artifacts.insert(Artifact.create(1L, "a/b/c", time1, T.now))
+//      artifacts.insert(Artifact.create(2L, "fudge", time1, T.now))
+//      artifacts.insert(Artifact.create(1L, "d/e/f", time2, T.now))
+//      artifacts.insert(Artifact.create(2L, "sugar", time2, T.now))
+//      artifacts.insert(Artifact.create(2L, "chocolate", time2, T.now))
+//    }
+//  }
 
   "ClonedSnapshotFactory" should {
 
-    "be empty for no clones" >> {
+    "be empty for no clones" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val x = new ClonedSnapshotFactory
       val xx = x.create(2)
       xx.cloned must beEmpty
     }
 
-    "only show artifacts cloned by cultist" >> {
+    "only show artifacts cloned by cultist" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
@@ -46,7 +44,8 @@ object ClonedSnapshotFactoryTest extends Specification with Mockito {
       xx.cloned must haveSize(0)
     }
 
-    "only show artifacts cloned by cultist, in the last 7 days" >> {
+    "only show artifacts cloned by cultist, in the last 7 days" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction(clones.delete(from(clones)(c => select(c))))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = Clone.create(i, 2L, CloneState.cloned)
@@ -63,7 +62,8 @@ object ClonedSnapshotFactoryTest extends Specification with Mockito {
       xx.cloned must haveSize(1)
     }
 
-    "ordered by non-completes by request date, then completes by completion date" >> {
+    "ordered by non-completes by request date, then completes by completion date" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
       inTransaction {
 //        artifacts.delete(from(artifacts)(a => select(a)))
         val a1 = artifacts.insert(Artifact.create(1L, "aa", T.now, T.now))
@@ -88,9 +88,5 @@ object ClonedSnapshotFactoryTest extends Specification with Mockito {
       }
     }
 
-  }
-
-  doAfter {
-    db.close
   }
 }

@@ -1,13 +1,18 @@
-package code
+package db
 
-import model._
 import org.squeryl.PrimitiveTypeMode._
+import model.{Artifact, Gateway, Cultist}
+import model.Mythos._
 
 class TestDb extends Db {
   import gate.T
   import model.Mythos._
-  def reset {
-    clear
+
+  def reset() {
+
+  }
+
+  override def populate {
     transaction {
       val bob = cultists.insert(Cultist.create("bob@bob.com", "bob123"))
       val jane = cultists.insert(Cultist.create("jane@jane.com", "jane123"))
@@ -61,18 +66,27 @@ class TestDb extends Db {
       artifacts.insert( Artifact.create(ioi.id, "a4", T.ago(200000000), T.now, 1024L * 1024 * 1024 * 80) )
     }
   }
+}
 
-  lazy val c1: Cultist = cultists.lookup(1L) getOrElse null
-  lazy val c2: Cultist = cultists.lookup(2L) getOrElse null
-  lazy val c3: Cultist = cultists.lookup(3L) getOrElse null
-  lazy val c1g: Gateway = gateways.lookup(1L) getOrElse null
-  lazy val c2g: Gateway = gateways.lookup(2L) getOrElse null
-  lazy val c3g: Gateway = gateways.lookup(3L) getOrElse null
-  lazy val c3source: Gateway = gateways.lookup(4L) getOrElse null
-  lazy val c1ga1: Artifact = artifacts.lookup(1L) getOrElse null
-  lazy val c1ga2: Artifact = artifacts.lookup(2L) getOrElse null
-  lazy val c3a1 = artifacts.lookup(3L).getOrElse(null)
-  lazy val c3a2 = artifacts.lookup(4L).getOrElse(null)
-  lazy val c3a3 = artifacts.lookup(5L).getOrElse(null)
-  lazy val c3a4 = artifacts.lookup(6L).getOrElse(null)
+object TestDb {
+  var db: TestDb = null
+
+  def testConfiguration(): Map[String, _] = {
+    Map()
+  }
+
+  def c1: Cultist = cultists.lookup(1L) getOrElse null
+  def c2: Cultist = cultists.lookup(2L) getOrElse null
+  def c3: Cultist = cultists.lookup(3L) getOrElse null
+  def c1g: Gateway = gateways.lookup(1L) getOrElse null
+  def c2g: Gateway = gateways.lookup(2L) getOrElse null
+  def c3g: Gateway = gateways.lookup(3L) getOrElse null
+  def c3source: Gateway = gateways.lookup(4L) getOrElse null
+  def c1ga1: Artifact = artifacts.lookup(1L) getOrElse null
+  def c1ga2: Artifact = artifacts.lookup(2L) getOrElse null
+  def c3a1: Artifact = artifacts.lookup(3L).getOrElse(null)
+  def c3a2: Artifact = artifacts.lookup(4L).getOrElse(null)
+  def c3a3: Artifact = artifacts.lookup(5L).getOrElse(null)
+  def c3a4: Artifact = artifacts.lookup(6L).getOrElse(null)
+
 }
