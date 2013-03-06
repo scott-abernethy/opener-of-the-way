@@ -43,7 +43,7 @@ object Clones extends Controller with Permission {
       items.
         groupBy(i => DatePresentation.yearMonthDay(i._1.attempted.getTime)).
         toList.
-        sortBy(_._1)
+        sortBy(_._1).reverse
     )
     Async {
       out.map(groups =>
