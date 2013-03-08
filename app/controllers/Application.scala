@@ -6,11 +6,13 @@ import play.api.mvc._
 import util.{Context, ConcurrentUtil, Permission}
 import state.StateStream
 import concurrent.Future
+import model.{Pseudonym, Cultist}
 
 object Application extends Controller with Permission {
   
   def index = PermittedAction { request =>
-    Ok(views.html.index())
+    val pseudonym = Pseudonym.of(request.cultistId)
+    Ok(views.html.index(pseudonym))
   }
 
   def stream() = {
