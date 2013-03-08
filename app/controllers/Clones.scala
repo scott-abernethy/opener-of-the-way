@@ -29,9 +29,7 @@ object Clones extends Controller with Permission {
     import util.Context.playDefault
     Async {
       report.map(lines =>
-        lines.groupBy(_._4)
-      ).map( groups =>
-        Ok(views.html.report.queue(at, groups))
+        Ok(views.html.report.queue(at, lines))
       )
     }
   }

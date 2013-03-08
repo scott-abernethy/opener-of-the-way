@@ -94,6 +94,9 @@ body {
     color: #B94A48;
     text-decoration: line-through;
 }
+.s-ok {
+    color: green;
+}
 .alt-a {
     color: #333;
 }

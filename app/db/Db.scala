@@ -79,6 +79,8 @@ trait Db {
           g1.password = "treesaregreen"
           g1.source = true
           g1.sink = false
+          g1.seen = T.ago(Millis.days(9))
+          g1.scoured = T.ago(Millis.days(11))
           g1 = Mythos.gateways.insert(g1)
           var g2: Gateway = new Gateway
           g2.cultistId = foo.id
@@ -207,7 +209,7 @@ trait Db {
           clone4.artifactId = k.id
           clone4.forCultistId = foo.id
           clone4.state = CloneState.awaiting
-          clone4.requested = T.yesterday
+          clone4.requested = T.ago(Millis.days(4))
           clone4.attempted = T.yesterday
           clone4.attempts = 0
           Mythos.clones.insert(clone4)
@@ -216,7 +218,7 @@ trait Db {
           clone3.artifactId = b.id
           clone3.forCultistId = foo.id
           clone3.state = CloneState.awaiting
-          clone3.requested = T.ago(61 * 60 * 1000L)
+          clone3.requested = T.ago(Millis.days(9))
           clone3.attempted = T.now
           clone3.attempts = 1
           Mythos.clones.insert(clone3)
@@ -225,7 +227,7 @@ trait Db {
           clone2.artifactId = c.id
           clone2.forCultistId = foo.id
           clone2.state = CloneState.cloned
-          clone2.requested = T.ago(89734562)
+          clone2.requested = T.ago(Millis.days(4))
           clone2.attempted = T.ago(456789)
           clone2.attempts = 2
           clone2.duration = 123456

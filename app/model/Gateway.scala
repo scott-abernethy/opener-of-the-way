@@ -128,13 +128,13 @@ object Gateway {
     inTransaction( from(gateways)(g => where(g.cultistId === id) select(g)).toList )
   }
 
-  def sourceReport(): Future[List[(Gateway, String)]] = {
+  def sourceReport(): Future[List[(Gateway, String, String)]] = {
     inFutureTransaction(
-      join( gateways, pseudonyms )( (g, n) =>
+      join( gateways, pseudonyms, cultists )( (g, n, w) =>
         where( g.source === true )
-        select( (g, n.name) )
+        select( (g, n.name, w.email) )
         orderBy( g.scoured asc, g.id asc )
-        on( g.cultistId === n.id )
+        on( g.cultistId === n.id, g.cultistId === w.id )
       ).toList
     )
   }

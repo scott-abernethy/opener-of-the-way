@@ -1,21 +1,23 @@
-@(at: Long, groups: Map[String, List[(model.Clone, Option[model.Presence], String, String)]])
+@(at: Long, items: List[(model.Clone, Option[model.Presence], model.Artifact, String, String)])
 @import util.DatePresentation
+@import util.Size
+@import gate.Millis
 @import views.CloneHelpers._
 
 @report.template("Queue") {
   <table class="table">
     <thead>
-      <tr><th>Who</th><th>When</th><th>What</th><th>Status</th></tr>
+      <tr><th>Who</th><th>When</th><th>What</th><th>Size</th><th>Presence</th><th>Clone</th></tr>
     </thead>
-  @for(group <- groups) {
-    @for(item <- group._2) {
-      <tr>
-        <td>@{group._1}</td>
-        <td>@{DatePresentation.ago(item._1.requested.getTime, at)}</td>
-        <td>@{item._3}</td>
-        <td>@{cloneStatus(item._1, item._2)}</td>
-      </tr>
-    }
+  @for(item <- items) {
+    <tr>
+      <td><abbr title="@{item._5}">@{item._4}</abbr></td>
+      <td>@{agoThreshold(item._1.requested.getTime, at, Millis.days(3))}</td>
+      <td><abbr title="@{item._3.path}">#@{item._3.id}</abbr></td>
+      <td>@{Size.short(item._3.length)}</td>
+      <td>@{presenceStatus(item._2)}</td>
+      <td>@{cloneStatus(item._1)}</td>
+    </tr>
   }
   </table>
 }

@@ -49,6 +49,10 @@ object Presence {
   }
 
   lazy val maxPresenceLength = Size.megs(Play.configuration.getLong("presence.storage").getOrElse(1024L))
+
+  def unapply(ref: Presence): Option[(Long, PresenceState.Value, Long, Timestamp)] = {
+    Some( (ref.artifactId, ref.state, ref.attempts, ref.attempted) )
+  }
 }
 
 object PresenceState extends Enumeration {

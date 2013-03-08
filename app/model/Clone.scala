@@ -71,13 +71,13 @@ object Clone {
   lazy val poorWaitAfter = 4 * 60 * 60 * 1000L
   lazy val terribleWaitAfter = 3 * 24 * 60 * 60 * 1000L
 
-  def queue(): Future[List[(Clone, Option[Presence], String, String)]] = {
+  def queue(): Future[List[(Clone, Option[Presence], Artifact, String, String)]] = {
     inFutureTransaction (
-      join(clones, presences.leftOuter, artifacts, pseudonyms)( (c, p, a, n) =>
+      join(clones, presences.leftOuter, artifacts, pseudonyms, cultists)( (c, p, a, n, w) =>
         where(c.state <> CloneState.cloned)
-        select( (c, p, a.path, n.name) )
-        orderBy(n.name desc, c.requested desc)
-        on(c.artifactId === p.map(_.artifactId), c.artifactId === a.id, c.forCultistId === n.id)
+        select( (c, p, a, n.name, w.email) )
+        orderBy(c.requested asc)
+        on(c.artifactId === p.map(_.artifactId), c.artifactId === a.id, c.forCultistId === n.id, c.forCultistId === w.id)
       ).toList
     )
   }

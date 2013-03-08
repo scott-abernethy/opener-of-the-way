@@ -1,6 +1,6 @@
-@(at: Long, lines: List[(model.Gateway, String)])
-@import util.DatePresentation.ago
+@(at: Long, lines: List[(model.Gateway, String, String)])
 @import views.CloneHelpers._
+@import gate.Millis
 
 @report.template("Sources") {
   <table class="table">
@@ -9,11 +9,11 @@
     </thead>
     @for(line <- lines) {
       <tr>
-        <td>@{line._2}</td>
+        <td><abbr title="@{line._3}">@{line._2}</abbr></td>
         <td>@{line._1.locationAndPath}</td>
         <td>@{line._1.mode}</td>
-        <td>@{ago(line._1.seen.getTime, at)}</td>
-        <td>@{ago(line._1.scoured.getTime, at)}</td>
+        <td>@{agoThreshold(line._1.seen.getTime, at, Millis.days(10))}</td>
+        <td>@{agoThreshold(line._1.scoured.getTime, at, Millis.days(5))}</td>
       </tr>
     }
   </table>
