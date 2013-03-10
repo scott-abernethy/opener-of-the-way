@@ -183,7 +183,7 @@ object Artifact {
 
   lazy val goneAfter = 12 * 24 * 60 * 60 * 1000L
 
-  lazy val notNewsAfter = Millis.days(60)
+  lazy val notNewsAfter = Millis.days(7)
 
   def discovered(after: Timestamp): Future[List[Artifact]] = {
     inFutureTransaction (
