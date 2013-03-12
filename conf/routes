@@ -36,6 +36,7 @@ GET     /cultist/:id                controllers.Cultists.who(id: Long)
 GET     /approach                   controllers.Cultists.approach
 POST    /approach                   controllers.Cultists.approachSubmit
 GET     /withdraw                   controllers.Cultists.withdraw
+GET     /report/activity            controllers.Cultists.activity
 
 # Babble
 GET     /babble                     controllers.Babbling.list

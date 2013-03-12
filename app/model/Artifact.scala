@@ -194,6 +194,31 @@ object Artifact {
       ).toList
     )
   }
+
+  def lastProffer(): Future[Map[Long, Option[Timestamp]]] = {
+    inFutureTransaction {
+      join(artifacts, gateways)( (a, g) =>
+        groupBy( g.cultistId )
+        compute( max(a.discovered) )
+        on( a.gatewayId === g.id )
+      ).map( group =>
+        (group.key, group.measures)
+      ).toList.toMap
+    }
+  }
+
+  def proffers(after: Timestamp): Future[Map[Long, (Long, Option[Long])]] = {
+    inFutureTransaction {
+      join(artifacts, gateways)( (a, g) =>
+        where( a.discovered > after )
+        groupBy( g.cultistId )
+        compute( count, sum(a.length) )
+        on( a.gatewayId === g.id )
+      ).map( group =>
+        (group.key, (group.measures._1, group.measures._2))
+      ).toList.toMap
+    }
+  }
 }
 
 object ArtifactState extends Enumeration {

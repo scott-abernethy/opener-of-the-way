@@ -13,6 +13,8 @@ import xml.Node
 import scala.util.matching.Regex
 import play.api.libs.json.Json
 import util.DatePresentation
+import concurrent.Future
+import util.FutureTransaction._
 
 sealed abstract class ApproachResult
 case object ApproachSuccess extends ApproachResult
@@ -132,4 +134,14 @@ object Cultist {
   }
 
   lazy val unlockAfter = 4 * 60 * 60 * 1000L
+
+  def all(): Future[List[(Cultist, String)]] = {
+    inFutureTransaction {
+      join(cultists, pseudonyms)( (w, n) =>
+        select( (w, n.name) )
+        orderBy( n.name asc )
+        on( w.id === n.id )
+      ).toList
+    }
+  }
 }

@@ -92,6 +92,29 @@ object Clone {
       ).toList
     )
   }
+
+  def lastRequest(): Future[Map[Long, Option[Timestamp]]] = {
+    inFutureTransaction {
+      from(clones)( c =>
+        groupBy( c.forCultistId )
+        compute( max(c.requested) )
+      ).map( group =>
+        (group.key, group.measures)
+      ).toList.toMap
+    }
+  }
+
+  def lastClone(): Future[Map[Long, Option[Timestamp]]] = {
+    inFutureTransaction {
+      from(clones)( c =>
+        where( c.state === CloneState.cloned )
+        groupBy( c.forCultistId )
+        compute( max(c.attempted) )
+      ).map( group =>
+        (group.key, group.measures)
+      ).toList.toMap
+    }
+  }
 }
 
 object CloneState extends Enumeration {

@@ -1,0 +1,25 @@
+@(at: Long, cultists: List[(model.Cultist, String, Option[Long], Option[Long], Option[Long], Option[Long], Option[Long])])
+@import util.DatePresentation
+@import util.Size
+@import gate.Millis
+@import views.CloneHelpers._
+@import xml.NodeSeq
+
+@report.template("Activity") {
+  <table class="table">
+    <thead>
+      <tr><th>Who</th><th>Seen</th><th>Requested</th><th>Cloned</th><th>Cloned 7 days</th><th>Proffered</th><th>Proffered 7 days</th></tr>
+    </thead>
+    @for(cultist <- cultists) {
+      <tr>
+      <td><abbr title="@{cultist._1.email}">@{cultist._2}</abbr></td>
+      <td>@{cultist._1.seen.map(t => agoThreshold(t.getTime, at, Millis.days(7))).getOrElse(NodeSeq.Empty)}</td>
+      <td>@{cultist._3.map(t => agoThreshold(t, at, Millis.days(14))).getOrElse(NodeSeq.Empty)}</td>
+      <td>@{cultist._4.map(t => agoThreshold(t, at, Millis.days(14))).getOrElse(NodeSeq.Empty)}</td>
+      <td>@{cultist._5.map(n => countThreshold(n, 30)).getOrElse(NodeSeq.Empty)}</td>
+      <td>@{cultist._6.map(t => agoThreshold(t, at, Millis.days(14))).getOrElse(NodeSeq.Empty)}</td>
+      <td>@{cultist._7.map(n => countThreshold(n, 30)).getOrElse(NodeSeq.Empty)}</td>
+      </tr>
+    }
+  </table>
+}

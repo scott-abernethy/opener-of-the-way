@@ -3,10 +3,12 @@ package controllers
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import model.{ApproachSuccess, ApproachExpired, Cultist}
+import model._
 import play.api.libs.json.Json
 import util.Permission
 import org.squeryl.PrimitiveTypeMode._
+import gate.T
+import scala.Some
 
 object Cultists extends Controller with Permission {
 
@@ -60,6 +62,43 @@ object Cultists extends Controller with Permission {
       Ok(c.toJson)
     }.getOrElse{
       BadRequest
+    }
+  }
+
+  def activity() = InsaneAction { request =>
+    val at = T.now.getTime
+    val futureCultists = Cultist.all
+    val futureRequests = Clone.lastRequest
+    val futureClone = Clone.lastClone
+    val futureProffer = Artifact.lastProffer
+    val futureProffers = Artifact.proffers(T.startOfSevenDayPeriod())
+    import util.Context.playDefault
+    val futureReport = for {
+      cultists <- futureCultists
+      requests <- futureRequests
+      clone <- futureClone
+      proffer <- futureProffer
+      proffers <- futureProffers
+    } yield {
+      cultists.map( x =>
+        {
+          val cid: Long = x._1.id
+          (x._1,
+            x._2,
+            requests.getOrElse(cid, None).map(_.getTime),
+            clone.getOrElse(cid, None).map(_.getTime),
+            None,
+            proffer.getOrElse(cid, None).map(_.getTime),
+            None)
+//            proffers.getOrElse(cid, None))
+        }
+      )
+    }
+
+    Async {
+      futureReport.map( report =>
+        Ok(views.html.report.activity(at, report))
+      )
     }
   }
 }
