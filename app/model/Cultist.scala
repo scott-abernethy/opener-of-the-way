@@ -7,7 +7,7 @@ import model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import java.util.Properties
 import java.io.FileReader
-import gate.T
+import gate.{Millis, T}
 import java.sql.Timestamp
 import xml.Node
 import scala.util.matching.Regex
@@ -133,7 +133,7 @@ object Cultist {
     )
   }
 
-  lazy val unlockAfter = 4 * 60 * 60 * 1000L
+  lazy val unlockAfter = Millis.days(1);
 
   def all(): Future[List[(Cultist, String)]] = {
     inFutureTransaction {
