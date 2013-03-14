@@ -6,20 +6,29 @@ import org.squeryl.PrimitiveTypeMode._
 import scala.Some
 import controllers.routes
 import play.api.Play
+import gate.{Millis, T}
+import scala.util.Try
 
 case class PermittedRequest[A](cultistId: Long, private val request: Request[A]) extends WrappedRequest(request)
 
 trait Permission extends Controller {
 
+  def cultistSessionData(cid: Long): List[(String, String)] = {
+    List(
+      "cultist" -> cid.toString,
+      "given" -> T.now.getTime.toString
+    )
+  }
+
   def getCultistId(request: RequestHeader): Option[Long] = {
-    request.session.get("cultist").flatMap{ c =>
-      try {
-        Some(c.toLong)
-      }
-      catch {
-        case _: NumberFormatException => None
-      }
+    for {
+      cultist <- request.session.get("cultist")
+      cid <- Try(cultist.toLong).toOption
+      given <- request.session.get("given")
+      at <- Try(given.toLong).toOption
+      if (at > T.ago(Millis.days(3)).getTime)
     }
+    yield cid
   }
 
   def PermittedAction[A](p: BodyParser[A])(f: PermittedRequest[A] => Result) = {

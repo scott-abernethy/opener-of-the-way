@@ -20,9 +20,7 @@ object Cultists extends Controller with Permission {
   )
 
   def become(id: Long) = NonProductionAction { request =>
-    Ok("Became " + id).withSession(
-      request.session + ("cultist" -> id.toString)
-    )
+    Ok("Became " + id).withSession(cultistSessionData(id) : _*)
   }
 
   def approach = Action { request =>
@@ -36,7 +34,7 @@ object Cultists extends Controller with Permission {
       ok => ok match {
         case (email, password) => {
           Cultist.forEmail(email).map(c => (c,c.approach(password))) match {
-            case Some((c, ApproachSuccess)) => Redirect(routes.Application.index()).withSession(session + ("cultist" -> c.id.toString))
+            case Some((c, ApproachSuccess)) => Redirect(routes.Application.index()).withSession(cultistSessionData(c.id) : _*)
             case Some((c, ApproachExpired)) => BadRequest("Expired") // TODO
             case _ => BadRequest(views.html.approach(form))
           }
