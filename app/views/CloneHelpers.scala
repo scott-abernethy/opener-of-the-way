@@ -14,9 +14,7 @@ object CloneHelpers {
     val (icon, clazz, warning) = (state, attempts) match {
       case (PresenceState.presenting, _) => ("icon-cog icon-large icon-spin", "s-cloning", NodeSeq.Empty)
       case (PresenceState.present, _) => ("icon-gift icon-large", "s-ok", NodeSeq.Empty)
-      case (_, 0) => ("icon-gift", "muted", NodeSeq.Empty)
-      case (_, attempts) if (attempts < 5) => ("icon-gift", "muted", <span class="label label-warning"><i class="icon-cog"></i></span>)
-      case (_, attempts) => ("icon-gift", "muted", <span class="label label-important"><i class="icon-cog"></i></span>)
+      case (_, attempts) => ("icon-gift", "muted", warningLabel(attempts, 1, "icon-cog"))
     }
     <span class={clazz}><i class={icon} title={state.toString}></i> {warning}</span>
   }
@@ -25,37 +23,19 @@ object CloneHelpers {
     val (icon, clazz, warning) = (clone.state, clone.attempts) match {
       case (CloneState.cloning, _) => ("icon-cog icon-large icon-spin", "s-cloning", NodeSeq.Empty)
       case (CloneState.cloned, _) => ("icon-asterisk icon-large", "s-ok", NodeSeq.Empty)
-      case (_, 0) => ("icon-asterisk", "muted", NodeSeq.Empty)
-      case (_, attempts) if (attempts < 5) => ("icon-asterisk", "muted", <span class="label label-warning"><i class="icon-cog"></i></span>)
-      case (_, attempts) => ("icon-asterisk", "muted", <span class="label label-important"><i class="icon-cog"></i></span>)
+      case (_, attempts) => ("icon-asterisk", "muted", warningLabel(attempts, 1, "icon-cog"))
     }
     <span class={clazz}><i class={icon} title={clone.state.toString}></i> {warning}</span>
   }
 
   def agoThreshold(at: Long, now: Long, thresholdMsec: Long): NodeSeq = {
     val duration: Long = now - at
-    val warning = if (duration > (3 * thresholdMsec)) {
-      <span class="label label-important"><i class="icon-time"></i></span>
-    }
-    else if (duration > thresholdMsec) {
-      <span class="label label-warning"><i class="icon-time"></i></span>
-    }
-    else {
-      NodeSeq.Empty
-    }
+    val warning = warningLabel(duration, thresholdMsec, "icon-time")
     <span>{DatePresentation.ago(at, now)} {warning}</span>
   }
 
   def durationThreshold(duration: Long, thresholdMsec: Long): NodeSeq = {
-    val warning = if (duration > (3 * thresholdMsec)) {
-      <span class="label label-important"><i class="icon-time"></i></span>
-    }
-    else if (duration > thresholdMsec) {
-      <span class="label label-warning"><i class="icon-time"></i></span>
-    }
-    else {
-      NodeSeq.Empty
-    }
+    val warning = warningLabel(duration, thresholdMsec, "icon-time")
     <span>{DatePresentation.duration(duration)} {warning}</span>
   }
 
@@ -64,15 +44,22 @@ object CloneHelpers {
   }
 
   def countThreshold(count: Long, threshold: Long, renderer: Long => String): NodeSeq = {
-    val warning = if (count > (3 * threshold)) {
-      <span class="label label-important"><i class="icon-fire"></i></span>
+    val warning = warningLabel(count, threshold, "icon-fire")
+    <span>{renderer(count)} {warning}</span>
+  }
+
+  private def warningLabel(number: Long, threshold: Long, warningIcon: String): NodeSeq = {
+    if (number > (9 * threshold)) {
+      <span class="label label-important"><i class={warningIcon}></i></span>
     }
-    else if (count > threshold) {
-      <span class="label label-warning"><i class="icon-fire"></i></span>
+    else if (number > (3 * threshold)) {
+      <span class="label label-warning"><i class={warningIcon}></i></span>
+    }
+    else if (number > threshold) {
+      <span class="label label-info"><i class={warningIcon}></i></span>
     }
     else {
       NodeSeq.Empty
     }
-    <span>{renderer(count)} {warning}</span>
   }
 }
