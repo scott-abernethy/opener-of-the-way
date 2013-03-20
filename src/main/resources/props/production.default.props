@@ -1,5 +1,0 @@
-db.driver=com.mysql.jdbc.Driver
-db.adapter=org.squeryl.adapters.MySQLAdapter
-db.url=jdbc:mysql://localhost/ootw
-db.user=gate
-db.password=key
