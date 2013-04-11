@@ -99,6 +99,16 @@ object Clone {
     )
   }
 
+  def queueSummary(): Future[List[(Clone, Artifact)]] = {
+    inFutureTransaction (
+      join(clones, artifacts)( (c, a) =>
+        where(c.state <> CloneState.cloned)
+        select( (c, a) )
+        on(c.artifactId === a.id)
+      ).toList
+    )
+  }
+
   def complete(after: Timestamp): Future[List[(Clone, Artifact)]] = {
     inFutureTransaction (
       join(clones, artifacts)( (c, a) =>

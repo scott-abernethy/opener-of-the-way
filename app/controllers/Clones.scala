@@ -23,6 +23,7 @@ import play.api.libs.json.Json
 import util.{Size, Shifting, DatePresentation, Permission}
 import gate.T
 import java.sql.Timestamp
+import scala.concurrent.Future
 
 object Clones extends Controller with Permission {
 
@@ -53,15 +54,32 @@ object Clones extends Controller with Permission {
 
   def load = InsaneAction { request =>
     val period: Timestamp = T.startOfSevenDayPeriod()
+    val futureComplete = Clone.complete(period)
+    val futureProffers = Artifact.proffers(period)
+    val futureQueue = Clone.queueSummary()
     import util.Context.playDefault
-    val out = Clone.complete(period).map( items =>
-      items.
-        groupBy(i => DatePresentation.yearMonthDay(i._1.attempted.getTime)).
-        toList.
-        sortBy(_._1).reverse
-    )
+
+    val futureReport: Future[List[(String, List[Artifact], List[(Clone, Artifact)])]] = for {
+      complete <- futureComplete
+      proffers <- futureProffers
+      queue <- futureQueue
+    }
+    yield {
+      val pmap = proffers.groupBy(i => DatePresentation.yearMonthDay(i.discovered.getTime))
+      val cmap = complete.groupBy(i => DatePresentation.yearMonthDay(i._1.attempted.getTime))
+
+      val history = for {
+        day <- (pmap.keySet ++ cmap.keySet).toList.sorted.reverse
+      }
+      yield {
+        (day, pmap.getOrElse(day, Nil), cmap.getOrElse(day, Nil))
+      }
+
+      ("Queued", Nil, queue) :: history
+    }
+
     Async {
-      out.map(groups =>
+      futureReport.map(groups =>
         Ok(views.html.report.load(groups))
       )
     }

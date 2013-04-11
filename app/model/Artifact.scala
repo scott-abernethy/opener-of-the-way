@@ -224,7 +224,17 @@ object Artifact {
     }
   }
 
-  def proffers(after: Timestamp): Future[Map[Long, (Long, Option[Long])]] = {
+  def proffers(after: Timestamp): Future[List[Artifact]] = {
+    inFutureTransaction {
+      from(artifacts)( a =>
+        where( a.discovered > after )
+        select( a )
+        orderBy( a.discovered desc )
+      ).toList
+    }
+  }
+
+  def proffersByCultist(after: Timestamp): Future[Map[Long, (Long, Option[Long])]] = {
     inFutureTransaction {
       join(artifacts, gateways)( (a, g) =>
         where( a.discovered > after )

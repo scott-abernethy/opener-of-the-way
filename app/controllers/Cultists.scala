@@ -86,7 +86,7 @@ object Cultists extends Controller with Permission {
     val futureRequests = Clone.lastRequest
     val futureClone = Clone.lastClone
     val futureProffer = Artifact.lastProffer
-    val futureProffers = Artifact.proffers(T.startOfSevenDayPeriod())
+    val futureProffers = Artifact.proffersByCultist(T.startOfSevenDayPeriod())
     import util.Context.playDefault
     val futureReport = for {
       cultists <- futureCultists
@@ -94,7 +94,8 @@ object Cultists extends Controller with Permission {
       clone <- futureClone
       proffer <- futureProffer
       proffers <- futureProffers
-    } yield {
+    }
+    yield {
       cultists.map( x =>
         {
           val cid: Long = x._1.id
