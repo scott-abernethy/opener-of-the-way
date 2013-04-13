@@ -33,6 +33,7 @@ PUT     /gateway/scour              controllers.Gateways.scour
 GET     /cultist/become             controllers.Cultists.become(id: Long)
 GET     /cultist/-1                 controllers.Cultists.me
 GET     /cultist/:id                controllers.Cultists.who(id: Long)
+POST    /cultist                    controllers.Cultists.recruit
 GET     /approach                   controllers.Cultists.approach
 POST    /approach                   controllers.Cultists.approachSubmit
 GET     /withdraw                   controllers.Cultists.withdraw
@@ -45,6 +46,7 @@ POST    /babble                     controllers.Babbling.add
 # Partials
 GET     /partials/home              controllers.Partials.home
 GET     /partials/tome              controllers.Partials.tome
+GET     /partials/recruit           controllers.Partials.recruit
 GET     /partials/gateway/add       controllers.Partials.addGateway
 GET     /partials/gateway/edit      controllers.Partials.editGateway
 

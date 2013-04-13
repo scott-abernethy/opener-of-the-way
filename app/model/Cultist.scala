@@ -90,6 +90,24 @@ object Cultist {
     x
   }
 
+  def insertRecruit(email: String, password: String, recruiter: Long): Option[Cultist] = {
+    val c = new Cultist
+    c.email = email
+    c.password = password
+    c.recruitedBy = recruiter
+    c.expired = true // forces password change
+    c.locked = true // requires unlocking by the insane before they can glimpse the truth
+    transaction {
+      val free = cultists.where(_.email === c.email).isEmpty
+      if (free) {
+        Some(cultists.insert(c))
+      }
+      else {
+        None
+      }
+    }
+  }
+
   val ValidEmail: Regex = """([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,4})""".r
 
   def find(id: String): Option[Cultist] = {

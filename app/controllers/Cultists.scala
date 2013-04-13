@@ -21,11 +21,12 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import model._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import util.Permission
 import org.squeryl.PrimitiveTypeMode._
 import gate.T
 import scala.Some
+import play.api.Logger
 
 object Cultists extends Controller with Permission {
 
@@ -79,6 +80,57 @@ object Cultists extends Controller with Permission {
       BadRequest
     }
   }
+
+  def recruit = PermittedAction(parse.json) { request =>
+    request.body \ "email" match {
+      case JsString(email @ Cultist.ValidEmail(username, domain)) => {
+        val lowerCase = domain.toLowerCase
+        if (lowerCase.contains("aviat") || lowerCase.contains("hstx") || lowerCase.contains("stratex")) {
+          BadRequest("Don't be silly, pick another email.")
+        }
+        else {
+          val password = "beyond"
+          val cultist = Cultist.insertRecruit(email, password, request.cultistId)
+          Logger.info("Recruited cultist " + email)
+          Ok(password)
+        }
+      }
+      case _ => {
+        BadRequest("Invalid email.")
+      }
+    }
+  }
+
+  //  private def processRecruit {
+  //    email.is match {
+  //      case Some(Cultist.ValidEmail(username, domain)) if (domain.contains("aviat") || domain.contains("hstx.") || domain.contains("stratex")) => {
+  //        S.warning("Don't be silly")
+  //      }
+  //      case Some(x) if (x == emailHint) => {
+  //        S.warning("Don't be insane")
+  //      }
+  //      case Some(Cultist.ValidEmail(username, domain)) => {
+  //        val e = username + "@" + domain
+  //        val c = new code.model.Cultist
+  //        c.email = e
+  //        c.password = "beyond"
+  //        c.recruitedBy = Cultist.attending.is.map(_.id) openOr -2L
+  //        c.expired = true // forces password change
+  //        c.locked = true // requires unlocking by the insane before they can glimpse the truth
+  //        transaction {
+  //          val free = cultists.where(_.email === c.email).isEmpty
+  //          if (free) {
+  //            cultists.insert(c)
+  //          }
+  //        }
+  //        S.redirectTo("recruited", () => theRecruited(Some(c)))
+  //      }
+  //      case _ => {
+  //        S.warning("Invalid email")
+  //      }
+  //    }
+
+
 
   def activity() = InsaneAction { request =>
     val at = T.now.getTime

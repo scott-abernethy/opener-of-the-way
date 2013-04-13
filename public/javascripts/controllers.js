@@ -234,6 +234,31 @@ function BabbleCtrl($http, $scope, Babble, ArtifactSocket, $location) {
   ArtifactSocket.subscribe(append, "BabbleAdd");
 }
 
+RecruitCtrl.$inject = ['$http', '$scope', '$location'];
+function RecruitCtrl($http, $scope, $location) {
+    $scope.save = function(email) {
+        $http.post('/cultist', {"email": email}).
+            success(function(data){
+                $scope.saveError = false;
+                $scope.errorMsg = {};
+                alert("Cultist '"+email+"' has been recruited. PLEASE TELL THEM that their initial password is '"+data+"'.");
+                $location.path('/home');
+            }).
+            error(function(data){
+                $scope.errorMsg = data
+                $scope.saveError = true;
+            });
+    };
+
+    $scope.cancel = function() {
+        $location.path('/home');
+    };
+
+    $scope.saveError = false;
+    $scope.errorMsg = {};
+    $scope.email = {};
+}
+
 AddGatewayCtrl.$inject = ['$http', '$scope', '$location'];
 function AddGatewayCtrl($http, $scope, $location) {
   $scope.modes = [
