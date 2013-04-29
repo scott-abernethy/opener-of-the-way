@@ -18,12 +18,21 @@
 package controllers
 
 import play.api.mvc.{Action, Controller}
-import play.api.libs.json.{JsNumber, JsBoolean, JsObject, Json}
+import play.api.libs.json._
 import model._
 import concurrent.Future
-import util.{Permission}
+import _root_.util.{Context, Permission}
 import state.{ArtifactUnawaiting, ArtifactTouched, ArtifactAwaiting}
 import gate.{T, AddArtifact, Summon}
+import state.ArtifactUnawaiting
+import gate.AddArtifact
+import play.api.libs.json.JsBoolean
+import scala.Some
+import gate.Summon
+import play.api.libs.json.JsNumber
+import state.ArtifactAwaiting
+import state.ArtifactTouched
+import play.api.libs.json.JsObject
 
 object Artifacts extends Controller with Permission {
 
@@ -48,18 +57,19 @@ object Artifacts extends Controller with Permission {
     Ok("Added")
   }
 
-  def log = PermittedAction { request =>
-    val future = Future {
-      val snapshot = new ArtifactCloneSnapshot(Artifact.notNewsAfter)
-      snapshot.reload(request.cultistId)
+  def log(count: Int, last: Long) = PermittedAction { request =>
+    val lastOption = if (last == -1) None else Some(last)
+    val snapshotFuture = ArtifactCloneSnapshot(request.cultistId, lastOption, count)
+    import Context.playDefault
+
+    val future: Future[Seq[JsObject]] = snapshotFuture.map { snapshot =>
       for (group <- snapshot.items.toSeq.reverse)
       yield Json.obj(
         "name" -> group._1,
         "items" -> group._2.map(a => artifactWithStateJson(a, snapshot.stateFor(a.id), snapshot.clonesFor(a.id)))
       )
-    }(util.Context.dbOperations)
+    }
 
-    import util.Context.playDefault
     Async {
       future.map(as => Ok(Json.toJson(as)))
     }
@@ -83,9 +93,9 @@ object Artifacts extends Controller with Permission {
           "Unawaiting"
         }
       }
-    }(util.Context.dbOperations)
+    }(Context.dbOperations)
 
-    import util.Context.playDefault
+    import Context.playDefault
     Async {
       future.map{
         case Some(res) => Ok(res)

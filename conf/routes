@@ -10,7 +10,7 @@ GET     /report                     controllers.Application.reports
 
 # Artifacts
 POST    /artifact                   controllers.Artifacts.add
-GET     /artifact/log               controllers.Artifacts.log
+GET     /artifact/log               controllers.Artifacts.log(count: Int, last: Long)
 GET     /artifact/list              controllers.Artifacts.list(q: String ?= "")
 PUT     /artifact/:id/touch         controllers.Artifacts.touch(id: Long)
 

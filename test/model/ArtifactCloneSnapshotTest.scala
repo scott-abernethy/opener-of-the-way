@@ -24,7 +24,8 @@ import gate.{Millis, T}
 import java.sql.Timestamp
 import db.TestDb
 import test.WithTestApplication
-
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class ArtifactCloneSnapshotTest extends Specification with Mockito {
   val notNewsAfterDefault = Millis.days(365) * 1000;
@@ -51,19 +52,20 @@ class ArtifactCloneSnapshotTest extends Specification with Mockito {
     "load all artifacts" in new WithTestApplication {
       import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(1)
+      val x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.states.size mustEqual(5)
 
-      x.reload(2)
-      x.states.size mustEqual(5)      
+      val y = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
+      y.states.size mustEqual(5)
+
+      val z = Await.result(ArtifactCloneSnapshot(2, None, 3), Duration(15, "seconds"))
+      z.states.size mustEqual(3)
     }
 
     "group artifacts by discovery, order by path" in new WithTestApplication {
       import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(1)
+      val x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.items.keys.toSeq mustEqual("2011-04-20" :: "2011-04-22" :: Nil)
       x.items.get("2011-04-20").map(as => as.map(a => a.path)) must beSome("a/b/c" :: "fudge" :: Nil)
     }
@@ -71,8 +73,7 @@ class ArtifactCloneSnapshotTest extends Specification with Mockito {
     "default state to mine or available if no clones exist" in new WithTestApplication {
       import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(2)
+      val x = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
       x.states.get(i + 1) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 0))
@@ -88,24 +89,23 @@ class ArtifactCloneSnapshotTest extends Specification with Mockito {
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
       val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloning)))
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(2L)
+      var x = Await.result(ArtifactCloneSnapshot(2, None, 10), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaiting, 2))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 10), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
 
       myClone.state = CloneState.cloning
       inTransaction(clones.update(myClone))
-      x.reload(2L)
+      x = Await.result(ArtifactCloneSnapshot(2, None, 10), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloning, 2))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 10), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
 
       myClone.state = CloneState.cloned
       inTransaction(clones.update(myClone))
-      x.reload(2L)
+      x = Await.result(ArtifactCloneSnapshot(2, None, 10), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloned, 2))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 10), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 2))
     }
 
@@ -115,54 +115,31 @@ class ArtifactCloneSnapshotTest extends Specification with Mockito {
       val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
       inTransaction(presences.insert(Presence.create(i, PresenceState.present)))
 
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(2L)
+      var x = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.present, 0))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 0))
 
       val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
 
-      x.reload(2L)
+      x = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaitingPresent, 1))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
 
       myClone.state = CloneState.cloning
       inTransaction(clones.update(myClone))
-      x.reload(2L)
+      x = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloning, 1))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
 
       myClone.state = CloneState.cloned
       inTransaction(clones.update(myClone))
-      x.reload(2L)
+      x = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.cloned, 1))
-      x.reload(1L)
+      x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.profferedPresent, 1))
-    }
-
-    "allow artifacts to be updated (including bug with present)" in new WithTestApplication {
-      import org.squeryl.PrimitiveTypeMode._
-      clearTransactions()
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(2)
-      val i = inTransaction(from(artifacts)(a => select(a.id) orderBy(a.id asc)).headOption) getOrElse -1L
-      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
-
-      val myClone = inTransaction(clones.insert(Clone.create(i, 2L, CloneState.awaiting)))
-      val theirClone = inTransaction(clones.insert(Clone.create(i, 1L, CloneState.cloned)))
-      x.update(i)
-      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaiting, 2))
-
-      val presence = inTransaction(presences.insert(Presence.create(i, PresenceState.present)))
-      x.update(i)
-      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.awaitingPresent, 2))
-      
-      inTransaction( clones.deleteWhere(c => c.id === myClone.id) )
-      x.update(i)
-      x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.present, 1))
     }
 
     "not exclude items cloned by others (bug)" in new WithTestApplication {
@@ -174,8 +151,7 @@ class ArtifactCloneSnapshotTest extends Specification with Mockito {
       inTransaction(clones.insert(Clone.create(i + 2, 3L, CloneState.cloning)))
       inTransaction(clones.insert(Clone.create(i + 3, 3L, CloneState.awaiting)))
 
-      val x = new ArtifactCloneSnapshot(notNewsAfterDefault)
-      x.reload(2)
+      val x = Await.result(ArtifactCloneSnapshot(2, None, 5), Duration(15, "seconds"))
       
       x.states.get(i) must beSome(ArtifactCloneInfo(ArtifactState.glimpsed, 0))
       x.states.get(i + 1) must beSome(ArtifactCloneInfo(ArtifactState.proffered, 0))

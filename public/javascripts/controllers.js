@@ -10,7 +10,30 @@ function NavCtrl($scope, $location) {
 
 ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSearch', 'ArtifactSocket'];
 function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSocket) {
-  $scope.log = ArtifactLog.query();
+  $scope.log = [];
+  $scope.busy = false;
+  $scope.last = -1;
+
+  $scope.nextPage = function() {
+    if ($scope.busy) return;
+    $scope.busy = true;
+
+    $http.get('artifact/log?count=20&last=' + $scope.last).
+      success(function(data){
+        for (var i = 0; i < data.length; i++) {
+          $scope.log.push(data[i]);
+        }
+        if (data.length > 0) {
+          var lastDay = data[data.length - 1];
+          $scope.last = lastDay.items[lastDay.items.length - 1].id;
+        }
+        $scope.busy = false;
+      }).
+      error(function(data){
+        alert('Failed to load data!');
+      });
+  };
+
   $scope.artifactSelect = function(artifact) {
     if (!artifact.proffered) {
       $http.put('artifact/' + artifact.id + '/touch')

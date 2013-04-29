@@ -89,7 +89,7 @@
           <li class="bb-i" ng-show="!results.items.length"><span class="muted"><i class="{{results.icon}} icon-2x"></i> {{results.desc}}</span></li>
         </ol>
       </div>
-      <div ng-show="!results.show">
+      <div ng-show="!results.show" infinite-scroll='nextPage()' infinite-scroll-disabled='busy' infinite-scroll-distance='1' infinite-scroll-immediate-check='true'>
         <div ng-repeat="day in log">
           <div class="bb-h2">{{day.name}}</div>
           <ol class="unstyled">
@@ -106,7 +106,7 @@
             </li>
           </ol>
         </div>
-        <div class="bb-h2">Only showing 7 days history <button class="pull-right btn btn-mini" ng-click="search('*')">Show All</button></div>
+        <div class="bb-h2" ng-show='busy'>Loading data...</div>
       </div>
     </div>
   </div>

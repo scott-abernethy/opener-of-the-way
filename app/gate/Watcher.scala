@@ -109,11 +109,9 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
 
   def receive = {
     case 'Source => {
-      // Dummy implementation initally
       self ! 'Wake
     }
     case 'Sink => {
-      // Dummy implementation initally
       self ! 'Wake
     }
     case 'Wake => {

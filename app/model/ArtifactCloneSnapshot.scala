@@ -23,36 +23,23 @@ import java.util.{TimeZone, Date}
 import gate.T
 import collection.immutable.{HashMap, TreeMap}
 import java.text.{SimpleDateFormat}
-import util.DatePresentation
-
-/*
-There are probably more than one flavor of the N+1 problem, but a very
-common one is :
-
-for(p <- school.professors;
-    c <- p.classes;
-    s <- c.students)
-  doSomething(p, s)
-
-here the number of calls trips to the database will be :
-
- numberOfProcessorsInSchool * avg(sizeOfClassRoom)
-
-to avoid this in Squeryl, you would do :
-
-from(school.professors, classes, classes2students, students)((p,c,c2s,s) =>
-  where(p.id === c.professorId and
-        c2s.studentId === s.id and
-        c2s.classId === c.id)
-  select((p,s))
-).foreach(t => doSomething(t._1, t._2))
-
-which does it's thing with a single DB round trip.
- */
+import _root_.util.{Context, DatePresentation}
+import scala.concurrent._
+import scala.concurrent.Future
 
 case class ArtifactCloneInfo(state: ArtifactState.Value, clones: Int)
 
-class ArtifactCloneSnapshot(val notNewsAfter: Long) {
+object ArtifactCloneSnapshot {
+  def apply(cultistId: Long, after: Option[Long], count: Int): Future[ArtifactCloneSnapshot] = {
+    future {
+      val snapshot = new ArtifactCloneSnapshot(count, after.getOrElse(Long.MaxValue))
+      snapshot.reload(cultistId)
+      snapshot
+    }(Context.dbOperations)
+  }
+}
+
+class ArtifactCloneSnapshot(val count: Int, val after: Long) {
 
   var currentCultistId: Long = -1L
   var items: TreeMap[String, List[Artifact]] = new TreeMap[String, List[Artifact]]
@@ -71,11 +58,11 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
     items = new TreeMap[String, List[Artifact]]
     states = new HashMap[Long, ArtifactCloneInfo]
     val results: List[(Artifact, Long, Option[Clone], Option[Presence])] = inTransaction(join(artifacts, gateways, clones.leftOuter, presences.leftOuter)((a, g, c, p) =>
-      where(a.witnessed > T.ago(Artifact.goneAfter) and (a.discovered > T.ago(notNewsAfter)))
+      where((a.witnessed > T.ago(Artifact.goneAfter)) and (a.id.~ < after))
       select((a, g.cultistId, c, p))
-      orderBy(a.discovered desc, a.path desc)
+      orderBy(a.id desc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId), a.id === p.map(_.artifactId))
-    ).toList)
+    ).page(0, count).toList)
     val combined: Seq[(Artifact, Long, List[Clone], Option[Presence])] = results.foldRight(List.empty[(Artifact, Long, List[Clone], Option[Presence])]){ (in: (Artifact, Long, Option[Clone], Option[Presence]), out: List[(Artifact, Long, List[Clone], Option[Presence])]) =>
       out match {
         case head :: tail if (head._1 == in._1) =>
@@ -93,23 +80,6 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
     }
   }
 
-  def add(artifact: Artifact) {
-    
-  }
-
-  def update(artifact: Long) {
-    inTransaction(Artifact.find(artifact) match {
-      case Some(a) =>
-        a.stateFor(currentCultistId) match {
-          case Some(state) =>
-            val cloneCount = from(clones)(c => where(c.artifactId === artifact) select(c)).toList.size
-            states = states + ((a.id, ArtifactCloneInfo(state, cloneCount)))
-          case None => states = states - a.id
-        }
-      case _ =>
-    })
-  }
-
   private def insertItem(into: TreeMap[String, List[Artifact]], a: Artifact): TreeMap[String, List[Artifact]] = {
     discoveredGroup(a) match {
       case Some(key) =>
@@ -124,19 +94,11 @@ class ArtifactCloneSnapshot(val notNewsAfter: Long) {
     artifact.stateFor(cultistId, ownerId, clone, T.now, presence)
   }
 
-  def discoveredGroup(a: Artifact): Option[String] = {
+  private def discoveredGroup(a: Artifact): Option[String] = {
     for {
       timestamp <- Option(a.discovered)
       time = timestamp.getTime
     }
     yield DatePresentation.yearMonthDay(time)
-  }
-
-  def latestDayGroup(): String = {
-    items.lastOption.map(_._1).getOrElse("-")
-  }
-
-  def indexForGroup(group: String): String = {
-    group.substring(0, group.indexOf(','))
   }
 }
