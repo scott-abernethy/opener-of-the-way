@@ -20,7 +20,15 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
 
     $http.get('artifact/log?count=20&last=' + $scope.last).
       success(function(data){
-        for (var i = 0; i < data.length; i++) {
+        var i0 = 0;
+        var prevLastDay = $scope.log.length - 1;
+        if (data.length > 0 && prevLastDay >= 0 && $scope.log[prevLastDay].name == data[0].name) {
+          for (var a = 0; a < data[0].items.length; a++) {
+            $scope.log[prevLastDay].items.push(data[0].items[a]);
+          }
+          i0++;
+        }
+        for (var i = i0; i < data.length; i++) {
           $scope.log.push(data[i]);
         }
         if (data.length > 0) {

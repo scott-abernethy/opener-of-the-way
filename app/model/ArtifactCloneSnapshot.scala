@@ -71,7 +71,7 @@ class ArtifactCloneSnapshot(val count: Int, val after: Long) {
           ((in._1, in._2, in._3.toList, in._4)) :: list
       }
     }
-    combined.foreach{ i =>
+    combined.reverse.foreach{ i =>
       val artifact: Artifact = i._1
       items = insertItem(items, artifact)
       parseState(artifact, cultistId, i._2, i._3, i._4).foreach(s =>
