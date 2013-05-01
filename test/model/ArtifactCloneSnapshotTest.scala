@@ -62,12 +62,12 @@ class ArtifactCloneSnapshotTest extends Specification with Mockito {
       z.states.size mustEqual(3)
     }
 
-    "group artifacts by discovery, order by path" in new WithTestApplication {
+    "group artifacts by discovery, order by id" in new WithTestApplication {
       import org.squeryl.PrimitiveTypeMode._
       clearTransactions()
       val x = Await.result(ArtifactCloneSnapshot(1, None, 5), Duration(15, "seconds"))
       x.items.keys.toSeq mustEqual("2011-04-20" :: "2011-04-22" :: Nil)
-      x.items.get("2011-04-20").map(as => as.map(a => a.path)) must beSome("a/b/c" :: "fudge" :: Nil)
+      x.items.get("2011-04-20").map(as => as.map(a => a.path)) must beSome("fudge" :: "a/b/c" :: Nil)
     }
 
     "default state to mine or available if no clones exist" in new WithTestApplication {

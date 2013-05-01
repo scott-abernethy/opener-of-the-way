@@ -26,6 +26,7 @@ import internals.DatabaseAdapter
 import org.squeryl.PrimitiveTypeMode._
 import play.api.Play
 import play.api.Play.current
+import java.sql.Timestamp
 
 trait Db {
   def init {
@@ -118,6 +119,42 @@ trait Db {
           g3.sink = true
           g3 = Mythos.gateways.insert(g3)
 
+          def insertArtifact(gatewayId: Long)(path: String, discovered: Timestamp) {
+            val artifact = new Artifact
+            artifact.gatewayId = gatewayId
+            artifact.path = path
+            artifact.discovered = discovered
+            artifact.witnessed = T.now
+            artifact.length = 9999L
+            Mythos.artifacts.insert(artifact)
+          }
+
+          val g3Artifact = insertArtifact(g3.id) _
+
+          g3Artifact("stuff/one.txt", T.ago(Millis.days(89)))
+          g3Artifact("stuff/two.txt", T.ago(Millis.days(89)))
+          g3Artifact("stuff/three.txt", T.ago(Millis.days(89)))
+          g3Artifact("file.ext.ext2", T.ago(Millis.days(85)))
+          g3Artifact("asdfasfsdafasdf", T.ago(Millis.days(85)))
+          g3Artifact("dfefefefef", T.ago(Millis.days(85)))
+          g3Artifact("fffeffffefffffff", T.ago(Millis.days(85)))
+          g3Artifact("3322323", T.ago(Millis.days(85)))
+          g3Artifact("rarararararar", T.ago(Millis.days(85)))
+          g3Artifact("raar/aradrs/arasssrasr", T.ago(Millis.days(85)))
+          g3Artifact("raar/aradrs/r", T.ago(Millis.days(85)))
+          g3Artifact("raar/aradrs/7777.txt", T.ago(Millis.days(85)))
+          g3Artifact("2323", T.ago(Millis.days(81)))
+          g3Artifact("2322", T.ago(Millis.days(81)))
+          g3Artifact("2321", T.ago(Millis.days(81)))
+          g3Artifact("2320", T.ago(Millis.days(81)))
+
+          var h = new Artifact
+          h.gatewayId = g3.id
+          h.path = "other/one/foo.giz"
+          h.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
+          h.discovered = T.ago(79 * 24 * 60 * 60 * 1000L)
+          h.length = 25235454L
+          h = Mythos.artifacts.insert(h)
           var a = new Artifact
           a.gatewayId = g3.id
           a.path = "la/lo/lah"
@@ -164,13 +201,6 @@ trait Db {
           g.length = 843562723L
           g.discovered = T.startOfSevenDayPeriod()
           g = Mythos.artifacts.insert(g)
-          var h = new Artifact
-          h.gatewayId = g3.id
-          h.path = "other/one/foo.giz"
-          h.witnessed = T.ago(5 * 24 * 60 * 60 * 1000L)
-          h.discovered = T.ago(79 * 24 * 60 * 60 * 1000L)
-          h.length = 25235454L
-          h = Mythos.artifacts.insert(h)
           var i = new Artifact
           i.gatewayId = g1.id
           i.path = "mee/nurfnurf"
@@ -178,6 +208,20 @@ trait Db {
           i.discovered = T.ago(5 * 24 * 60 * 60 * 1000L)
           i.length = 252345L
           i = Mythos.artifacts.insert(i)
+          var m = new Artifact
+          m.gatewayId = g3.id
+          m.path = "/88888"
+          m.discovered = T.ago(Millis.days(3))
+          m.witnessed = T.now
+          m.length = 12345467L
+          m = Mythos.artifacts.insert(m)
+          var n = new Artifact
+          n.gatewayId = g1.id
+          n.path = "/ploiun/ploiun.p"
+          n.discovered = T.ago(Millis.days(3))
+          n.witnessed = T.now
+          n.length = 54647L
+          n = Mythos.artifacts.insert(n)
           var j = new Artifact
           j.gatewayId = g3.id
           j.path = "/fake"
@@ -199,20 +243,6 @@ trait Db {
           l.witnessed = T.now
           l.length = 435892343L
           l = Mythos.artifacts.insert(l)
-          var m = new Artifact
-          m.gatewayId = g3.id
-          m.path = "/88888"
-          m.discovered = T.ago(Millis.days(3))
-          m.witnessed = T.now
-          m.length = 12345467L
-          m = Mythos.artifacts.insert(m)
-          var n = new Artifact
-          n.gatewayId = g1.id
-          n.path = "/ploiun/ploiun.p"
-          n.discovered = T.ago(Millis.days(3))
-          n.witnessed = T.now
-          n.length = 54647L
-          n = Mythos.artifacts.insert(n)
 
           val clone1 = new Clone
           clone1.artifactId = a.id
