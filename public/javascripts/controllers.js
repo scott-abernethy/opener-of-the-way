@@ -211,33 +211,59 @@ function ClonedCtrl($http, $scope, Cloned, ArtifactSocket) {
 
 AwaitingCtrl.$inject = ['$http', '$scope', 'Awaiting', 'ArtifactSocket'];
 function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
-  $scope.awaitings = Awaiting.query();
+  $scope.sourceAwaitings = [];
+  $scope.sinkAwaitings = [];
+  $scope.all = [];
+
+  var updateAwaitings = function() {
+    var sink = [];
+    var source = [];
+    for (var i = 0; i < $scope.all.length; i++) {
+      if ($scope.all[i].present == true) {
+        sink.push($scope.all[i])
+      }
+      else  {
+        source.push($scope.all[i])
+      }
+    }
+    $scope.sourceAwaitings = source;
+    $scope.sinkAwaitings = sink;
+  };
+
+  var loaded = Awaiting.query(function() {
+    $scope.all = loaded;
+    updateAwaitings();
+  });
+
   $scope.artifactSelect = function(artifact) {
     $http.put('artifact/' + artifact.id + '/touch')
   };
 
   var awaiting = function(a) {
-    $scope.awaitings.unshift(a)
+    $scope.all.unshift(a)
+    updateAwaitings();
     $scope.$digest();
   }
   var unawaiting = function(a) {
-    var xs = $scope.awaitings
+    var xs = $scope.all
     var xs2 = []
     for (var i = 0; i < xs.length; i++) {
       if (xs[i].id != a.id) {
         xs2.push(xs[i])
       }
     }
-    $scope.awaitings = xs2;
+    $scope.all = xs2;
+    updateAwaitings();
     $scope.$digest();
   }
   var update = function(a) {
-    for (var i = 0; i < $scope.awaitings.length; i++) {
-      var item = $scope.awaitings[i];
+    for (var i = 0; i < $scope.all.length; i++) {
+      var item = $scope.all[i];
       if (item.id == a.id) {
-        $scope.awaitings[i] = a;
+        $scope.all[i] = a;
       }
     }
+    updateAwaitings();
     $scope.$digest();
   }
 

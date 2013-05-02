@@ -285,6 +285,8 @@ object ArtifactState extends Enumeration {
 
   def proffered_?(s: ArtifactState.Value): Boolean = s == ArtifactState.proffered || s == ArtifactState.profferedLost || s == ArtifactState.profferedPresent
 
+  def present_?(s: ArtifactState.Value): Boolean = s == ArtifactState.present || s == ArtifactState.awaitingPresent || s == ArtifactState.profferedPresent || s == ArtifactState.cloning
+
   def toJson(state: Option[ArtifactState.Value]): JsObject = {
     val (icon, desc, clazz) = info(state)
     Json.obj("icon" -> icon, "desc" -> desc, "class" -> clazz)

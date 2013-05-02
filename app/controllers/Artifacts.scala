@@ -49,6 +49,10 @@ object Artifacts extends Controller with Permission {
       case Some(state) if ArtifactState.proffered_?(state) => JsBoolean(true)
       case _ => JsBoolean(false)
     })) +
+      ("present" -> (state match {
+      case Some(state) if ArtifactState.present_?(state) => JsBoolean(true)
+      case _ => JsBoolean(false)
+    })) +
       ("clones" -> JsNumber(cloneCount))
   }
 

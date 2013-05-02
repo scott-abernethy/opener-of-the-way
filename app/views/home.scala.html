@@ -45,13 +45,18 @@
       </div>
     </div>
     <div ng-controller="AwaitingCtrl">
-      <div class="bb-h"><i class="icon-cogs icon-large"></i> Awaiting ({{awaitings.length}})</div>
-      <div class="bb-t"><ol class="unstyled">
-        <li class="bb-i hovery handy" ng-repeat="awaiting in awaitings" ng-click="artifactSelect(awaiting)">
+      <div class="bb-h"><i class="icon-cogs icon-large"></i> Awaiting ({{all.length}})</div>
+      <div class="bb-t">
+        <div class="bb-h2" ng-show="sourceAwaitings.length">Waiting on source artifact to be present</div>
+        <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sourceAwaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
-        </li>
-        <li class="bb-i" ng-show="!awaitings.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
-      </ol></div>
+        </li></ol>
+        <div class="bb-h2" ng-show="sinkAwaitings.length">Waiting on your sink to clone</div>
+          <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sinkAwaitings" ng-click="artifactSelect(awaiting)">
+          <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
+        </li></ol>
+        <div class="bb-h2" ng-show="!sourceAwaitings.length && !sinkAwaitings.length">None</div>
+      </div>
     </div>
     <div ng-controller="ClonedCtrl">
       <div class="bb-h"><i class="icon-asterisk icon-large"></i> Cloned ({{cloned.length}} in the last 7 days)</div>
@@ -60,8 +65,8 @@
           <li class="bb-i hovery" ng-repeat="clone in cloned">
             <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x"></i> {{clone.desc}}</span>
           </li>
-          <li class="bb-i" ng-show="!cloned.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
         </ol>
+        <div class="bb-h2" ng-show="!cloned.length">None</div>
       </div>
     </div>
   </div>
