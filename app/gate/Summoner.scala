@@ -100,10 +100,15 @@ class Summoner(lurker: ActorRef, watcher: ActorRef, keepers: ActorRef) extends A
       // present > [check]
       // unknown > ...
       // released > ...
+      // TODO do this outside of the summoner, in db init?
       transaction {
         update(presences)(p =>
           where(p.state === PresenceState.presenting)
           set(p.state := PresenceState.called)
+        )
+        update(clones)(c =>
+          where(c.state === CloneState.cloning)
+            set(c.state := CloneState.awaiting)
         )
         from(presences)(p =>
           where(p.state === PresenceState.present)
