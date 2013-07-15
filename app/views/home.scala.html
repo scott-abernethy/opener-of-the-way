@@ -22,9 +22,9 @@
         <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-mini" ng-click="unlock()">Cancel</button></div>
         <ol class="unstyled">
           <li ng-repeat="gateway in gateways" class="bb-i hovery handy" ng-click="gatewaySelect(gateway)">
-            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.path}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="s-open icon-refresh"></i></span>
+            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-large"></i> {{gateway.path}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="s-open icon-refresh"></i></span>
           </li>
-          <li class="bb-i" ng-show="!gateways.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
+          <li class="bb-i" ng-show="!gateways.length"><span class="muted"><i class="icon-minus icon-large"></i> None</span></li>
         </ol>
       </div>
     </div>
@@ -40,7 +40,7 @@
           <li class="bb-i" ng-repeat="babble in babblings">
             <span><span class="label">{{babble.who}}</span> {{babble.text}}</span>
           </li>
-          <li class="bb-i" ng-show="!babblings.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
+          <li class="bb-i" ng-show="!babblings.length"><span class="muted"><i class="icon-minus icon-large"></i> None</span></li>
         </ol>
       </div>
     </div>
@@ -49,11 +49,11 @@
       <div class="bb-t">
         <div class="bb-h2" ng-show="sourceAwaitings.length">Waiting on source artifact to be present</div>
         <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sourceAwaitings" ng-click="artifactSelect(awaiting)">
-          <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
+          <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-large"></i> {{awaiting.desc}}</span>
         </li></ol>
         <div class="bb-h2" ng-show="sinkAwaitings.length">Waiting on your sink to clone</div>
           <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sinkAwaitings" ng-click="artifactSelect(awaiting)">
-          <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
+          <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-large"></i> {{awaiting.desc}}</span>
         </li></ol>
         <div class="bb-h2" ng-show="!sourceAwaitings.length && !sinkAwaitings.length">None</div>
       </div>
@@ -63,7 +63,7 @@
       <div class="bb-t">
         <ol class="unstyled">
           <li class="bb-i hovery" ng-repeat="clone in cloned">
-            <span class="{{clone.state.class}}"><i class="icon-asterisk icon-2x"></i> {{clone.desc}}</span>
+            <span class="{{clone.state.class}}"><i class="icon-asterisk icon-large"></i> {{clone.desc}}</span>
           </li>
         </ol>
         <div class="bb-h2" ng-show="!cloned.length">None</div>
@@ -82,7 +82,7 @@
         <ol class="unstyled">
           <li class="bb-i hovery" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in results.items" ng-click="artifactSelect(artifact)">
             <div class="bb-icon pull-left">
-              <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-2x"></i>
+              <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-large"></i>
             </div>
             <div class="bb-text clearfix">
               <div class="{{artifact.state.class}}">{{artifact.desc}}</div>
@@ -91,7 +91,7 @@
               </div>
             </div>
           </li>
-          <li class="bb-i" ng-show="!results.items.length"><span class="muted"><i class="{{results.icon}} icon-2x"></i> {{results.desc}}</span></li>
+          <li class="bb-i" ng-show="!results.items.length"><span class="muted"><i class="{{results.icon}} icon-large"></i> {{results.desc}}</span></li>
         </ol>
       </div>
       <div ng-show="!results.show" infinite-scroll='nextPage()' infinite-scroll-disabled='busy' infinite-scroll-distance='1' infinite-scroll-immediate-check='true'>
@@ -100,7 +100,7 @@
           <ol class="unstyled">
             <li class="bb-i hovery" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)">
               <div class="bb-icon pull-left">
-                <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-2x"></i>
+                <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-large"></i>
               </div>
               <div class="bb-text clearfix">
                 <div class="{{artifact.state.class}}">{{artifact.desc}}</div>
