@@ -18,7 +18,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     if ($scope.busy) return;
     $scope.busy = true;
 
-    $http.get('artifact/log?count=50&last=' + $scope.last).
+    $http.get('artifact/log?count=100&last=' + $scope.last).
       success(function(data){
         var i0 = 0;
         var prevLastDay = $scope.log.length - 1;
