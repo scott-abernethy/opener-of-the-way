@@ -11,7 +11,10 @@ dist
 /.idea_modules
 /.classpath
 /.project
+/.cache
+/.target
 /RUNNING_PID
 /.settings
 /ignored/
+/bin/
 *.swp
