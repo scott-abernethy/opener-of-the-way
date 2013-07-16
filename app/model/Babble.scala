@@ -6,7 +6,7 @@ import org.squeryl.PrimitiveTypeMode._
 import play.api.libs.json.Json
 
 class Babble extends MythosObject {
-  var when: Timestamp = T.now
+  var at: Timestamp = T.now
   var who: String = ""
   var text: String = ""
 
@@ -17,7 +17,7 @@ class Babble extends MythosObject {
 
 object Babble {
   def recent(size: Int): List[Babble] = {
-    transaction( from(Mythos.babbles)(b => select(b) orderBy(b.when desc)).page(0, size).toList )
+    transaction( from(Mythos.babbles)(b => select(b) orderBy(b.at desc)).page(0, size).toList )
   }
   
   def add(who: String, text: String): Option[Babble] = {

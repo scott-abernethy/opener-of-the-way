@@ -49,7 +49,7 @@ object Mythos extends Schema {
     p.artifactId is(indexed, unique)
   ))
   on(babbles)(b => declare(
-    b.when is (indexed)
+    b.at is (indexed)
   ))
 
   val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
