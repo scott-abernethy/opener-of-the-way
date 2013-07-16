@@ -110,8 +110,8 @@ class StateStream extends Actor {
     case ChangedGateways(cultistId) => {
       unicast(cultistId, gatewaysMsg)
     }
-    case Babble(who, text) => {
-      broadcast(_ => Json.obj("type" -> "BabbleAdd", "message" -> Json.obj("who" -> who, "text" -> text)))
+    case b: Babble => {
+      broadcast(_ => Json.obj("type" -> "BabbleAdd", "message" -> b.toJson))
     }
     case Quit(cid, id) => {
       streams.get(cid) match {

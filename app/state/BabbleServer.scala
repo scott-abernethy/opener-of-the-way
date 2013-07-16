@@ -18,21 +18,29 @@
 package state
 
 import akka.actor.{ActorRef, Actor}
+import model.Babble
 
-case class Babble(who: String, text: String)
+case class NewBabble(who: String, text: String)
 
 class BabbleServer extends Actor {
 
+  val maxBabbles = 10
   lazy val stream: ActorRef = context.system.actorFor("/user/StateStream")
-  var items: List[Babble] = List(Babble("???", "Service restarted"))
+  var items: List[Babble] = List()
 
+  override def preStart() {
+    items = Babble.recent(maxBabbles)
+  }
+  
   def receive = {
     case 'List => {
       sender ! items
     }
-    case in @ Babble(who, text) if (text.trim.size > 0) => {
-      items = in :: items.take(10)
-      stream ! in
+    case NewBabble(who, text) if (text.trim.size > 0) => {
+      Babble.add(who, text).foreach { b =>
+        items = b :: items.take(maxBabbles - 1)
+        stream ! b
+      }
     }
     case other => {
       unhandled(other)

@@ -22,8 +22,8 @@ import util.Permission
 import play.api.Logger
 import play.api.libs.json.{JsString, JsObject, Json}
 import akka.actor.ActorRef
-import model.{Pseudonym, Cultist, Environment}
-import state.Babble
+import model.{Pseudonym, Cultist, Environment, Babble}
+import state.NewBabble
 import akka.pattern.Patterns
 import util.Context.playDefault
 
@@ -36,7 +36,7 @@ object Babbling extends Controller with Permission {
       case JsString(text) if (text.trim.size > 0) => {
         Logger.debug("Babble add for " + request.cultistId + " of " + text)
         val signFor = Pseudonym.of(request.cultistId)
-        server ! Babble(signFor, text)
+        server ! NewBabble(signFor, text)
         Ok("Added")
       }
       case _ => {
@@ -51,7 +51,7 @@ object Babbling extends Controller with Permission {
     Async {
       future.map {
         case Nil => Ok(Json.toJson(List.empty[JsObject]))
-        case b :: bs => Ok(Json.toJson((b :: bs).collect{case Babble(who, text) => Json.obj("who" -> who, "text" -> text)}))
+        case b :: bs => Ok(Json.toJson((b :: bs).collect{case b: Babble => b.toJson}))
         case _ => BadRequest
       }
     }

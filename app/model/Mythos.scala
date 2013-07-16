@@ -31,6 +31,7 @@ object Mythos extends Schema {
   val clones = table[Clone]
   val presences = table[Presence]
   val pseudonyms = table[Pseudonym]
+  val babbles = table[Babble]
 
   on(cultists)(c => declare(
     c.email is(indexed, unique)
@@ -46,6 +47,9 @@ object Mythos extends Schema {
   ))
   on(presences)(p => declare(
     p.artifactId is(indexed, unique)
+  ))
+  on(babbles)(b => declare(
+    b.when is (indexed)
   ))
 
   val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
