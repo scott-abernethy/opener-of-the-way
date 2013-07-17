@@ -30,7 +30,7 @@ object Clones extends Controller with Permission {
   def awaiting = PermittedAction { request =>
     val factory = new AwaitingSnapshotFactory
     val snapshot = factory.create(request.cultistId)
-    Ok(Json.toJson(snapshot.awaiting.map(x => Artifacts.artifactWithStateJson(x._1, x._2, None))))
+    Ok(Json.toJson(snapshot.awaiting.map(x => Artifacts.artifactWithStateJson(x._1, x._2, Some(x._3.attempts), None))))
   }
 
   def history = PermittedAction { request =>
@@ -38,7 +38,7 @@ object Clones extends Controller with Permission {
     // could be one call to get all artifacts, and all clones.
     val factory = new ClonedSnapshotFactory
     val snapshot = factory.create(request.cultistId)
-    Ok(Json.toJson(snapshot.cloned.map(x => Artifacts.artifactWithStateJson(x._1, x._2, None))))
+    Ok(Json.toJson(snapshot.cloned.map(x => Artifacts.artifactWithStateJson(x._1, x._2, None, None))))
   }
 
   def queue = InsaneAction { request =>

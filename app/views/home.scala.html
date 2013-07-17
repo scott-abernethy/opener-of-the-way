@@ -47,12 +47,16 @@
     <div ng-controller="AwaitingCtrl">
       <div class="bb-h"><i class="icon-cogs icon-large"></i> Awaiting ({{all.length}})</div>
       <div class="bb-t">
-        <div class="bb-h2" ng-show="sourceAwaitings.length">Waiting on source artifact to be present</div>
+        <div class="bb-h2" ng-show="sourceAwaitings.length">Waiting on source artifact to be present...</div>
         <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sourceAwaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
         </li></ol>
-        <div class="bb-h2" ng-show="sinkAwaitings.length">Waiting on your sink to clone</div>
+        <div class="bb-h2" ng-show="sinkAwaitings.length">Waiting on your sink to clone...</div>
           <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sinkAwaitings" ng-click="artifactSelect(awaiting)">
+          <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
+        </li></ol>
+        <div class="bb-h2" ng-show="failedAwaitings.length"><span class="label label-important">Failed!</span> There was an error cloning to your sink. Please check your sink has free space (including emptying the trash), and that the volume is writable. Will retry after a stand-down period...</div>
+          <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in failedAwaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
         </li></ol>
         <div class="bb-h2" ng-show="!sourceAwaitings.length && !sinkAwaitings.length">None</div>

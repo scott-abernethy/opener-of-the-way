@@ -213,14 +213,21 @@ AwaitingCtrl.$inject = ['$http', '$scope', 'Awaiting', 'ArtifactSocket'];
 function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
   $scope.sourceAwaitings = [];
   $scope.sinkAwaitings = [];
+  $scope.failedAwaitings = [];
   $scope.all = [];
 
   var updateAwaitings = function() {
     var sink = [];
     var source = [];
+    var failed = [];
     for (var i = 0; i < $scope.all.length; i++) {
       if ($scope.all[i].present == true) {
-        sink.push($scope.all[i])
+        if ($scope.all[i].attempts > 0) {
+    	  sink.push($scope.all[i])
+        }
+        else {
+          failed.push($scope.all[i])
+        }
       }
       else  {
         source.push($scope.all[i])
@@ -228,6 +235,7 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
     }
     $scope.sourceAwaitings = source;
     $scope.sinkAwaitings = sink;
+    $scope.failedAwaitings = failed;
   };
 
   var loaded = Awaiting.query(function() {
