@@ -223,10 +223,10 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
     for (var i = 0; i < $scope.all.length; i++) {
       if ($scope.all[i].present == true) {
         if ($scope.all[i].attempts > 0) {
-    	  sink.push($scope.all[i])
+    	  failed.push($scope.all[i])
         }
         else {
-          failed.push($scope.all[i])
+          sink.push($scope.all[i])
         }
       }
       else  {
