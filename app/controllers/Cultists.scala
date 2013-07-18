@@ -78,7 +78,7 @@ object Cultists extends Controller with Permission {
           }
         }
       }
-      case _ => BadRequest("Invalid")
+      case _ => BadRequest("Invalid request.")
     }
   }
 
