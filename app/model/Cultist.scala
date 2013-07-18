@@ -156,18 +156,20 @@ object Cultist {
     }
   }
   
-  def changePassword(cid: Long, oldPassword: String, newPassword: String): Future[Unit] = {
+  def changePassword(email: String, oldPassword: String, newPassword: String): Future[Unit] = {
     futureTransaction {
-      val storedPassword = from(cultists)(c => where(c.id === cid) select(c.password)).headOption
-      if (storedPassword.map(checkPassword(_, oldPassword)).getOrElse(false)) {
-        val newHash = PasswordHash.generate(newPassword, appSecret)
-        cultists.update(c =>
-          where(c.id === cid)
-          set(c.password := newHash)
-        )
-      }
-      else {
-        throw new IllegalArgumentException("Current password is not correct!")
+      val cultistOption = from(cultists)(c => where(c.email === email) select(c)).headOption
+      cultistOption match {
+        case Some(cultist) if (checkPassword(cultist.password, oldPassword)) => {
+          val newHash = PasswordHash.generate(newPassword, appSecret)
+          cultists.update(x =>
+            where(x.id === cultist.id)
+            set(x.password := newHash, x.expired := false)
+          )
+        }
+        case _ => {
+          throw new IllegalArgumentException("Email and/or password are incorrect!")
+        }
       }
     }
   }

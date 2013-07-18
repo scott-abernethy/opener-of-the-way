@@ -97,7 +97,7 @@ class CultistTest extends Specification with Mockito {
         x.password = PasswordHash.generate("grapes", Cultist.appSecret)
         cultists.insert(x)
       }
-      val f = Cultist.changePassword(c.id, "grapes", "wrath")
+      val f = Cultist.changePassword("foo@bar.com", "grapes", "wrath")
       Await.result(f, Duration.apply("10 seconds"))
           
       Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachRejected)
