@@ -18,7 +18,6 @@
 package model
 
 import gate._
-import comet._
 import model.Mythos._
 import org.squeryl.PrimitiveTypeMode._
 import akka.actor._

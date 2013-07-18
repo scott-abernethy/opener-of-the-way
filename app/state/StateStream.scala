@@ -26,7 +26,6 @@ import play.api.libs.json._
 import akka.pattern.Patterns
 import controllers.Artifacts
 import play.api.Logger
-import comet.{FlushAllGateways, ChangedGateway, ChangedGateways, ToState}
 import concurrent.duration.FiniteDuration
 import java.util.concurrent.TimeUnit
 import java.util.Date

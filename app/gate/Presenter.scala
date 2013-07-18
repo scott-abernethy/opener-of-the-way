@@ -20,7 +20,6 @@ package gate
 import org.squeryl.PrimitiveTypeMode._
 import model.Mythos._
 import model._
-import comet._
 import state._
 import akka.actor.{Actor, ActorRef}
 import play.api.Logger

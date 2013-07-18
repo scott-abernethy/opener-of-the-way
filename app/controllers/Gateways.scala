@@ -23,9 +23,9 @@ import util.{DatePresentation, Permission}
 import model.{PresenceState, Environment, Gateway}
 import concurrent.Future
 import util.Context.playDefault
-import comet.ChangedGateway
 import gate.{T, Lock, Unlock, ScourAsap}
 import play.api.Logger
+import state.ChangedGateway
 
 object Gateways extends Controller with Permission {
 

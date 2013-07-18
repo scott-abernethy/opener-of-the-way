@@ -18,7 +18,6 @@
 package gate
 
 import java.util.Calendar
-import comet._
 import model._
 import model.Mythos._
 import scala.collection.JavaConversions._
@@ -29,6 +28,8 @@ import akka.event.Logging
 import akka.actor.{ActorRef, Actor}
 import play.api.Logger
 import java.sql.Timestamp
+import state.FlushAllGateways
+import state.ChangedGateway
 
 case class WayFound(gateway: Gateway, localPath: String)
 case class WayLost(gateway: Gateway)

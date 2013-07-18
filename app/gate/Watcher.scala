@@ -22,7 +22,7 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl.Query
 import model._
 import akka.actor.{Props, Scheduler, ActorRef, Actor}
-import comet._
+import state._
 import scala.concurrent.duration._
 import play.api.Logger
 import gate.KeeperRouterApi._
