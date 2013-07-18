@@ -20,10 +20,12 @@ package model
 import org.specs2.mutable._
 import org.specs2.mock.Mockito
 import model.Mythos._
-
 import gate.T
 import db.TestDb
 import test.WithTestApplication
+import util.PasswordHash
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class CultistTest extends Specification with Mockito {
 
@@ -34,21 +36,33 @@ class CultistTest extends Specification with Mockito {
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
-        x.password = "grapes"
+        x.password = PasswordHash.generate("grapes", Cultist.appSecret)
         cultists.insert(x)
       }
-      c.approach("grapes") must be_==(ApproachSuccess)
+      Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachSuccess(c.id))
     }
-
-    "reject approach with incorrect password" in new WithTestApplication {
+    
+    "detect correct approach using yuck clear text password" in new WithTestApplication {
       import org.squeryl.PrimitiveTypeMode._
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
-        x.password = "grapes"
+        x.password = "grapes" // yuck
         cultists.insert(x)
       }
-      c.approach("rabbit") must be_==(ApproachRejected)
+      Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachSuccess(c.id))
+    }
+
+    "reject approach with incorrect email or password" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
+      val c = transaction {
+        val x = new Cultist
+        x.email = "foo@bar.com"
+        x.password = PasswordHash.generate("grapes", Cultist.appSecret)
+        cultists.insert(x)
+      }
+      Cultist.approach("qux@bar.com", "grapes") must be_==(ApproachRejected)
+      Cultist.approach("foo@bar.com", "rabbit") must be_==(ApproachRejected)
     }
 
     "reject approach with incorrect password, on expired account" in new WithTestApplication {
@@ -56,11 +70,11 @@ class CultistTest extends Specification with Mockito {
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
-        x.password = "grapes"
+        x.password = PasswordHash.generate("grapes", Cultist.appSecret)
         x.expired = true
         cultists.insert(x)
       }
-      c.approach("fruit") must be_==(ApproachRejected)
+      Cultist.approach("foo@bar.com", "fruit") must be_==(ApproachRejected)
     }
 
     "reject bad approach" in new WithTestApplication {
@@ -68,11 +82,32 @@ class CultistTest extends Specification with Mockito {
       val c = transaction {
         val x = new Cultist
         x.email = "foo@bar.com"
-        x.password = "grapes"
+        x.password = PasswordHash.generate("grapes", Cultist.appSecret)
         x.expired = true
         cultists.insert(x)
       }
-      c.approach("grapes") must be_==(ApproachExpired)
+      Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachExpired(c.id))
+    }
+    
+    "change password, and not store password as clear text" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
+      val c = transaction {
+        val x = new Cultist
+        x.email = "foo@bar.com"
+        x.password = PasswordHash.generate("grapes", Cultist.appSecret)
+        cultists.insert(x)
+      }
+      val f = Cultist.changePassword(c.id, "grapes", "wrath")
+      Await.result(f, Duration.apply("10 seconds"))
+          
+      Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachRejected)
+      Cultist.approach("foo@bar.com", "wrath") must be_==(ApproachSuccess(c.id))
+      
+      val password = transaction {
+        from(cultists)(x => where(x.id === c.id) select(x.password)).headOption
+      }
+      println(password)
+      password.filterNot(_ == "wrath") must beSome
     }
 
   }

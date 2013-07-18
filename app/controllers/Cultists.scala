@@ -51,9 +51,9 @@ object Cultists extends Controller with Permission {
       errors => BadRequest(views.html.approach(errors)),
       ok => ok match {
         case (email, password) => {
-          Cultist.forEmail(email).map(c => (c,c.approach(password))) match {
-            case Some((c, ApproachSuccess)) => Redirect(routes.Application.index()).withSession(cultistSessionData(c.id) : _*)
-            case Some((c, ApproachExpired)) => BadRequest("Expired") // TODO
+          Cultist.approach(email, password) match {
+            case ApproachSuccess(cid) => Redirect(routes.Application.index()).withSession(cultistSessionData(cid) : _*)
+            case ApproachExpired(cid) => BadRequest("Expired") // TODO
             case _ => BadRequest(views.html.approach(form))
           }
         }
@@ -62,7 +62,6 @@ object Cultists extends Controller with Permission {
   }
   
   def changePassword = PermittedAction(parse.json) { request =>
-
     (request.body \ "password0", request.body \ "password1") match {
       case (JsString(password0), JsString(password1)) => {
         val changed = Cultist.changePassword(request.cultistId, password0, password1)

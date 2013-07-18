@@ -67,21 +67,13 @@ trait Db {
           p5.name = "Fivv"
           Mythos.pseudonyms.insert(List(p1, p2, p3, p4, p5))
 
-          val c1 = new Cultist
-          c1.email = "foo@bar.com"
-          c1.password = "foo"
+          val c1 = Cultist.create("foo@bar.com", "foo")
           c1.insane = true
-          val c2 = new Cultist
-          c2.email = "two@bar.com"
-          c2.password = "two"
+          val c2 = Cultist.create("two@bar.com", "two")
           c2.expired = false
-          val c3 = new Cultist
-          c3.email = "fee@bar.com"
-          c3.password = "fi"
+          val c3 = Cultist.create("fee@bar.com", "fi")
           c3.expired = false
-          val c4 = new Cultist
-          c4.email = "four@bar.com"
-          c4.password = "c4"
+          val c4 = Cultist.create("four@bar.com", "c4")
           c4.expired = true
 
           val foo = Mythos.cultists.insert(c1)

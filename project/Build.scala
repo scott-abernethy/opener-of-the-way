@@ -14,7 +14,8 @@ object ApplicationBuild extends Build {
     "org.squeryl" % "squeryl_2.10" % "0.9.5-6" % "compile->default",
     "org.mockito" % "mockito-all" % "1.8.5" % "test->default",
     "mysql" % "mysql-connector-java" % "5.1.21",
-    "com.h2database" % "h2" % "1.2.147"
+    "com.h2database" % "h2" % "1.2.147",
+    "org.mindrot" % "jbcrypt" % "0.3m"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

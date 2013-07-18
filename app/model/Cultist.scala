@@ -32,11 +32,13 @@ import play.api.libs.json.Json
 import util.DatePresentation
 import concurrent.Future
 import util.FutureTransaction._
+import util.PasswordHash
+import play.api.Play
 
 sealed abstract class ApproachResult
-case object ApproachSuccess extends ApproachResult
+case class ApproachSuccess(cid: Long) extends ApproachResult
 case object ApproachRejected extends ApproachResult
-case object ApproachExpired extends ApproachResult
+case class ApproachExpired(cid: Long) extends ApproachResult
 
 class Cultist extends MythosObject {
   var email: String = ""
@@ -57,22 +59,6 @@ class Cultist extends MythosObject {
     select(c)
   )
 
-  def approach(submittedPassword: String): ApproachResult = {
-    (password == submittedPassword, expired) match {
-      case (false, _) => ApproachRejected
-      case (_, true) => ApproachExpired
-      case _ => {
-        transaction {
-          update(cultists)(c =>
-            where(c.id === id)
-            set(c.seen := Some(T.now))
-          )
-        }
-        ApproachSuccess
-      }
-    }
-  }
-
   def toJson = {
     Json.obj(
       "id" -> id,
@@ -83,20 +69,22 @@ class Cultist extends MythosObject {
 }
 
 object Cultist {
+  
+  import play.api.Play.current
+  val appSecret = Play.configuration.getString("application.secret").getOrElse("g7s6d8")
+
   def create(email: String, password: String): Cultist = {
     val x = new Cultist
     x.email = email
-    x.password = password
+    x.password = PasswordHash.generate(password, appSecret)
     x
   }
 
   def insertRecruit(email: String, password: String, recruiter: Long): Option[Cultist] = {
-    val c = new Cultist
-    c.email = email
-    c.password = password
+    val c = create(email, password)
     c.recruitedBy = recruiter
     c.expired = true // forces password change
-    c.locked = true // requires unlocking by the insane before they can glimpse the truth
+    c.locked = true // TODO currently has no impact - plan was it would require unlocking by the insane before they can glimpse the truth
     transaction {
       val free = cultists.where(_.email === c.email).isEmpty
       if (free) {
@@ -120,12 +108,6 @@ object Cultist {
   def find(id: Long): Option[Cultist] = cultists.lookup(id)
   val cultistCookie = "theyWhomAttendethIt"
 
-  def withdraw() {
-    // TODO
-    //attending(Empty)
-    //S.session.foreach(_.destroySession())
-  }
-
   def forEmail(email: String): Option[Cultist] = {
     inTransaction(cultists.where(c => c.email === email).toList) match {
       case x :: Nil => Some(x)
@@ -133,31 +115,6 @@ object Cultist {
       case Nil => None
     }
   }
-
-  def saveCookie() {
-    // TODO
-//    val text = attending.is.map(_.id.toString).openOr("###")
-//    S.addCookie(HTTPCookie(cultistCookie, text).setMaxAge(3600 * 24 * 7).setPath("/"))
-  }
-
-  def checkForCookie: Option[Cultist] = {
-    // TODO
-//    S.cookieValue(cultistCookie) match {
-//      case Full(id) => try { find(id.toLong) } catch { case _ => None }
-//      case _ => None
-//    }
-    None
-  }
-
-//  def signFor(cultist: Option[Cultist]): String =
-//  {
-//    cultist.map(_.sign).filter(x => x != null && x.size > 0).getOrElse("???")
-//  }
-//
-//  def sigalFor(cultist: Option[Cultist]): Node =
-//  {
-//    <span class="sigal">{ signFor(cultist) }</span>
-//  }
 
   def insane_?(id: Long): Boolean = {
     inTransaction(
@@ -180,18 +137,49 @@ object Cultist {
     }
   }
   
-  def changePassword(cid: Long, current: String, set: String): Future[Unit] = {
+  def approach(email: String, password: String): ApproachResult = {
+    transaction {
+      val cultist = from(cultists)(c => where(c.email === email) select(c)).headOption
+      val authorized = cultist.filter(c => checkPassword(c.password, password))
+    
+      authorized match {
+        case None => ApproachRejected
+        case Some(x) if (x.expired) => ApproachExpired(x.id)
+        case Some(x) => {
+          update(cultists)(c =>
+            where(c.id === x.id)
+            set(c.seen := Some(T.now))
+          )
+          ApproachSuccess(x.id)
+        }
+      }
+    }
+  }
+  
+  def changePassword(cid: Long, oldPassword: String, newPassword: String): Future[Unit] = {
     futureTransaction {
-      val authorized = from(cultists)(c => where(c.id === cid and c.password === current) select(c.id)).headOption.isDefined
-      if (authorized) {
+      val storedPassword = from(cultists)(c => where(c.id === cid) select(c.password)).headOption
+      if (storedPassword.map(checkPassword(_, oldPassword)).getOrElse(false)) {
+        val newHash = PasswordHash.generate(newPassword, appSecret)
         cultists.update(c =>
           where(c.id === cid)
-          set(c.password := set)
+          set(c.password := newHash)
         )
       }
       else {
         throw new IllegalArgumentException("Current password is not correct!")
       }
     }
+  }
+  
+  private def checkPassword(storedPassword: String, input: String): Boolean = {
+    def hashCheck: Boolean = {
+      PasswordHash.check(input, storedPassword, appSecret)
+    }
+    def clearCheck: Boolean = {
+      // Temporary. Because passwords were originally stored in clear text (ewww)
+      input == storedPassword
+    }
+    hashCheck || clearCheck
   }
 }
