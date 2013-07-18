@@ -38,6 +38,7 @@ GET     /approach                   controllers.Cultists.approach
 POST    /approach                   controllers.Cultists.approachSubmit
 GET     /withdraw                   controllers.Cultists.withdraw
 GET     /report/activity            controllers.Cultists.activity
+POST    /passwd                     controllers.Cultists.changePassword
 
 # Babble
 GET     /babble                     controllers.Babbling.list
@@ -47,6 +48,7 @@ POST    /babble                     controllers.Babbling.add
 GET     /partials/home              controllers.Partials.home
 GET     /partials/tome              controllers.Partials.tome
 GET     /partials/recruit           controllers.Partials.recruit
+GET     /partials/passwd            controllers.Partials.changePassword
 GET     /partials/gateway/add       controllers.Partials.addGateway
 GET     /partials/gateway/edit      controllers.Partials.editGateway
 

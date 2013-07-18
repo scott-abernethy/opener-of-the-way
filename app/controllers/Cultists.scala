@@ -60,6 +60,24 @@ object Cultists extends Controller with Permission {
       }
     )
   }
+  
+  def changePassword = PermittedAction(parse.json) { request =>
+
+    (request.body \ "password0", request.body \ "password1") match {
+      case (JsString(password0), JsString(password1)) => {
+        val changed = Cultist.changePassword(request.cultistId, password0, password1)
+        import util.Context.playDefault
+        Async {
+          changed.map{ x =>
+            Ok("Password changed")
+          }.recover{
+            case ex: IllegalArgumentException => BadRequest(ex.getMessage)
+          }
+        }
+      }
+      case _ => BadRequest("Invalid")
+    }
+  }
 
   def withdraw = Action { request =>
     Redirect(routes.Cultists.approach()).withNewSession

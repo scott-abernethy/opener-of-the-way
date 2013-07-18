@@ -32,6 +32,10 @@ object Partials extends Controller {
   def recruit() = Action { request =>
     Ok(views.html.recruit())
   }
+  
+  def changePassword() = Action { request =>
+    Ok(views.html.changePassword())
+  }
 
   def addGateway() = Action { request =>
     Ok(views.html.addGateway("Add Gateway"))

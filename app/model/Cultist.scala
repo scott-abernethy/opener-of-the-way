@@ -179,4 +179,19 @@ object Cultist {
       ).toList
     }
   }
+  
+  def changePassword(cid: Long, current: String, set: String): Future[Unit] = {
+    futureTransaction {
+      val authorized = from(cultists)(c => where(c.id === cid and c.password === current) select(c.id)).headOption.isDefined
+      if (authorized) {
+        cultists.update(c =>
+          where(c.id === cid)
+          set(c.password := set)
+        )
+      }
+      else {
+        throw new IllegalArgumentException("Current password is not correct!")
+      }
+    }
+  }
 }
