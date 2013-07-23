@@ -49,7 +49,8 @@ object Mythos extends Schema {
     p.artifactId is(indexed, unique)
   ))
   on(babbles)(b => declare(
-    b.at is (indexed)
+    b.at is (indexed),
+    b.text is(dbType("varchar(255)"))
   ))
 
   val cultistToGateways = oneToManyRelation(cultists, gateways).via((c,g) => c.id === g.cultistId)
