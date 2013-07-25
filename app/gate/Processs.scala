@@ -17,7 +17,9 @@
 
 package gate
 
-import concurrent.Future
+import concurrent._
+import _root_.util.Context
+import scala.util.Random
 
 case class Exit(exitValue: Int, lines: Seq[String], duration: Long)
 
@@ -33,6 +35,16 @@ trait Processs {
   def start(cmds: Seq[String]): (Future[Exit], Destroyable)
 }
 
+object ProcesssFactory {
+  import play.api.Play
+
+  def create(): Processs = {
+    import play.api.Play.current
+    if (Play.isProd) ProcesssImpl
+    else DevProcesssImpl
+  }
+}
+
 object ProcesssImpl extends Processs {
   import sys.process._
   def start(cmds: Seq[String]): (Future[Exit], Destroyable) = {
@@ -42,10 +54,46 @@ object ProcesssImpl extends Processs {
     val future = Future {
       val value = process.exitValue() // blocks until result
       Exit(value, lines, System.currentTimeMillis - startMsec)
-    }(util.Context.ioOperations)
+    }(Context.ioOperations)
     val destroyable = new Destroyable {
       def destroy { process.destroy() }
     }
     (future, destroyable)
+  }
+}
+
+object DevProcesssImpl extends Processs {
+  def start(cmds: Seq[String]): (Future[Exit], Destroyable) = {
+    // Setup handles to return
+    val promise = Promise[Exit]()
+    val destroyer = new Destroyable {
+      def destroy { promise.failure(new InterruptedException()) }
+    }
+    
+    // Do work async in separate execution context
+    future {
+      cmds match {
+        case "threshold" :: "open" :: _ => {
+          Thread.sleep(1000)
+          promise.success(Exit(0, List("Note: Dev processs implementation, fake response", "Input was: " + cmds.mkString(" "), "Gate opened on '/tmp/fake/directory%d'".format(Random.nextInt(10000)) ), 1000))
+        }
+        case "threshold" :: "close" :: _ => {
+          Thread.sleep(1000)
+          promise.success(Exit(0, List("Note: Dev processs implementation, fake response", "Input was: " + cmds.mkString(" "), "Gate closed"), 1000))
+        }
+        case "cloner" :: _ | "presenter" :: _ => {
+          // Could make a percentage of these fail...
+          val duration = (5 + Random.nextInt(30)) * 1000
+          Thread.sleep(duration)
+          promise.success(Exit(0, List("Note: Dev processs implementation, fake response", "Input was: " + cmds.mkString(" "), "Job done"), duration))
+        }
+        case other => {
+          Thread.sleep(1000)
+          promise.success(Exit(-1, List("Note: Dev processs implementation, fake response", "Input was: " + cmds.mkString(" "), "Unknown command!"), 1000))
+        }
+      }
+    }(Context.ioOperations)
+    
+    (promise.future, destroyer)
   }
 }

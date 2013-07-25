@@ -48,7 +48,7 @@ class KeeperRouter(artifactServer: ActorRef) extends Actor {
 
   def keeperFor(gatewayId: Long): ActorRef = {
     def addKeeper(gatewayId: Long): ActorRef = {
-      val ref = context.actorOf(Props(new Keeper(gatewayId, locker, ProcesssImpl, watcher, artifactServer)), "KeeperOf" + gatewayId)
+      val ref = context.actorOf(Props(new Keeper(gatewayId, locker, ProcesssFactory.create, watcher, artifactServer)), "KeeperOf" + gatewayId)
       keepers = keepers + (gatewayId -> ref)
       ref
     }

@@ -319,7 +319,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
 
   def thresholdFor(gateway: Gateway): ActorRef = {
     thresholds.get(gateway.location) getOrElse {
-      val t = context.actorOf(Props(new Threshold(ProcesssImpl)))
+      val t = context.actorOf(Props(new Threshold(ProcesssFactory.create)))
       thresholds += (gateway.location -> t)
       t
     }

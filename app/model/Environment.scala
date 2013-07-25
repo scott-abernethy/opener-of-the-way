@@ -39,7 +39,7 @@ object Environment {
     val keepers = actorSystem.actorOf(Props(new KeeperRouter(artifactServer)), "Keepers")
     val stateStream = actorSystem.actorOf(Props[StateStream], "StateStream")
     val lurker = actorSystem.actorOf(Props(new Lurker(actorSystem.deadLetters, artifactServer, stateStream)), "Lurker")
-    val threshold = actorSystem.actorOf(Props(new Threshold(ProcesssImpl)), "Threshold")
+    val threshold = actorSystem.actorOf(Props(new Threshold(ProcesssFactory.create)), "Threshold")
     val watcher = actorSystem.actorOf(Props(new Watcher(threshold, keepers, lurker, stateStream)), "Watcher")
     actorSystem.actorOf(Props[BabbleServer], "BabbleServer")
     val summoner = actorSystem.actorOf(Props(new Summoner(lurker, watcher, keepers)), "Summoner")
