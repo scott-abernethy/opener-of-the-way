@@ -202,6 +202,8 @@ object Artifact {
 
   lazy val notNewsAfter = Millis.days(7)
 
+  lazy val purgeAfter = Millis.days(90)
+  
   def discovered(after: Timestamp): Future[List[Artifact]] = {
     inFutureTransaction (
       from(artifacts)( a =>

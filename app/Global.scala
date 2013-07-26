@@ -27,13 +27,11 @@ object Global extends GlobalSettings {
   override def beforeStart(app: Application) {
     super.beforeStart(app)
 
-    Logger.info("It is coming")
+    Logger.info("*It* is coming...")
   }
 
   override def onStart(app: Application) {
     super.onStart(app)
-
-    Logger.info("It is here")
 
     val data = if (Play.isTest) {
       new TestDb
@@ -49,12 +47,14 @@ object Global extends GlobalSettings {
     db = Some(data)
 
     Environment.start
+    
+    Logger.info("*It* is here")
   }
 
   override def onStop(app: Application) {
     super.onStop(app)
 
-    Logger.info("It has gone")
+    Logger.info("*It* has gone")
 
     Environment.dispose
 

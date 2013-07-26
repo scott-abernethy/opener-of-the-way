@@ -26,6 +26,7 @@ import java.sql.Timestamp
 import gate.T
 import util.FutureTransaction._
 import concurrent.Future
+import concurrent.duration._
 
 class Clone extends MythosObject {
   var artifactId: Long = 0
@@ -63,6 +64,7 @@ class Clone extends MythosObject {
 }
 
 object Clone {
+  
   def create(artifactId: Long, forCultistId: Long, state: CloneState.Value) = {
     val c = new Clone
     c.artifactId = artifactId
@@ -83,10 +85,10 @@ object Clone {
   }
 
   lazy val nonRepeatableBefore = 30 * 60 * 1000L
-
   lazy val marginalWaitAfter = 30 * 60 * 1000L
   lazy val poorWaitAfter = 4 * 60 * 60 * 1000L
   lazy val terribleWaitAfter = 3 * 24 * 60 * 60 * 1000L
+  lazy val purgeAfter = 60.days.toMillis
 
   def queue(): Future[List[(Clone, Option[Presence], Artifact, String, String)]] = {
     inFutureTransaction (

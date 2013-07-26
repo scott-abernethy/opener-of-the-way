@@ -32,9 +32,17 @@ import com.typesafe.config.Config
 object Environment {
   var actorSystem: ActorSystem = _
 
+  implicit val timeout = Timeout(60 seconds)
+    
   def start {
     val config: Config = Play.configuration(Play.current).underlying
+    
     actorSystem = ActorSystem.create("YogSothoth", config.getConfig("ootw").withFallback(config))
+    
+    val devourer = actorSystem.actorOf(Props(new Devourer()), "Devourer")
+    val historyEaten = ask(devourer, 'Wake)
+    Await.result(historyEaten, timeout.duration)
+    
     val artifactServer = actorSystem.actorOf(Props[ArtifactServer], "ArtifactServer")
     val keepers = actorSystem.actorOf(Props(new KeeperRouter(artifactServer)), "Keepers")
     val stateStream = actorSystem.actorOf(Props[StateStream], "StateStream")
@@ -44,9 +52,8 @@ object Environment {
     actorSystem.actorOf(Props[BabbleServer], "BabbleServer")
     val summoner = actorSystem.actorOf(Props(new Summoner(lurker, watcher, keepers)), "Summoner")
 
-    implicit val timeout = Timeout(60 seconds)
-    val future = ask(summoner, 'Check)
-    Await.result(future, timeout.duration)
+    val transferStatesCleaned = ask(summoner, 'Check)
+    Await.result(transferStatesCleaned, timeout.duration)
     lurker ! 'Flush
 
     import util.Context.defaultOperations
@@ -54,6 +61,7 @@ object Environment {
     actorSystem.scheduler.schedule(2 minutes, 2 minutes, watcher, 'Close)
     actorSystem.scheduler.schedule(10 minutes, 10 minutes, watcher, 'Unlockable)
     actorSystem.scheduler.schedule(3 minutes, 5 minutes, summoner, 'Wake)
+    actorSystem.scheduler.schedule(1 day, 1 day, devourer, 'Wake)
   }
 
   def dispose {
