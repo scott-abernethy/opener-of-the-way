@@ -13,6 +13,7 @@ dist
 /.project
 /.cache
 /.target
+/.externalToolBuilders
 /RUNNING_PID
 /.settings
 /ignored/
