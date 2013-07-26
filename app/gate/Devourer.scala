@@ -41,6 +41,7 @@ class Devourer extends Actor {
         case Nil => {
           Logger.info("Devourer sleeping")
           waker ! 'DevourerSleepy
+          waker = context.system.deadLetters
         }
       }
     }
