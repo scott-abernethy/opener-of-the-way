@@ -21,7 +21,7 @@ object Babble {
   lazy val purgeAfter = 30.days.toMillis
   
   def recent(size: Int): List[Babble] = {
-    transaction( from(Mythos.babbles)(b => select(b) orderBy(b.at desc)).page(0, size).toList )
+    transaction( from(Mythos.babbles)(b => select(b) orderBy(b.at.desc)).page(0, size).toList )
   }
   
   def add(who: String, text: String): Option[Babble] = {

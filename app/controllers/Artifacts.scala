@@ -59,7 +59,7 @@ object Artifacts extends Controller with Permission {
   }
 
   def add = NonProductionAction(parse.json) { request =>
-    lurker ! AddArtifact(1, request.body \ "path" toString, 1234L, T.now)
+    lurker ! AddArtifact(1, (request.body \ "path").toString, 1234L, T.now)
     Ok("Added")
   }
 

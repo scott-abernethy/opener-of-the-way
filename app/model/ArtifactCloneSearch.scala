@@ -29,7 +29,7 @@ class ArtifactCloneSearchFactory {
     val results: List[(Artifact, Long, Option[Clone], Option[Presence])] = inTransaction(join(artifacts, gateways, clones.leftOuter, presences.leftOuter)((a, g, c, p) =>
       where((a.witnessed > T.ago(Artifact.goneAfter)) and (a.path like formattedSearch))
       select((a, g.cultistId, c, p))
-      orderBy(a.path asc)
+      orderBy(a.path.asc)
       on(a.gatewayId === g.id, a.id === c.map(_.artifactId), a.id === p.map(_.artifactId))
     ).toList)
     val combined: Seq[(Artifact, Long, List[Clone], Option[Presence])] = results.foldRight(List.empty[(Artifact, Long, List[Clone], Option[Presence])]){ (in: (Artifact, Long, Option[Clone], Option[Presence]), out: List[(Artifact, Long, List[Clone], Option[Presence])]) =>

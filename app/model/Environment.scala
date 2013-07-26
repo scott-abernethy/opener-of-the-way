@@ -32,7 +32,7 @@ import com.typesafe.config.Config
 object Environment {
   var actorSystem: ActorSystem = _
 
-  implicit val timeout = Timeout(60 seconds)
+  implicit val timeout = Timeout(60.seconds)
     
   def start {
     val config: Config = Play.configuration(Play.current).underlying
@@ -57,11 +57,11 @@ object Environment {
     lurker ! 'Flush
 
     import util.Context.defaultOperations
-    actorSystem.scheduler.schedule(1 minute, 5 minutes, watcher, 'Wake)
-    actorSystem.scheduler.schedule(2 minutes, 2 minutes, watcher, 'Close)
-    actorSystem.scheduler.schedule(10 minutes, 10 minutes, watcher, 'Unlockable)
-    actorSystem.scheduler.schedule(3 minutes, 5 minutes, summoner, 'Wake)
-    actorSystem.scheduler.schedule(1 day, 1 day, devourer, 'Wake)
+    actorSystem.scheduler.schedule(1.minute, 5.minutes, watcher, 'Wake)
+    actorSystem.scheduler.schedule(2.minutes, 2.minutes, watcher, 'Close)
+    actorSystem.scheduler.schedule(10.minutes, 10.minutes, watcher, 'Unlockable)
+    actorSystem.scheduler.schedule(3.minutes, 5.minutes, summoner, 'Wake)
+    actorSystem.scheduler.schedule(1.day, 1.day, devourer, 'Wake)
   }
 
   def dispose {

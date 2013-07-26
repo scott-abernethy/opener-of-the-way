@@ -95,7 +95,7 @@ object Clone {
       join(clones, presences.leftOuter, artifacts, pseudonyms, cultists)( (c, p, a, n, w) =>
         where(c.state <> CloneState.cloned)
         select( (c, p, a, n.name, w.email) )
-        orderBy(c.requested asc)
+        orderBy(c.requested.asc)
         on(c.artifactId === p.map(_.artifactId), c.artifactId === a.id, c.forCultistId === n.id, c.forCultistId === w.id)
       ).toList
     )
@@ -116,7 +116,7 @@ object Clone {
       join(clones, artifacts)( (c, a) =>
         where( c.state === CloneState.cloned and c.attempted > after )
         select( (c, a) )
-        orderBy( c.attempted desc )
+        orderBy( c.attempted.desc )
         on( c.artifactId === a.id )
       ).toList
     )

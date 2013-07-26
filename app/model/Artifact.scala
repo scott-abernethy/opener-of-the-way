@@ -168,7 +168,7 @@ class Artifact extends MythosObject {
 object Artifact {
   def find(id: Long): Option[Artifact] = inTransaction(artifacts.lookup(id))
 
-  def all: List[Artifact] = inTransaction(from(artifacts)(x => select(x) orderBy(x.discovered desc, x.path desc)).toList)
+  def all: List[Artifact] = inTransaction(from(artifacts)(x => select(x) orderBy(x.discovered.desc, x.path.desc)).toList)
 
   def findUnique(gatewayId: Long, path: String): Option[Artifact] = {
     inTransaction(
@@ -209,7 +209,7 @@ object Artifact {
       from(artifacts)( a =>
         where( a.discovered > after )
         select( a )
-        orderBy( a.discovered desc )
+        orderBy( a.discovered.desc )
       ).toList
     )
   }
@@ -231,7 +231,7 @@ object Artifact {
       from(artifacts)( a =>
         where( a.discovered > after )
         select( a )
-        orderBy( a.discovered desc )
+        orderBy( a.discovered.desc )
       ).toList
     }
   }

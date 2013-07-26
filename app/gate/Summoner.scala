@@ -48,7 +48,7 @@ object Summoner {
         (p.state === PresenceState.present or p.state === PresenceState.unknown or p.state === PresenceState.released)
       )
       select( (p, a, c) )
-      orderBy( a.discovered asc, a.id asc )
+      orderBy( a.discovered.asc, a.id.asc )
       on( p.artifactId === a.id, p.artifactId === c.map(_.artifactId) )
     )
   }

@@ -45,7 +45,7 @@ object Watcher {
       a.discovered < T.ago(Artifact.immatureBefore)
     )
     select((p,g))
-    orderBy(p.attempts asc, p.id asc)
+    orderBy(p.attempts.asc, p.id.asc)
     on(p.artifactId === a.id, a.gatewayId === g.id)
   )
   
@@ -57,7 +57,7 @@ object Watcher {
       (p.map(_.state) === Some(PresenceState.present) or p.map(_.state) === Some(PresenceState.presenting))
     )
     select((cl,g,p))
-    orderBy(cl.attempts asc, cl.id asc)
+    orderBy(cl.attempts.asc, cl.id.asc)
     on(cl.forCultistId === cu.id, cu.id === g.cultistId, cl.artifactId === p.map(_.artifactId))
   )
 
@@ -159,7 +159,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
       transaction {
         val openLocations = openQuery.toList.map(_.location).toSet
         transientQuery.toList.filterNot(openLocations contains _.location).foreach { g =>
-          context.system.scheduler.scheduleOnce(30 seconds, watcher, Flush(g.id))(util.Context.defaultOperations)
+          context.system.scheduler.scheduleOnce(30.seconds, watcher, Flush(g.id))(util.Context.defaultOperations)
         }
       }
     }

@@ -50,7 +50,7 @@ class Cultist extends MythosObject {
   var seen: Option[Timestamp] = None
   var shut: Option[Timestamp] = None
 
-  def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.sink === true) select(g) orderBy(g.id asc)).headOption
+  def destination: Option[Gateway] = from(gateways)(g => where(g.cultistId === id and g.sink === true) select(g) orderBy(g.id.asc)).headOption
 
   lazy val gateways: OneToMany[Gateway] = cultistToGateways.left(this)
 
@@ -131,7 +131,7 @@ object Cultist {
     inFutureTransaction {
       join(cultists, pseudonyms)( (w, n) =>
         select( (w, n.name) )
-        orderBy( n.name asc )
+        orderBy( n.name.asc )
         on( w.id === n.id )
       ).toList
     }

@@ -75,7 +75,7 @@ class AwaitingSnapshotFactory {
     join(clones, artifacts, presences.leftOuter)((c, a, p) =>
       where(c.forCultistId === cultistId and (c.state === CloneState.awaiting or c.state === CloneState.cloning))
         select((c, a, p))
-        orderBy(c.requested desc)
+        orderBy(c.requested.desc)
         on(c.artifactId === a.id, c.artifactId === p.map(_.artifactId))
     ).toList
   }

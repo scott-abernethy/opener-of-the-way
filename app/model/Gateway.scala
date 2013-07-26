@@ -150,7 +150,7 @@ object Gateway {
       join( gateways, pseudonyms, cultists )( (g, n, w) =>
         where( g.source === true )
         select( (g, n.name, w.email) )
-        orderBy( g.scoured asc, g.id asc )
+        orderBy( g.scoured.asc, g.id.asc )
         on( g.cultistId === n.id, g.cultistId === w.id )
       ).toList
     )
