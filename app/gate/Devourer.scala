@@ -57,13 +57,19 @@ class Devourer extends Actor {
     }
     case 'PurgeArtifacts => {
       performTask( futureTransaction{
-        val as = from(artifacts)(a => 
+        val purgable = from(artifacts)(a => 
           where(a.witnessed < T.ago(Artifact.purgeAfter) and a.discovered < T.ago(Artifact.purgeAfter)) 
           select(a.id)
           ).toList
-        presences.deleteWhere(p => p.artifactId in as)
-        clones.deleteWhere(c => c.artifactId in as)
-        artifacts.deleteWhere(a => a.id in as)
+        update(presences)(p => where(p.artifactId in purgable) set(p.state := PresenceState.released))
+        clones.deleteWhere(c => c.artifactId in purgable)
+        
+        val deletable = join(artifacts, presences.leftOuter)( (a,p) => 
+          where(a.witnessed < T.ago(Artifact.purgeAfter) and a.discovered < T.ago(Artifact.purgeAfter) and p.map(_.state).~.isNull) 
+          select(a.id)
+          on(a.id === p.map(_.artifactId))
+          ).toList
+        artifacts.deleteWhere(a => a.id in deletable)
       })
     }
     case other => {
