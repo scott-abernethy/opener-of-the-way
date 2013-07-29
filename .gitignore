@@ -19,3 +19,4 @@ dist
 /ignored/
 /bin/
 *.swp
+conf/generated.keystore
