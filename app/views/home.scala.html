@@ -78,31 +78,14 @@
   <div ng-controller="ArtifactLogCtrl" class="span7">
     <div class="bb-h"><i class="icon-cloud-download icon-large"></i> Log</div>
     <div class="bb-t">
-      <div class="bb-i"><form class="form-inline" ng-submit="search(searchText)">
-        <input class="input-block-level" type="text" ng-model="searchText" placeholder="Search">
-      </form></div>
-      <div ng-show="results.show">
-        <div class="bb-h2"><span class="label label-info">Search</span> Results <button class="pull-right btn btn-mini" ng-click="clear()">Clear</button></div>
-        <ol class="unstyled">
-          <li class="bb-i hovery" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in results.items" ng-click="artifactSelect(artifact)">
-            <div class="bb-icon pull-left">
-              <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-2x"></i>
-            </div>
-            <div class="bb-text clearfix">
-              <div class="{{artifact.state.class}}">{{artifact.desc}}</div>
-              <div class="text-right">
-                <span class="tiny muted">{{artifact.size}}</span> <span class="label label-info" ng-show="artifact.proffered && artifact.clones"><span class="tiny">{{artifact.clones}}x</span></span>
-              </div>
-            </div>
-          </li>
-          <li class="bb-i" ng-show="!results.items.length"><span class="muted"><i class="{{results.icon}} icon-2x"></i> {{results.desc}}</span></li>
-        </ol>
+       <div class="bb-i">
+            <input class="input-block-level" type="text" ng-model="searchText" placeholder="Search">
       </div>
-      <div ng-show="!results.show" infinite-scroll='nextPage()' infinite-scroll-disabled='busy' infinite-scroll-distance='1' infinite-scroll-immediate-check='true'>
-        <div ng-repeat="day in log">
+      <div infinite-scroll='nextPage()' infinite-scroll-disabled='busy' infinite-scroll-distance='1' infinite-scroll-immediate-check='true'>
+        <div ng-repeat="day in log | filter:dayFilter">
           <div class="bb-h2">{{day.name}}</div>
           <ol class="unstyled">
-            <li class="bb-i hovery" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in day.items" ng-click="artifactSelect(artifact)">
+            <li class="bb-i hovery" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in day.items | filter:itemFilter" ng-click="artifactSelect(artifact)">
               <div class="bb-icon pull-left">
                 <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-2x"></i>
               </div>
@@ -115,6 +98,7 @@
             </li>
           </ol>
         </div>
+
         <div class="bb-h2" ng-show='busy'>Loading data...</div>
       </div>
     </div>
