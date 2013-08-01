@@ -1,0 +1,203 @@
+#!/bin/bash
+
+## create options, default to NTFS non-dynamic
+
+# Exit codes:
+# 91 - unknown gate protocol
+
+
+function print_usage {
+  script_name=$(basename $0)
+  cat <<EOF
+Usage:
+ - $script_name stage <location> <path>
+ - $script_name unstage <location> <path>
+ - $script_name mount <location> <path> <password>
+ - $script_name unmount <location> <path>
+ - $script_name open <location> <path> <password>
+ - $script_name close <location> <path>
+ - $script_name flush
+EOF
+}
+
+set -o nounset
+
+function abort_check {
+  local RESULT=$1
+  local EXIT_CODE=$2
+  if [ "$RESULT" != "0" ] ; then
+    echo "Aborted $RESULT as $EXIT_CODE"
+    exit $EXIT_CODE
+  fi
+}
+
+function mount_gate_mount {
+  # Gateway model has location and path. Location is the share, path is file within share file-system.
+  local gate_protocol=$(echo $gate_location | sed -e 's,^\([a-zA-Z]\+\)://.*$,\1,')
+  echo "Gate protocol found as $gate_protocol for $gate_location"
+  if [ "z$gate_protocol" == "znfs" ] ; then
+    # via nfs -- location should be nfs://host:share (where share is from root?)
+    local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+://\(.*:.*\)$,\1,')
+    sudo mount -t nfs4 $share $gate_mount --verbose -o rw,async,tcp,noexec,soft,retrans=3 2>&1
+  elif [ "z$gate_protocol" == "zsmb" ] ; then
+    # via samba -- location should be smb://host/share .. currently host/share
+    local share=$(echo $gate_location | sed -e 's,^[a-zA-Z]\+:\(//.*\)$,\1,')
+    sudo mount -t cifs $share $gate_mount --verbose -o _netdev,rw,noexec,guest 2>&1
+    local result=$?
+    if [ $result == 32 ] ; then 
+      #permission denied, try with sqatest user 
+      sudo mount -t cifs $share $gate_mount --verbose -o _netdev,rw,noexec,user=$1,password=$2 2>&1
+    else
+      return $result
+    fi
+  else
+    echo "Gate protocol unknown!"
+    exit 91
+  fi
+}
+
+function do_stage {
+  if [ ! -d $gate_mount ] ; then
+    mkdir -p $gate_mount ; abort_check $? 1
+  fi
+
+  if [ $(mount | grep $gate_mount -c) == 0 ] ; then
+    echo "Staging"
+    #TODO  rw / ro depending on gate mode
+    mount_gate_mount sqatest Test5678
+    local result=$?
+    if [ $result != 0 ] ; then
+      return $result
+    fi
+    #if [ $? != 0 ] ; then
+    #  mount_gate_mount wmtdev javasux
+    #  local result=$?
+    #  if [ $result != 0 ] ; then
+    #    return $result
+    #  fi
+    #fi
+  fi
+
+  ls $gate_mount/.. >/dev/null 2>&1
+  if [ $? != 0 ] ; then
+    return 2
+  fi  
+}
+
+function do_unstage {
+  if [ $(mount | grep $gate_mount -c) == 0 ] ; then
+    echo "No need to unstage"
+    return 0
+  fi
+
+  # try clean unmount
+  sudo umount $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+
+  # try forcing unmount
+  sudo umount -f $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+  sudo umount -f $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+  sudo umount -f $gate_mount
+  if [ $? == 0 ] ; then
+    return 0
+  fi
+
+  #return 1 
+
+  # if the share has gone offline, we can only do a lazy umount
+  sudo umount -f -l $gate_mount
+  return 0 
+}
+
+function do_mount {
+  gate_password=$1
+
+  if [ ! -d $gate_crypt ] ; then
+    mkdir -p $gate_crypt ; abort_check $? 1
+    touch $gate_crypt/closed ; abort_check $? 1
+  fi
+
+  if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
+    echo "Mounting"
+    #sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="(id -u $gate_user),gid=$(id -g $gate_user)" 2>&1 ; abort_check $? 2
+    sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt 2>&1 ; abort_check $? 2
+  fi
+
+  ls $gate_crypt/closed >/dev/null 2>&1
+  if [ $? == 0 ] ; then
+    echo "Detected closed flag"
+    return 2
+  fi
+
+  echo "Gate opened on '$gate_crypt'"
+}
+
+function do_unmount {
+  if [ -d $gate_crypt ] ; then
+    if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_mount/$gate_path -c) != 0 ] ; then
+      sudo truecrypt -t --non-interactive -d $gate_mount/$gate_path
+    fi
+  fi
+
+  local result=$?
+  if [ $result != 0 ] ; then
+    echo "Failed to unmount gate"
+    return $result
+  fi
+
+  echo "Gate unmounted"
+}
+
+function do_open {
+  do_stage ; abort_check $? 3
+  do_mount $1 ; abort_check $? 4
+}
+
+function do_close {
+  do_unmount
+  do_unstage
+}
+
+function do_flush {
+  sudo truecrypt -t --non-interactive -d --force
+  sudo umount $gate_mount_root/*/fs
+  sudo killall -u $gate_user rsync
+}
+
+gate_mount_root=/tmp/gates
+gate_user=$(id -un)
+
+function setup_env {
+  gate_location=$1
+  gate_location_desc=$(echo $gate_location | sed 's,[ /:],-,g')
+  gate_path=$2
+  gate_path_desc=$(echo $gate_path | sed 's,[ /],-,g')
+  gate_mount=$gate_mount_root/$gate_location_desc/fs
+  gate_crypt=$gate_mount_root/$gate_location_desc/crypt-$gate_path_desc
+}
+
+if [ "$#" == "0" ] ; then
+  print_usage ; exit 1
+fi
+
+# For all operations, pause such that the output will be trapped correctly.
+sleep 2s
+
+case "$1" in
+  stage) setup_env $2 $3 ; do_stage ;;
+  unstage) setup_env $2 $3 ; do_unstage ;;
+  mount) setup_env $2 $3 ; do_mount $4 ;;
+  unmount) setup_env $2 $3 ; do_unmount ;;
+  open) setup_env $2 $3 ; do_open $4 ;;
+  close) setup_env $2 $3 ; do_close ;;
+  flush) do_flush ;;
+  *) print_usage ; exit 1 ;;
+esac

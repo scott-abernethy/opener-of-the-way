@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo Ensure mysql is up
+service mysql stop
+service mysql start
+
+## No automatic backup, as this one required password to be entered.
+#/root/bin/backup-db
+
+echo Disabling old services
+service nginx stop
+service jetty stop
+
+echo Deploying current dist
+/root/bin/deploy
+
+echo Configuring
+cd /tmp
+rm presences
+ln -s /srv/presences
+
+echo Summoning app
+start-stop-daemon --pidfile /srv/ootw/RUNNING_PID --chuid root --exec /srv/ootw/start --background --start -- -Dconfig.file="/etc/ootw/ootw.conf" -Dhttps.port=443 -Dhttps.keyStore="/etc/ootw/keystore" -Dhttps.keyStorePassword="javasux"
+
+echo Done $?

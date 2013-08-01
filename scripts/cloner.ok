@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# TODO merge with presenter
+
+function print_usage {
+  script_name=$(basename $0)
+  cat <<EOF
+Usage:
+ - $script_name <src> <dest>
+EOF
+}
+
+set -o nounset
+
+function abort_check {
+  if [ $1 != 0 ] ; then
+    echo "Aborted"
+    exit $1
+  fi
+}
+
+src_id=$1
+src_file=/tmp/presences/$src_id
+dest_file=$2
+dest_dir=$(dirname "$dest_file")
+
+echo "clone: $src_file -> $dest_file"
+mkdir -p "$dest_dir"
+
+# TODO check src exists?
+
+# --partial  (allows continuation from partial transfer, otherwise it is deleted)
+# --whole-file  (skips delta transfer algorithm)
+# --temp-dir=DIR  (scratch directory on receiver, i think this defaults to receive dir)
+# --timeout=SECS  (IO timeout in seconds)
+# --bwlimit=KB/sec
+rsync --verbose --times --timeout=240 --whole-file "$src_file" "$dest_file" ; abort_check $?
+#cp "$src_file" "$dest_file" ; abort_check $

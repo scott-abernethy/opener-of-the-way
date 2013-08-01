@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# disconnect truecrypt mounts
+truecrypt -d
+
+sleep 10s
+
+# unmount shares
+mount | grep '/fs ' | awk '{print $3}' | xargs umount -f -l
+
+sleep 10s
+
+# clean up loop devices
+LOOP_MAX=19
+for i in $(seq 0 $LOOP_MAX); 
+do 
+  losetup -d /dev/loop$i
+done
+
+sleep 10s

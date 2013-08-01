@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo Releasing app
+start-stop-daemon --pidfile /srv/ootw/RUNNING_PID --stop
+
+echo Done $?

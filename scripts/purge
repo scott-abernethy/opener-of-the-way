@@ -1,4 +1,26 @@
 #!/bin/bash
-/etc/init.d/jetty stop
+#/etc/init.d/jetty stop
+
+echo Terminating all rsync processes, then wait 10 seconds
+killall rsync
+sleep 10
+
+echo Disconnecting gateway crypts...
 truecrypt -d
-mount | grep '/fs ' | awk '{print $3}' | xargs umount
+
+echo Unmounting gateway shares
+MOUNTED=$(mount | grep '/fs ' | awk '{print $3}')
+
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
+
+for MOUNTX in $MOUNTED
+do
+  umount $MOUNTX
+done
+
+IFS=$SAVEIFS
+
+#TODO cleanup losetup -a
+
+echo Done

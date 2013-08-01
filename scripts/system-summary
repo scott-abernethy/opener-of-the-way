@@ -1,4 +1,4 @@
 #!/bin/bash
 mysql -u root -p --database=ootw -e 'select attempted as "oldest presence",DATEDIFF(CURRENT_DATE(),DATE(attempted)) as "presence life (days)" from Presence where state=2 order by attempted asc limit 1;
 select cultistId as "cid",location,path,date(seen),scoured from Gateway where source=1 order by scoured;
-select id as "cid",email,seen,recruitedBy from Cultist order by id;'
+select Cultist.id as "cid",Pseudonym.name,Cultist.email,Cultist.seen,Cultist.recruitedBy from Cultist left join Pseudonym on Cultist.id=Pseudonym.id order by Cultist.id;'

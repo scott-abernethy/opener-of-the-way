@@ -1,0 +1,15 @@
+#!/bin/bash
+set -o nounset
+DIST=/root/current.dist.zip
+cd /srv/ootw
+rm -rf previous
+mkdir previous
+mv lib previous/
+mv start previous/
+mv logs previous/
+rm -rf extracting
+mkdir extracting
+unzip -q $DIST -d extracting
+mv extracting/*/* .
+rm -rf extracting
+chmod a+x start

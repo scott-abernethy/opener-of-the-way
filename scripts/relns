@@ -1,0 +1,9 @@
+#!/bin/bash
+set -o nounset
+XDIR=$1
+XSRC=$2
+XDEST=$3
+cd $XDIR
+rm ln$XSRC
+ln -s $XSRC ln$XSRC
+mv ln$XSRC $XDEST

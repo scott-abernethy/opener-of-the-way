@@ -1,0 +1,4 @@
+#!/bin/bash
+COUNT=$(ls -1 /tmp/presences | wc -l)
+USAGE=$(du -sh /tmp/presences | awk '{print $1}')
+echo "Presence consists of $COUNT items, disk usage of $USAGE."
