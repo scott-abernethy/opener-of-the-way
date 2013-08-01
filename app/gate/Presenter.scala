@@ -49,9 +49,6 @@ class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServe
     case exit: Exit => {
       cur.foreach(attempted(_, exit))
     }
-    case msg => {
-      unhandled(msg)
-    }
   }
 
   def start(presence: Presence) {
@@ -102,7 +99,7 @@ class Presenter(val processs: Processs, val watcher: ActorRef, val artifactServe
     transaction { presences.update(p) }
     cur = None
     if (success) {
-      watcher ! 'Sink
+      watcher ! 'Wake
     } else {
       watcher ! PresenceFailed(p)
     }

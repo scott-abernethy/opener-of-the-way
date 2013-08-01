@@ -41,9 +41,6 @@ class KeeperRouter(artifactServer: ActorRef) extends Actor {
     case ToAll(msg) => {
       keepers.values.foreach(_ ! msg)
     }
-    case msg => {
-      unhandled(msg)
-    }
   }
 
   def keeperFor(gatewayId: Long): ActorRef = {

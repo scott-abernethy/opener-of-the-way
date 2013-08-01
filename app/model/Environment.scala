@@ -34,7 +34,7 @@ object Environment {
 
   implicit val timeout = Timeout(60.seconds)
     
-  def start {
+  def start() {
     val config: Config = Play.configuration(Play.current).underlying
     
     actorSystem = ActorSystem.create("YogSothoth", config.getConfig("ootw").withFallback(config))
@@ -63,8 +63,14 @@ object Environment {
     actorSystem.scheduler.schedule(3.minutes, 5.minutes, summoner, 'Wake)
     actorSystem.scheduler.schedule(1.day, 1.day, devourer, 'Wake)
   }
+  
+  def disempower() {
+    Logger.info("*It* has been DISEMPOWERED")
+    val watcher = actorSystem.actorFor("/user/Watcher")
+    watcher ! 'Disempower
+  }
 
-  def dispose {
+  def dispose() {
     actorSystem.shutdown()
   }
 }

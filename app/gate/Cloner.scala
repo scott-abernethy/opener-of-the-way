@@ -51,9 +51,6 @@ class Cloner(val processs: Processs, val watcher: ActorRef, val artifactServer: 
     case 'Cancel => {
       cancel
     }
-    case msg => {
-      unhandled(msg)
-    }
   }
 
   def start(job: Clone) {

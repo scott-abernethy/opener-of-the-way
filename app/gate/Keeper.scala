@@ -108,9 +108,6 @@ class Keeper(gatewayId: Long, locker: ActorRef, processs: Processs, watcher: Act
     case Terminated(ref) => {
       check()
     }
-    case msg => {
-      unhandled(msg)
-    }
   }
 
   def check() {

@@ -72,9 +72,6 @@ class Devourer extends Actor {
         artifacts.deleteWhere(a => a.id in deletable)
       })
     }
-    case other => {
-      unhandled(other)
-    }
   }
   
   def performTask[A](task: Future[A]) {

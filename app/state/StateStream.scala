@@ -124,9 +124,6 @@ class StateStream extends Actor {
       Logger.debug("Terminated " + t)
       streams = streams.filter( x => !t.equals(x._2) )
     }
-    case other => {
-      unhandled(other)
-    }
   }
 
   def unicast(cultistId: Long, msg: Long => Any) {
@@ -190,9 +187,6 @@ class CultistStream extends Actor {
     }
     case json: JsValue => {
       channel._2.push(json)
-    }
-    case other => {
-      unhandled(other)
     }
   }
 }

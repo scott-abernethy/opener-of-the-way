@@ -42,8 +42,5 @@ class BabbleServer extends Actor {
         stream ! b
       }
     }
-    case other => {
-      unhandled(other)
-    }
   }
 }

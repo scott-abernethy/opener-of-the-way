@@ -64,7 +64,6 @@ class ArtifactServer extends Actor {
     case ArtifactTouched(ArtifactAwaiting(c), id) => fwd(ArtifactAwaiting(c), id, Logger.info(_))
     case ArtifactTouched(ArtifactCloned(c), id) => fwd(ArtifactCloned(c), id, Logger.info(_))
     case ArtifactTouched(change, id) => fwd(change, id, Logger.debug(_))
-    case other => unhandled(other)
   }
 
   def fwd(change: ArtifactChange, id: Long, logMethod: (String) => Unit) {

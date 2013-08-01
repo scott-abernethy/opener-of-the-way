@@ -24,6 +24,9 @@ import util.{Context, ConcurrentUtil, Permission}
 import state.StateStream
 import concurrent.Future
 import model.{Pseudonym, Cultist}
+import views.html.defaultpages.badRequest
+import play.api.libs.json.JsString
+import model.Environment
 
 object Application extends Controller with Permission {
   
@@ -54,4 +57,23 @@ object Application extends Controller with Permission {
     Redirect(routes.Clones.load())
   }
 
+  def disempower = Action(parse.json) { request =>
+    import play.api.Play.current
+    Play.configuration.getString("application.disempower-secret") match {
+      case Some(secret) => {
+        (request.body \ "auth") match {
+          case JsString(auth) if (auth == secret) => {
+            Environment.disempower()
+            Ok("App Disempowered") 
+          }
+          case _ => {
+            BadRequest("Auth does not match application.disempower-secret")
+          }
+        } 
+      }
+      case _ => {
+        BadRequest("Shutdown API not enabled")
+      }
+    }
+  }
 }

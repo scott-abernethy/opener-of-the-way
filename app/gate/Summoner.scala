@@ -127,9 +127,6 @@ class Summoner(lurker: ActorRef, watcher: ActorRef, keepers: ActorRef) extends A
     case 'Ping => {
       sender ! 'Pong
     }
-    case msg => {
-      unhandled(msg)
-    }
   }
 
   private def call(artifactId: Long) {
@@ -139,12 +136,12 @@ class Summoner(lurker: ActorRef, watcher: ActorRef, keepers: ActorRef) extends A
           presence.state = PresenceState.called
           presences.update(presence)
           logSummonerInfo()
-          watcher ! 'Source
+          watcher ! 'Wake
           keepers ! ToKeeper(artifact.gatewayId, Admit(presence :: Nil))
         }
         case Some((artifact, Some(presence))) if presence.state == PresenceState.present => {
           // TODO is that necessary?
-          watcher ! 'Sink
+          watcher ! 'Wake
           // TODO don't use a shotgun
           keepers ! ToAll(Release(Nil))
         }
@@ -154,7 +151,7 @@ class Summoner(lurker: ActorRef, watcher: ActorRef, keepers: ActorRef) extends A
           p.state = PresenceState.called
           presences.insert(p)
           logSummonerInfo()
-          watcher ! 'Source
+          watcher ! 'Wake
           keepers ! ToKeeper(artifact.gatewayId, Admit(p :: Nil))
         }
         case _ =>
