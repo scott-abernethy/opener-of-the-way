@@ -1,3 +1,4 @@
 #!/bin/bash
+PASSWORD=$1
 DUMP_FILE=ootw.$(date +%F).sql.gz
-mysqldump -u root -p ootw | gzip -c > $DUMP_FILE
+mysqldump -u root -p$PASSWORD ootw | gzip -c > $DUMP_FILE

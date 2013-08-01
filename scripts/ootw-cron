@@ -1,0 +1,16 @@
+# The first element of the path is a directory where the debian-sa1
+# script is located
+PATH=/root/bin:/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# 1am = Stop *it*
+0 1 * * * root /root/bin/release-to-the-ether 2>&1 >/dev/null
+
+# 2am = Gently terminate outstanding work
+0,10,20 2 * * * root /root/bin/term-outstanding 2>&1 >/dev/null
+
+# 3am = Purge gateways
+0,30 3 * * * root /root/bin/purge 2>&1 >/dev/null
+
+# 4am = Start *it*
+0 4 * * * root /root/bin/bring-into-being 2>&1 >/dev/null
+

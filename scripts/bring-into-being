@@ -23,3 +23,4 @@ echo Summoning app
 start-stop-daemon --pidfile /srv/ootw/RUNNING_PID --chuid root --exec /srv/ootw/start --background --start -- -Dconfig.file="/etc/ootw/ootw.conf" -Dhttps.port=443 -Dhttps.keyStore="/etc/ootw/keystore" -Dhttps.keyStorePassword="javasux"
 
 echo Done $?
+echo You can check the log by doing \"less +F /srv/ootw/logs/application.log\"

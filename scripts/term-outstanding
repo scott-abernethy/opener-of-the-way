@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo Terminating rsync processes
+killall rsync

@@ -1,14 +1,33 @@
 #!/bin/bash
 #/etc/init.d/jetty stop
 
-echo Terminating all rsync processes, then wait 10 seconds
-killall rsync
-sleep 10
+function retryWait() {
+  echo ... waiting 30 seconds before retrying ...
+  sleep 30
+}
 
+function doneWait() {
+  echo ... waiting 30 seconds ...
+  sleep 30
+}
+
+###
+echo Killing all rsync processes
+killall -9 rsync
+retryWait
+killall -9 rsync
+doneWait
+
+###
 echo Disconnecting gateway crypts...
 truecrypt -d
+retryWait
+truecrypt -d
+doneWait
 
+###
 echo Unmounting gateway shares
+
 MOUNTED=$(mount | grep '/fs ' | awk '{print $3}')
 
 SAVEIFS=$IFS
@@ -21,6 +40,33 @@ done
 
 IFS=$SAVEIFS
 
-#TODO cleanup losetup -a
+retryWait
 
+MOUNTED=$(mount | grep '/fs ' | awk '{print $3}')
+
+SAVEIFS=$IFS
+IFS=$(echo -en "\n\b")
+
+for MOUNTX in $MOUNTED
+do
+  # FORCE this time
+  umount -f $MOUNTX
+done
+
+IFS=$SAVEIFS
+
+doneWait
+
+###
+echo Clean up loop devices
+
+LOOP_MAX=19
+for i in $(seq 0 $LOOP_MAX); 
+do 
+  losetup -d /dev/loop$i
+done
+
+doneWait
+
+###
 echo Done
