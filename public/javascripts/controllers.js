@@ -136,6 +136,9 @@ function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket)
     $scope.locked = cultist.shut
   });
 
+  $scope.add = function() {
+	$location.path("/gateway/add");
+  }
   $scope.lock = function() {
     $scope.locked = true
     $http.put('gateway/lock', {"enable": true})

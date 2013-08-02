@@ -3,16 +3,16 @@
 @import views.MyHelpers.minimal
 
 @main("Approach") {
-   <div>
+   <div class="col-lg-12">
    <h2 class="muted">Who approaches?!</h2>
    @helper.form(routes.Cultists.approachSubmit(), 'class -> "form-inline") {
        <fieldset>
         @approachForm.globalError.map{ error =>
             <p class="error">@error.message</p>
         }
-        @helper.inputText(approachForm("email"), 'placeholder -> "Email", 'class -> "input-medium")
-        @helper.inputPassword(approachForm("password"), 'placeholder -> "Password", 'class -> "input-medium")
-        <input type="submit" value="Submit" class="btn">
+        @helper.inputText(approachForm("email"), 'placeholder -> "Email", 'class -> "form-control", 'style -> "width: 180px")
+        @helper.inputPassword(approachForm("password"), 'placeholder -> "Password", 'class -> "form-control", 'style -> "width: 180px")
+        <input type="submit" value="Submit" class="btn btn-default">
        </fieldset>
     }
    </div>

@@ -1,43 +1,46 @@
 @(title: String)
 
-<div>
+<div class="row"><div class="col-lg-6">
   <h2>@title</h2>
   <div class="alert" ng-show="saveError">
     <strong>Error!</strong> Save operation failed.
   </div>
-  <form name="addGateway" class="css-form form-horizontal" novalidate>
+  <form name="form" novalidate>
     <fieldset>
-      <div class="control-group">
-        <label class="control-label" for="inputShareUri">Share URI</label>
-        <div class="controls">
-          <input type="text" id="inputShareUri" ng-model="gateway.uri" ng-pattern="/(smb://([a-zA-Z0-9-._~!$&'()*+,;=]+)/([a-zA-Z0-9-._~!$&'()*+,;=:/]+)|nfs://([a-zA-Z0-9-._~!$&'()*+,;=]+):(/?[a-zA-Z0-9-._~!$&'()*+,;=:/]+))/" required placeholder="smb://host/share"><span class="help-inline">Example: <code>smb://host/share</code> or <code>nfs://host:/path/to/share</code> (NFS support is not stable)</span>
+      <div class="form-group" ng-class="{'has-error': form.inputShareUri.$invalid, 'has-success': !form.inputShareUri.$invalid}">
+        <label for="inputShareUri" class="control-label">Share URI</label>
+        <div>
+          <input class="form-control" type="text" id="inputShareUri" name="inputShareUri" ng-model="gateway.uri" ng-pattern="/(smb://([a-zA-Z0-9-._~!$&'()*+,;=]+)/([a-zA-Z0-9-._~!$&'()*+,;=:/]+)|nfs://([a-zA-Z0-9-._~!$&'()*+,;=]+):(/?[a-zA-Z0-9-._~!$&'()*+,;=:/]+))/" required placeholder="smb://host/share">
+          <span class="help-block">Example: <code>smb://host/share</code> or <code>nfs://host:/path/to/share</code> (NFS support is not stable)</span>
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="inputPath">Path to TrueCrypt file</label>
-        <div class="controls">
-          <input type="text" id="inputPath" ng-model="gateway.path" required placeholder="folder/file.extension">
+      <div class="form-group" ng-class="{'has-error': form.inputPath.$invalid, 'has-success': !form.inputPath.$invalid}">
+        <label for="inputPath" class="control-label">Path to TrueCrypt file</label>
+        <div>
+          <input class="form-control" type="text" id="inputPath" name="inputPath" ng-model="gateway.path" required placeholder="folder/file.extension">
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="inputPassword">TrueCrypt password</label>
-        <div class="controls">
-          <input type="password" id="inputPassword" ng-model="gateway.password" ng-required="passwordRequired"><span class="help-inline">No one else need know this password, so make it secure</span>
+      <div class="form-group" ng-class="{'has-error': form.inputPassword.$invalid, 'has-success': !form.inputPassword.$invalid}">
+        <label for="inputPassword" class="control-label">TrueCrypt password</label>
+        <div>
+          <input class="form-control" type="password" id="inputPassword" name="inputPassword" ng-model="gateway.password" ng-required="passwordRequired">
+          <span class="help-block">No one else need know this password, so make it secure</span>
         </div>
       </div>
-      <div class="control-group">
-        <label class="control-label" for="inputMode">Mode</label>
-        <div class="controls">
-          <select id="inputMode" ng-model="gateway.mode" ng-options="m.name for m in modes" required></select><span class="help-inline">A source for sharing; a sink for taking</span>
+      <div class="form-group" ng-class="{'has-error': form.inputMode.$invalid, 'has-success': !form.inputMode.$invalid}">
+        <label for="inputMode" class="control-label">Mode</label>
+        <div>
+          <select class="form-control" id="inputMode" name="inputMode" ng-model="gateway.mode" ng-options="m.name for m in modes" required></select>
+          <span class="help-block">A source for sharing; a sink for taking</span>
         </div>
       </div>
-      <div class="control-group">
-        <div class="controls">
-          <button ng-click="save(gateway)" ng-disabled="addGateway.$invalid" class="btn btn-primary">Save</button>
+      <div class="form-group">
+        <div>
+          <button ng-click="save(gateway)" ng-disabled="form.$invalid" class="btn btn-default">Save</button>
           <button ng-click="cancel()" class="btn">Cancel</button>
         </div>
       </div>
     </fieldset>
   </form>
-</div>
+</div></div>
 

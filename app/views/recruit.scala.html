@@ -1,24 +1,24 @@
 @()
 
-<div>
+<div class="row"><div class="col-lg-6">
 <h2>Recruit another</h2>
 <div class="alert" ng-show="saveError">
   <strong>Error!</strong> Save operation failed. {{errorMsg}}
 </div>
-<form name="recruit" class="css-form form-horizontal" novalidate>
+<form name="form" novalidate>
   <fieldset>
-    <div class="control-group">
+    <div class="form-group" ng-class="{'has-error': form.inputEmail.$invalid, 'has-success': !form.inputEmail.$invalid}">
       <label class="control-label" for="inputEmail">Their Email</label>
       <div class="controls">
-        <input type="email" id="inputEmail" ng-model="email">
+        <input class="form-control" type="email" id="inputEmail" name="inputEmail" ng-model="email">
       </div>
     </div>
-    <div class="control-group">
+    <div class="form-group">
       <div class="controls">
-        <button ng-click="save(email)" ng-disabled="recruit.$invalid" class="btn btn-primary">Submit</button>
+        <button ng-click="save(email)" ng-disabled="form.$invalid" class="btn btn-default">Submit</button>
         <button ng-click="cancel()" class="btn">Cancel</button>
       </div>
     </div>
   </fieldset>
 </form>
-</div>
+</div></div>

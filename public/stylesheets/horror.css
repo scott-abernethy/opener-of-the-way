@@ -1,5 +1,5 @@
 body {
-  background-color: #f0f1f2;
+  background-color: #ffffff;
 }
 .bb-h {
     font-size: 14px;
@@ -356,18 +356,6 @@ A3BF95
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
-}
-.css-form input.ng-invalid.ng-dirty {
-  background-color: #FA787E;
-}
-.css-form input.ng-valid.ng-dirty {
-  background-color: #78FA89;
-}
-.css-form select.ng-invalid.ng-dirty {
-  background-color: #FA787E;
-}
-.css-form select.ng-valid.ng-dirty {
-  background-color: #78FA89;
 }
 .footer {
   margin-top: 2em;

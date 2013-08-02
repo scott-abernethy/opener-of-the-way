@@ -1,7 +1,7 @@
 @()
 
 <div class="row">
-  <div class="span5">
+  <div class="col-lg-5">
     @*
     <div>
       <div class="bb-h bb-h-important"><i class="icon-bullhorn icon-large"></i> Notices</div>
@@ -12,14 +12,14 @@
     *@
     <div ng-controller="GatewayCtrl">
       <div class="bb-h"><i class="icon-hdd icon-large"></i> Gateways <div class="pull-right btn-group">
-        <a class="btn btn-mini" title="Add a new gateway" href="#/gateway/add"><i class="icon-plus"></i></a>
-        <button ng-show="!locked" class="btn btn-mini" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
-        <button ng-show="locked" class="btn btn-mini" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
-        <button class="btn btn-mini" ng-click="scour()" title="Check your source gateways for new artifacts"><i class="icon-refresh"></i></button>
-      </div></div>
+        <button class="btn btn-default btn-small" title="Add a new gateway" ng-click="add()"><i class="icon-plus"></i></button>
+        <button ng-show="!locked" class="btn btn-default btn-small" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
+        <button ng-show="locked" class="btn btn-default btn-small" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
+        <button class="btn btn-default btn-small" ng-click="scour()" title="Check your source gateways for new artifacts"><i class="icon-refresh"></i></button>
+      </div><div class="clearfix"></div></div>
       <div class="bb-t">
         <div class="bb-h2" ng-show="open"><span class="label label-warning">In Use!</span><span ng-show="open && locked"> <span class="label">Waiting to Lock</span></span> Please do not mount truecrypt volume locally or disconnect network.</div>
-        <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-mini" ng-click="unlock()">Cancel</button></div>
+        <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-small" ng-click="unlock()">Cancel</button><div class="clearfix"></div></div>
         <ol class="unstyled">
           <li ng-repeat="gateway in gateways" class="bb-i hovery handy" ng-click="gatewaySelect(gateway)">
             <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.path}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="s-open icon-refresh"></i></span>
@@ -34,7 +34,7 @@
       </div>
       <div class="bb-t">
         <div class="bb-i"><form class="form-inline" ng-submit="addBabble()">
-          <input class="input-block-level" type="text" ng-model="babbleText" placeholder="Add your babblings here" maxlength="254">
+          <input class="form-control" type="text" ng-model="babbleText" placeholder="Add your babblings here" maxlength="254">
         </form></div>
         <ol class="unstyled">
           <li class="bb-i" ng-repeat="babble in babblings">
@@ -55,7 +55,7 @@
           <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in sinkAwaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
         </li></ol>
-        <div class="bb-h2" ng-show="failedAwaitings.length"><span class="label label-important">Failed!</span> There was an error cloning to your sink. Please check your sink has free space (including emptying the trash), and that the volume is writable. Will retry after a stand-down period...</div>
+        <div class="bb-h2" ng-show="failedAwaitings.length"><span class="label label-danger">Failed!</span> There was an error cloning to your sink. Please check your sink has free space (including emptying the trash), and that the volume is writable. Will retry after a stand-down period...</div>
           <ol class="unstyled"><li class="bb-i hovery handy" ng-repeat="awaiting in failedAwaitings" ng-click="artifactSelect(awaiting)">
           <span class="{{awaiting.state.class}}"><i class="{{awaiting.state.icon}} icon-2x"></i> {{awaiting.desc}}</span>
         </li></ol>
@@ -75,11 +75,11 @@
     </div>
   </div>
 
-  <div ng-controller="ArtifactLogCtrl" class="span7">
+  <div ng-controller="ArtifactLogCtrl" class="col-lg-7">
     <div class="bb-h"><i class="icon-cloud-download icon-large"></i> Log</div>
     <div class="bb-t">
        <div class="bb-i">
-            <input class="input-block-level" type="text" ng-model="searchText" placeholder="Search">
+            <input class="form-control" type="text" ng-model="searchText" placeholder="Search">
       </div>
       <div infinite-scroll='nextPage()' infinite-scroll-disabled='busy' infinite-scroll-distance='1' infinite-scroll-immediate-check='true'>
         <div ng-repeat="day in log | filter:dayFilter">
@@ -105,5 +105,5 @@
   </div>
 </div>
 <div class="row footer">
-  <div class="span12 text-center"><span class="muted">Best viewed with Google Chrome.</span></div>
+  <div class="col-lg-12 text-center"><span class="muted">Best viewed with Google Chrome.</span></div>
 </div>
