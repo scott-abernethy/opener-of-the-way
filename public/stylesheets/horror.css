@@ -2,10 +2,9 @@ body {
   background-color: #ffffff;
 }
 .bb-h {
-    font-size: 14px;
     background-color: #666666;
     color: white;
-    padding: 6px;
+    padding: 9px 12px;
     margin: 0;
     -webkit-border-top-right-radius: 3px;
     -webkit-border-top-left-radius: 3px;
@@ -25,10 +24,9 @@ body {
     font-size: 13px;
     background-color: #bbbbbb;
     color: white;
-    padding: 4px 4px 4px 4px;
+    padding: 6px 12px;
 }
 .bb-t {
-    font-size: 14px;
     -webkit-border-bottom-right-radius: 3px;
     -webkit-border-bottom-left-radius: 3px;
     -moz-border-radius-bottomright: 3px;
@@ -51,7 +49,7 @@ body {
 }
 .bb-i {
   margin: 0;
-    padding: 4px 8px 4px 8px;
+    padding: 6px 12px;
     border-top: 1px #e8eed5 solid;
     overflow-wrap: break-word;
 }

@@ -11,7 +11,7 @@
     </div>
     *@
     <div ng-controller="GatewayCtrl">
-      <div class="bb-h"><i class="icon-hdd icon-large"></i> Gateways <div class="pull-right btn-group">
+      <div class="bb-h"><i class="icon-hdd icon-large"></i> Gateways <div class="pull-right btn-group" style="margin: -6px">
         <button class="btn btn-default btn-small" title="Add a new gateway" ng-click="add()"><i class="icon-plus"></i></button>
         <button ng-show="!locked" class="btn btn-default btn-small" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
         <button ng-show="locked" class="btn btn-default btn-small" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
