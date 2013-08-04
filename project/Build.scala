@@ -5,7 +5,7 @@ import play.Project._
 object ApplicationBuild extends Build {
 
   val appName         = "opener-of-the-way"
-  val appVersion      = "0.7.1"
+  val appVersion      = "0.7.2"
 
   val appDependencies = Seq(
     jdbc,
