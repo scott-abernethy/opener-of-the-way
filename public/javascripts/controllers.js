@@ -58,13 +58,6 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
         }
       }
     }
-
-    for (var k = 0; k < $scope.results.items.length; k++) {
-      var item = $scope.results.items[k];
-      if (item.id == a.id) {
-        $scope.results.items[k] = a;
-      }
-    }
     $scope.$digest();
   };
 
