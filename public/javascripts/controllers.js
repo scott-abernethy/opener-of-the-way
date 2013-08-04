@@ -11,6 +11,7 @@ function NavCtrl($scope, $location) {
 ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSearch', 'ArtifactSocket'];
 function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSocket) {
   $scope.log = [];
+  $scope.searchText = "";
   $scope.busy = false;
   $scope.last = -1;
 
@@ -75,8 +76,15 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     }
     $scope.$digest();
   };
+  
+  var isSearching = function() {
+    return $scope.searchText != "";
+  }
 
   $scope.dayFilter = function(day){
+	if (!isSearching()) {
+	  return true;
+	}
     var res = false;
       for(var j = 0; j < day.items.length; j++){
           var desc = day.items[j].desc;
@@ -89,6 +97,9 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     };
 
     $scope.itemFilter = function(item){
+    	if (!isSearching()) {
+    	  return true;
+    	}
         return item.desc.search($scope.searchText) != -1;
     };
 
