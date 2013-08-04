@@ -80,6 +80,17 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
   var isSearching = function() {
     return $scope.searchText != "";
   }
+  
+  var isSearchMatch = function(item){
+	var candidate = item.toLowerCase();
+	var parts = $scope.searchText.toLowerCase().split(" ");
+	for (var p = 0; p < parts.length; p++){
+      if (candidate.search(parts[p]) == -1){
+    	return false;
+      }
+	}
+    return true;
+  }
 
   $scope.dayFilter = function(day){
 	if (!isSearching()) {
@@ -88,7 +99,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     var res = false;
       for(var j = 0; j < day.items.length; j++){
           var desc = day.items[j].desc;
-          if(desc.search($scope.searchText) != -1){
+          if(isSearchMatch(desc)){
               res = true;
               break;
            }
@@ -97,10 +108,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     };
 
     $scope.itemFilter = function(item){
-    	if (!isSearching()) {
-    	  return true;
-    	}
-        return item.desc.search($scope.searchText) != -1;
+    	return !isSearching() || isSearchMatch(item.desc);
     };
 
   ArtifactSocket.subscribe(update, "ArtifactCloning");
@@ -110,7 +118,6 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
   ArtifactSocket.subscribe(update, "ArtifactAwaiting");
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
   ArtifactSocket.subscribe(append, "ArtifactCreated");
-
 }
 
 GatewayCtrl.$inject = ['$http', '$scope', '$location', 'Gateway', 'Cultist', 'ArtifactSocket'];
