@@ -34,7 +34,12 @@
       </div>
       <div class="bb-t">
         <div class="bb-i"><form class="form-inline" ng-submit="addBabble()">
-          <input class="form-control" type="text" ng-model="babbleText" placeholder="Add your babblings here" maxlength="254">
+          <div class="input-group">
+            <input class="form-control" type="text" ng-model="babbleText" placeholder="Add your babblings here" maxlength="254">
+            <span class="input-group-btn">
+              <button type="submit" class="btn" type="button">Send!</button>
+            </span>
+          </div>
         </form></div>
         <ol class="unstyled">
           <li class="bb-i" ng-repeat="babble in babblings">
