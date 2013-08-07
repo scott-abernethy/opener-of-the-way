@@ -322,8 +322,8 @@ function RecruitCtrl($http, $scope, $location) {
 
 ChangePasswordCtrl.$inject = ['$http', '$scope', '$window'];
 function ChangePasswordCtrl($http, $scope, $window) {
-    $scope.save = function(email, password0, password1) {
-        $http.post('/passwd', {"email": email, "password0": password0, "password1": password1}).
+    $scope.save = function(email, password0, password1, password2) {
+        $http.post('/passwd', {"email": email, "password0": password0, "password1": password1, "password2": password2}).
             success(function(data){
                 $scope.saveError = false;
                 $scope.errorMsg = {};

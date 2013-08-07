@@ -26,6 +26,8 @@ import test.WithTestApplication
 import util.PasswordHash
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.Try
+import scala.util.Failure
 
 class CultistTest extends Specification with Mockito {
 
@@ -97,17 +99,42 @@ class CultistTest extends Specification with Mockito {
         x.password = PasswordHash.generate("grapes", Cultist.appSecret)
         cultists.insert(x)
       }
-      val f = Cultist.changePassword("foo@bar.com", "grapes", "wrath")
+      val f = Cultist.changePassword("foo@bar.com", "grapes", "wrath123", "wrath123")
       Await.result(f, Duration.apply("10 seconds"))
           
       Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachRejected)
-      Cultist.approach("foo@bar.com", "wrath") must be_==(ApproachSuccess(c.id))
+      Cultist.approach("foo@bar.com", "wrath123") must be_==(ApproachSuccess(c.id))
       
       val password = transaction {
         from(cultists)(x => where(x.id === c.id) select(x.password)).headOption
       }
-      println(password)
-      password.filterNot(_ == "wrath") must beSome
+      password.filterNot(_ == "wrath123") must beSome
+    }
+    
+    "change password, fails when errors" in new WithTestApplication {
+      import org.squeryl.PrimitiveTypeMode._
+      val c = transaction {
+        val x = new Cultist
+        x.email = "foo@bar.com"
+        x.password = PasswordHash.generate("grapes", Cultist.appSecret)
+        cultists.insert(x)
+      }
+      
+      val f = Cultist.changePassword("foo@bar.com", "grapes", "wrath123", "wrath12z")
+      Try(Await.result(f, Duration.apply("10 seconds"))) match {
+        case Failure(ex: IllegalArgumentException) if (ex.getMessage() == "New passwords do not match!") => // expected
+        case other => failure("Failed, got " + other)
+      }
+      Cultist.approach("foo@bar.com", "wrath123") must be_==(ApproachRejected)
+      Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachSuccess(c.id))
+      
+      val f2 = Cultist.changePassword("foo@bar.com", "grapes", "wrath12", "wrath12")
+      Try(Await.result(f2, Duration.apply("10 seconds"))) match {
+        case Failure(ex: IllegalArgumentException) if (ex.getMessage() == "New password is not acceptable - must be 8 characters!") => // expected
+        case other => failure("Failed, got " + other)
+      }
+      Cultist.approach("foo@bar.com", "wrath12") must be_==(ApproachRejected)
+      Cultist.approach("foo@bar.com", "grapes") must be_==(ApproachSuccess(c.id))
     }
 
   }
