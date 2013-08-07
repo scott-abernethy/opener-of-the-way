@@ -156,22 +156,21 @@ object Cultist {
     }
   }
   
-  def changePassword(email: String, oldPassword: String, newPassword: String): Future[Unit] = {
-    futureTransaction {
+  def changePassword(email: String, oldPassword: String, newPassword: String, repeatNewPassword: String): Future[Unit] = {
+    futureTransaction ({
       val cultistOption = from(cultists)(c => where(c.email === email) select(c)).headOption
       cultistOption match {
-        case Some(cultist) if (checkPassword(cultist.password, oldPassword)) => {
-          val newHash = PasswordHash.generate(newPassword, appSecret)
-          cultists.update(x =>
-            where(x.id === cultist.id)
-            set(x.password := newHash, x.expired := false)
-          )
+        case Some(cultist) if checkPassword(cultist.password, oldPassword) => {
+          if (newPassword != repeatNewPassword) throw new IllegalArgumentException("New passwords do not match!") 
+          else 
+            if (newPassword.length < 8) throw new IllegalArgumentException("New password is not acceptable - must be 8 characters!")
+            else savePassword(newPassword, cultist.id)
         }
         case _ => {
           throw new IllegalArgumentException("Email and/or password are incorrect!")
         }
       }
-    }
+    })
   }
   
   private def checkPassword(storedPassword: String, input: String): Boolean = {
@@ -183,5 +182,13 @@ object Cultist {
       input == storedPassword
     }
     hashCheck || clearCheck
+  }
+  
+  private def savePassword(newPassword: String, cid: Long): Unit = {
+    val newHash = PasswordHash.generate(newPassword, appSecret)
+    cultists.update(x =>
+      where(x.id === cid)
+      set(x.password := newHash, x.expired := false)
+    )
   }
 }

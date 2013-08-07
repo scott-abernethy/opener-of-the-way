@@ -66,9 +66,9 @@ object Cultists extends Controller with Permission {
   }
   
   def changePasswordSubmit = Action(parse.json) { request =>
-    (request.body \ "email", request.body \ "password0", request.body \ "password1") match {
-      case (JsString(email), JsString(password0), JsString(password1)) => {
-        val changed = Cultist.changePassword(email, password0, password1)
+    (request.body \ "email", request.body \ "password0", request.body \ "password1", request.body \ "password2") match {
+      case (JsString(email), JsString(password0), JsString(password1), JsString(password2)) => {
+        val changed = Cultist.changePassword(email, password0, password1, password2)
         import util.Context.playDefault
         Async {
           changed.map{ x =>
@@ -78,7 +78,7 @@ object Cultists extends Controller with Permission {
           }
         }
       }
-      case _ => BadRequest("Invalid request.")
+      case _ => BadRequest("Invalid request - please provide required information!")
     }
   }
 
