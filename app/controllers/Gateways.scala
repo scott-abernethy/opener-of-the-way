@@ -23,7 +23,7 @@ import util.{DatePresentation, Permission}
 import model.{PresenceState, Environment, Gateway}
 import concurrent.Future
 import util.Context.playDefault
-import gate.{T, Lock, Unlock, ScourAsap}
+import gate.{T, Lock, Unlock, RetryAsap}
 import play.api.Logger
 import state.ChangedGateway
 
@@ -103,8 +103,8 @@ object Gateways extends Controller with Permission {
     Ok("Ok")
   }
 
-  def scour = PermittedAction { request =>
-    watcher ! ScourAsap(request.cultistId)
+  def retry = PermittedAction { request =>
+    watcher ! RetryAsap(request.cultistId)
     Ok("Ok")
   }
 

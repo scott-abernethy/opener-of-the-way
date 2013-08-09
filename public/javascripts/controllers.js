@@ -158,8 +158,8 @@ function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket)
     $scope.locked = false
     $http.put('gateway/lock', {"enable": false})
   };
-  $scope.scour = function() {
-    $http.put('gateway/scour')
+  $scope.retryAsap = function() {
+    $http.put('gateway/retry')
   };
   $scope.gatewaySelect = function(gateway) {
     var uri = '/gateway/'+gateway.id+'/edit';

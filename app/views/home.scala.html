@@ -15,14 +15,14 @@
         <button class="btn btn-default btn-small" title="Add a new gateway" ng-click="add()"><i class="icon-plus"></i></button>
         <button ng-show="!locked" class="btn btn-default btn-small" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
         <button ng-show="locked" class="btn btn-default btn-small" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
-        <button class="btn btn-default btn-small" ng-click="scour()" title="Check your source gateways for new artifacts"><i class="icon-refresh"></i></button>
+        <button class="btn btn-default btn-small" ng-click="retryAsap()" title="Retry and re-scour all your gateways ASAP"><i class="icon-refresh"></i></button>
       </div><div class="clearfix"></div></div>
       <div class="bb-t">
         <div class="bb-h2" ng-show="open"><span class="label label-warning">In Use!</span><span ng-show="open && locked"> <span class="label">Waiting to Lock</span></span> Please do not mount truecrypt volume locally or disconnect network.</div>
         <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-small" ng-click="unlock()">Cancel</button><div class="clearfix"></div></div>
         <ol class="unstyled">
           <li ng-repeat="gateway in gateways" class="bb-i hovery handy" ng-click="gatewaySelect(gateway)">
-            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.path}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.scourAsap" title="Waiting to check for new artifacts, this may take some time"><i class="s-open icon-refresh"></i></span>
+            <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.path}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.retryAsap" title="Waiting to retry this gateway ASAP..."><i class="s-open icon-refresh"></i></span>
           </li>
           <li class="bb-i" ng-show="!gateways.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
         </ol>

@@ -28,7 +28,7 @@ GET     /report/sources             controllers.Gateways.sources
 GET     /gateway/:id                controllers.Gateways.get(id: Long)
 POST    /gateway/:id                controllers.Gateways.update(id: Long)
 PUT     /gateway/lock               controllers.Gateways.lock
-PUT     /gateway/scour              controllers.Gateways.scour
+PUT     /gateway/retry              controllers.Gateways.retry
 
 # Cultists
 GET     /cultist/become             controllers.Cultists.become(id: Long)

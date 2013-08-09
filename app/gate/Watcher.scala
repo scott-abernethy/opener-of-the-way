@@ -31,7 +31,7 @@ import gate.KeeperApi._
 case class CloneFailed(c: Clone)
 case class PresenceFailed(p: Presence)
 case class Flush(gatewayId: Long)
-case class ScourAsap(cultistId: Long)
+case class RetryAsap(cultistId: Long)
 case class Lock(cultistId: Long)
 case class Unlock(cultistId: Long)
 
@@ -65,13 +65,19 @@ object Watcher {
     g.source === true and
     (g.scoured < T.ago(Gateway.scourPeriod) or g.scourAsap === true)
   )
+  
+  def retryQuery(): Query[Gateway] = gateways.where(g => 
+    g.retryAsap === true
+  )
 
   def unopenableQuery(): Query[Gateway] = join(gateways, cultists)( (g, cu) =>
     where(
       (g.state === GateState.transient) or
       (g.state === GateState.open and g.seen > T.ago(Gateway.reopenTestAfter)) or
-      (g.requested > g.seen and g.requested > T.ago(Gateway.rerequestableAfter)) or
-      (g.failed > T.ago(Gateway.retryFailedAfter)) or
+      (g.requested > g.seen and g.requested > T.ago(Gateway.rerequestableAfter) and g.retryAsap === false) or
+      (g.requested > T.ago(Gateway.retryAsapAfter)) or
+      (g.failed > T.ago(Gateway.retryFailedAfter) and g.retryAsap === false) or 
+      (g.failed > T.ago(Gateway.retryAsapAfter)) or
       (cu.shut.isNotNull)
     )
     select(g)
@@ -118,11 +124,17 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
     case Flush(gatewayId) => {
       closeGateway(gatewayId)
     }
-    case ScourAsap(cultistId) => {
+    case RetryAsap(cultistId) => {
       transaction {
+        // sources
         update(gateways)(g =>
           where(g.cultistId === cultistId and g.source === true)
-          set(g.scourAsap := true)
+          set(g.retryAsap := true, g.scourAsap := true)
+        )
+        // sinks
+        update(gateways)(g =>
+          where(g.cultistId === cultistId and g.sink === true)
+          set(g.retryAsap := true)
         )
       }
       gatewayServer ! ChangedGateways(cultistId)
@@ -239,6 +251,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
       updateGate(g, x => {
         val now = T.now
         x.seen = now
+        x.retryAsap = false
         x.state = GateState.open
         x.localPath = lp
         x
@@ -253,7 +266,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
     transaction {
       gateways.update(g =>
         where(g.id === transient.id and g.state === GateState.open)
-        set(g.state := GateState.transient)
+        set(g.state := GateState.transient, g.retryAsap := false)
       )
     }
     gatewayServer ! ToState(GateState.transient, transient.id, transient.cultistId)
@@ -265,7 +278,7 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
     transaction {
       gateways.update(g =>
         where(g.id === transient.id and g.state === GateState.open)
-        set(g.state := GateState.transient, g.failed := T.now)
+        set(g.state := GateState.transient, g.failed := T.now, g.retryAsap := false)
       )
     }
     gatewayServer ! ToState(GateState.transient, transient.id, transient.cultistId)
@@ -304,8 +317,9 @@ class Watcher(threshold: ActorRef, keepers: ActorRef, lurker: ActorRef, gatewayS
     val sources = sourcesQuery().toList.map(_._2).distinct
     val sinks = sinksQuery().toList.map(_._2).distinct
     val scour = scourQuery().toList.distinct
-    Logger.debug("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _)))
-    Set.empty ++ sources ++ sinks ++ scour
+    val retry = retryQuery().toList.distinct
+    Logger.debug("Watcher WANT: " + (Map.empty ++ sources.map("source" -> _) ++ sinks.map("sink" -> _) ++ scour.map("scour" -> _) ++ retry.map("retry" -> _)))
+    Set.empty ++ sources ++ sinks ++ scour ++ retry
   }
   
   private def gatewayActions: (Set[Gateway], Set[Gateway], Set[Gateway]) = {

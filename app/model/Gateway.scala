@@ -42,12 +42,13 @@ class Gateway extends MythosObject {
   var state: GateState.Value = GateState.lost
   var stateDesc: String = ""
   var scoured: Timestamp = T.yesterday
-  var scourAsap: Boolean = false
+  var scourAsap: Boolean = false // look for new artifacts on this source ASAP, ignoring scour timeout
   var seen: Timestamp = T.yesterday // aka opened
   var requested: Timestamp = T.yesterday
   var failed: Timestamp = T.ago(Millis.days(2))
   var fails: Long = 0L
   var failCode: Long = 0L
+  var retryAsap: Boolean = false // reopen this gateway if required ASAP, ignoring last request and failure timeouts
 
   lazy val cultist: ManyToOne[Cultist] = Mythos.cultistToGateways.right(this)
   lazy val artifacts: OneToMany[Artifact] = Mythos.gatewayToArtifacts.left(this)
@@ -63,11 +64,12 @@ class Gateway extends MythosObject {
   override def toString = "Gateway[" + locationAndPath + "=" + source + sink + "]"
 
   def toJson = {
-    val obj = Json.obj(
+    Json.obj(
       "id" -> id,
       "uri" -> location,
       "path" -> path,
       "open" -> (state == GateState.open || state == GateState.transient),
+      "retryAsap" -> JsBoolean(retryAsap || (source && scourAsap)),
       "mode" -> Json.obj(
         "name" -> Gateway.decode(source, sink),
         "source" -> source,
@@ -81,12 +83,6 @@ class Gateway extends MythosObject {
         case _ => ""
       })
     )
-    if (source) {
-      obj + ("scourAsap" -> JsBoolean(scourAsap))
-    }
-    else {
-      obj
-    }
   }
 }
 
@@ -111,7 +107,8 @@ object Gateway {
   lazy val scourPeriod = Millis.hours(4)
   lazy val reopenTestAfter = Millis.minutes(30)
   lazy val rerequestableAfter = Millis.minutes(15)
-  lazy val retryFailedAfter = Millis.minutes(60)
+  lazy val retryFailedAfter = Millis.minutes(90)
+  lazy val retryAsapAfter = Millis.minutes(5)
 
   lazy val symbolQuestion = <img src="/static/g_help.png" title="Did this slip your mind?"/>
   lazy val symbolWarning = <img src="/static/g_exclamation_lesser.png" title="Are you sure?!"/>
