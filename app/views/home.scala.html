@@ -11,15 +11,15 @@
     </div>
     *@
     <div ng-controller="GatewayCtrl">
-      <div class="bb-h"><i class="icon-hdd icon-large"></i> Gateways <div class="pull-right btn-group" style="margin: -6px">
-        <button class="btn btn-default btn-small" title="Add a new gateway" ng-click="add()"><i class="icon-plus"></i></button>
-        <button ng-show="!locked" class="btn btn-default btn-small" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
-        <button ng-show="locked" class="btn btn-default btn-small" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
-        <button class="btn btn-default btn-small" ng-click="retryAsap()" title="Retry and re-scour all your gateways ASAP"><i class="icon-refresh"></i></button>
-      </div><div class="clearfix"></div></div>
+      <div class="bb-h"><i class="icon-hdd icon-large"></i> Gateways <div class="pull-right btn-group">
+        <button class="btn btn-default btn-xs" title="Add a new gateway" ng-click="add()"><i class="icon-plus"></i></button>
+        <button ng-show="!locked" class="btn btn-default btn-xs" ng-click="lock()" title="Shut and lock all of your gateways for a period of time"><i class="icon-unlock"></i></button>
+        <button ng-show="locked" class="btn btn-default btn-xs" ng-click="unlock()" title="Unlock your gateways to allow them to open"><i class="icon-lock"></i></button>
+        <button class="btn btn-default btn-xs" ng-click="retryAsap()" title="Retry and re-scour all your gateways ASAP"><i class="icon-refresh"></i></button>
+      </div></div>
       <div class="bb-t">
         <div class="bb-h2" ng-show="open"><span class="label label-warning">In Use!</span><span ng-show="open && locked"> <span class="label">Waiting to Lock</span></span> Please do not mount truecrypt volume locally or disconnect network.</div>
-        <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-small" ng-click="unlock()">Cancel</button><div class="clearfix"></div></div>
+        <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-xs" ng-click="unlock()">Cancel</button><div class="clearfix"></div></div>
         <ol class="unstyled">
           <li ng-repeat="gateway in gateways" class="bb-i hovery handy" ng-click="gatewaySelect(gateway)">
             <span class="{{gateway.class}}"><i class="{{gateway.icon}} icon-2x"></i> {{gateway.path}}</span> <small>{{gateway.mode.name}}</small> <span ng-show="gateway.retryAsap" title="Waiting to retry this gateway ASAP..."><i class="s-open icon-refresh"></i></span>
@@ -91,7 +91,7 @@
           <div class="bb-h2">{{day.name}}</div>
           <ol class="unstyled">
             <li class="bb-i hovery" ng-class="{handy: !artifact.proffered}" ng-repeat="artifact in day.items | filter:itemFilter" ng-click="artifactSelect(artifact)">
-              <div class="bb-icon pull-left">
+              <div class="bb-icon pull-left" style="margin-right: 6px">
                 <i class="{{artifact.state.class}} {{artifact.state.icon}} icon-2x"></i>
               </div>
               <div class="bb-text clearfix">
