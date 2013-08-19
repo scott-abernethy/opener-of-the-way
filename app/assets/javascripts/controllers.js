@@ -1,15 +1,15 @@
 'use strict';
 
-NavCtrl.$inject = ['$scope', '$location'];
-function NavCtrl($scope, $location) {
+var modu = angular.module('ootwControllers', []);
+
+modu.controller('NavCtrl', ['$scope', '$location', function ($scope, $location) {
   $scope.isPage = function(page) {
     var currentRoute = $location.path().substring(1) || 'home';
     return page === currentRoute;
   };
-}
+}]);
 
-ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactSocket'];
-function ArtifactLogCtrl($http, $scope, ArtifactSocket) {
+modu.controller('ArtifactLogCtrl', ['$http', '$scope', 'ArtifactSocket', function ($http, $scope, ArtifactSocket) {
   $scope.log = [];
   $scope.searchText = "";
   $scope.busy = false;
@@ -90,7 +90,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactSocket) {
 
   var isSearching = function() {
     return $scope.searchText != "";
-  }
+  };
 
   var isSearchMatch = function(item){
 	var candidate = item.toLowerCase();
@@ -101,7 +101,7 @@ function ArtifactLogCtrl($http, $scope, ArtifactSocket) {
       }
 	}
     return true;
-  }
+  };
 
   $scope.dayFilter = function(day){
 	if (!isSearching()) {
@@ -129,10 +129,9 @@ function ArtifactLogCtrl($http, $scope, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactAwaiting");
   ArtifactSocket.subscribe(update, "ArtifactUnawaiting");
   ArtifactSocket.subscribe(append, "ArtifactCreated");
-}
+}]);
 
-GatewayCtrl.$inject = ['$http', '$scope', '$location', 'Gateway', 'Cultist', 'ArtifactSocket'];
-function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket) {
+modu.controller('GatewayCtrl',['$http', '$scope', '$location', 'Gateway', 'Cultist', 'ArtifactSocket', function ($http, $scope, $location, Gateway, Cultist, ArtifactSocket) {
   var recalc = function() {
     var open = false;
     for (var i = 0; i < $scope.gateways.length; i++) {
@@ -160,7 +159,7 @@ function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket)
 
   $scope.add = function() {
 	$location.path("/gateway/add");
-  }
+  };
   $scope.lock = function() {
     $scope.locked = true
     $http.put('gateway/lock', {"enable": true})
@@ -184,13 +183,12 @@ function GatewayCtrl($http, $scope, $location, Gateway, Cultist, ArtifactSocket)
     var cultist = Cultist.get(function() {
       $scope.locked = cultist.shut
     });
-  }
+  };
 
   ArtifactSocket.subscribe(update, "GatewayReload");
-}
+}]);
 
-ClonedCtrl.$inject = ['$http', '$scope', 'Cloned', 'ArtifactSocket'];
-function ClonedCtrl($http, $scope, Cloned, ArtifactSocket) {
+modu.controller('ClonedCtrl', ['$http', '$scope', 'Cloned', 'ArtifactSocket', function ($http, $scope, Cloned, ArtifactSocket) {
   $scope.cloned = Cloned.query();
   $scope.artifactSelect = function(artifact) {
     $http.put('artifact/' + artifact.id + '/touch')
@@ -199,7 +197,7 @@ function ClonedCtrl($http, $scope, Cloned, ArtifactSocket) {
   var cloned = function(a) {
     $scope.cloned.unshift(a)
     $scope.$digest();
-  }
+  };
   var removeCheck = function(a) {
     var xs = $scope.cloned
     var xs2 = []
@@ -210,14 +208,13 @@ function ClonedCtrl($http, $scope, Cloned, ArtifactSocket) {
     }
     $scope.cloned = xs2;
     $scope.$digest();
-  }
+  };
 
   ArtifactSocket.subscribe(cloned, "ArtifactCloned");
   ArtifactSocket.subscribe(removeCheck, "ArtifactAwaiting");
-}
+}]);
 
-AwaitingCtrl.$inject = ['$http', '$scope', 'Awaiting', 'ArtifactSocket'];
-function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
+modu.controller('AwaitingCtrl', ['$http', '$scope', 'Awaiting', 'ArtifactSocket', function ($http, $scope, Awaiting, ArtifactSocket) {
   $scope.sourceAwaitings = [];
   $scope.sinkAwaitings = [];
   $scope.failedAwaitings = [];
@@ -258,7 +255,7 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
     $scope.all.unshift(a)
     updateAwaitings();
     $scope.$digest();
-  }
+  };
   var unawaiting = function(a) {
     var xs = $scope.all
     var xs2 = []
@@ -270,7 +267,8 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
     $scope.all = xs2;
     updateAwaitings();
     $scope.$digest();
-  }
+  };
+
   var update = function(a) {
     for (var i = 0; i < $scope.all.length; i++) {
       var item = $scope.all[i];
@@ -280,7 +278,7 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
     }
     updateAwaitings();
     $scope.$digest();
-  }
+  };
 
   ArtifactSocket.subscribe(awaiting, "ArtifactAwaiting");
   ArtifactSocket.subscribe(unawaiting, "ArtifactUnawaiting");
@@ -288,10 +286,9 @@ function AwaitingCtrl($http, $scope, Awaiting, ArtifactSocket) {
   ArtifactSocket.subscribe(update, "ArtifactCloning");
   ArtifactSocket.subscribe(update, "ArtifactCloneFailed");
   ArtifactSocket.subscribe(unawaiting, "ArtifactCloned");
-}
+}]);
 
-BabbleCtrl.$inject = ['$http', '$scope', 'Babble', 'ArtifactSocket', '$location'];
-function BabbleCtrl($http, $scope, Babble, ArtifactSocket, $location) {
+modu.controller('BabbleCtrl', ['$http', '$scope', 'Babble', 'ArtifactSocket', '$location', function ($http, $scope, Babble, ArtifactSocket, $location) {
   $scope.babblings = Babble.query();
   $scope.addBabble = function() {
     $http.post('babble', {'text': $scope.babbleText});
@@ -301,13 +298,12 @@ function BabbleCtrl($http, $scope, Babble, ArtifactSocket, $location) {
   var append = function(b) {
     $scope.babblings.unshift(b);
     $scope.$digest();
-  }
+  };
 
   ArtifactSocket.subscribe(append, "BabbleAdd");
-}
+}]);
 
-RecruitCtrl.$inject = ['$http', '$scope', '$location'];
-function RecruitCtrl($http, $scope, $location) {
+modu.controller('RecruitCtrl', ['$http', '$scope', '$location', function ($http, $scope, $location) {
     $scope.save = function(email) {
         $http.post('/cultist', {"email": email}).
             success(function(data){
@@ -329,10 +325,9 @@ function RecruitCtrl($http, $scope, $location) {
     $scope.saveError = false;
     $scope.errorMsg = {};
     $scope.email = {};
-}
+}]);
 
-ChangePasswordCtrl.$inject = ['$http', '$scope', '$window'];
-function ChangePasswordCtrl($http, $scope, $window) {
+modu.controller('ChangePasswordCtrl', ['$http', '$scope', '$window', function ($http, $scope, $window) {
     $scope.save = function(email, password0, password1, password2) {
         $http.post('/passwd', {"email": email, "password0": password0, "password1": password1, "password2": password2}).
             success(function(data){
@@ -356,10 +351,9 @@ function ChangePasswordCtrl($http, $scope, $window) {
     $scope.password0 = "";
     $scope.password1 = "";
     $scope.password2 = "";
-}
+}]);
 
-AddGatewayCtrl.$inject = ['$http', '$scope', '$location'];
-function AddGatewayCtrl($http, $scope, $location) {
+modu.controller('AddGatewayCtrl', ['$http', '$scope', '$location', function ($http, $scope, $location) {
   $scope.modes = [
     {name: "Disabled", source: false, sink: false},
     {name: "Source", source: true, sink: false},
@@ -385,10 +379,9 @@ function AddGatewayCtrl($http, $scope, $location) {
   };
 
   $scope.gateway = angular.copy($scope.cleared);
-}
+}]);
 
-EditGatewayCtrl.$inject = ['$http', '$scope', '$location', '$routeParams', 'Gateway'];
-function EditGatewayCtrl($http, $scope, $location, $routeParams, Gateway) {
+modu.controller('EditGatewayCtrl', ['$http', '$scope', '$location', '$routeParams', 'Gateway', function ($http, $scope, $location, $routeParams, Gateway) {
   $scope.modes = [
     {name: "Disabled", source: false, sink: false},
     {name: "Source", source: true, sink: false},
@@ -430,5 +423,5 @@ function EditGatewayCtrl($http, $scope, $location, $routeParams, Gateway) {
   $scope.cancel = function() {
     $location.path('/home');
   };
-}
+}]);
 
