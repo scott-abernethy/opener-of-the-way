@@ -8,40 +8,51 @@ function NavCtrl($scope, $location) {
   };
 }
 
-ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactLog', 'ArtifactSearch', 'ArtifactSocket'];
-function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSocket) {
+ArtifactLogCtrl.$inject = ['$http', '$scope', 'ArtifactSocket'];
+function ArtifactLogCtrl($http, $scope, ArtifactSocket) {
   $scope.log = [];
   $scope.searchText = "";
   $scope.busy = false;
   $scope.last = -1;
 
-  $scope.nextPage = function() {
-    if ($scope.busy) return;
-    $scope.busy = true;
+  if ($scope.busy) return;
+  $scope.busy = true;
 
-    $http.get('artifact/log?count=100&last=' + $scope.last).
-      success(function(data){
-        var i0 = 0;
-        var prevLastDay = $scope.log.length - 1;
-        if (data.length > 0 && prevLastDay >= 0 && $scope.log[prevLastDay].name == data[0].name) {
-          for (var a = 0; a < data[0].items.length; a++) {
-            $scope.log[prevLastDay].items.push(data[0].items[a]);
+  $http.get('artifact/log?count=50&last=' + $scope.last).
+    success(function(data){
+      var i0 = 0,
+          prevLastDay = $scope.log.length - 1,
+          loadedItems = 0;
+
+      if (data.length > 0 && prevLastDay >= 0 && $scope.log[prevLastDay].name == data[0].name) {
+        for (var a = 0; a < data[0].items.length; a++) {
+          $scope.log[prevLastDay].items.push(data[0].items[a]);
+        }
+        i0++;
+        loadedItems++;
+      }
+      for (var i = i0; i < data.length; i++) {
+        $scope.log.push(data[i]);
+        loadedItems++;
+      }
+
+      $http.get('artifact/log?count=500000&last=' + $scope.last).success(function (data) {
+          for (var i = loadedItems; i < data.length; i++) {
+              $scope.log.push(data[i]);
           }
-          i0++;
-        }
-        for (var i = i0; i < data.length; i++) {
-          $scope.log.push(data[i]);
-        }
-        if (data.length > 0) {
-          var lastDay = data[data.length - 1];
-          $scope.last = lastDay.items[lastDay.items.length - 1].id;
-        }
-        $scope.busy = false;
-      }).
-      error(function(data){
-        alert('Failed to load data!');
-      });
-  };
+      }).error(function (data) {
+              alert('Failed to load remaining data!');
+          });
+
+      if (data.length > 0) {
+        var lastDay = data[data.length - 1];
+        $scope.last = lastDay.items[lastDay.items.length - 1].id;
+      }
+      $scope.busy = false;
+    }).
+    error(function(data){
+    alert('Failed to load data!');
+  });
 
   $scope.artifactSelect = function(artifact) {
     if (!artifact.proffered) {
@@ -76,11 +87,11 @@ function ArtifactLogCtrl($http, $scope, ArtifactLog, ArtifactSearch, ArtifactSoc
     }
     $scope.$digest();
   };
-  
+
   var isSearching = function() {
     return $scope.searchText != "";
   }
-  
+
   var isSearchMatch = function(item){
 	var candidate = item.toLowerCase();
 	var parts = $scope.searchText.toLowerCase().split(" ");
