@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('ootw', ['ootwDirectives', 'ootwServices', 'infinite-scroll']).
+angular.module('ootw', ['ootwDirectives', 'ootwServices']).
     config(['$routeProvider', function ($routeProvider) {
       $routeProvider.
           when('/home', {templateUrl: 'partials/home'}).
