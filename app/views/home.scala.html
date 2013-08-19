@@ -86,7 +86,7 @@
        <div class="bb-i">
             <input class="form-control" type="text" ng-model="searchText" placeholder="Search">
       </div>
-      <div infinite-scroll='nextPage()' infinite-scroll-disabled='busy' infinite-scroll-distance='1' infinite-scroll-immediate-check='true'>
+      <div>
         <div ng-repeat="day in log | filter:dayFilter">
           <div class="bb-h2">{{day.name}}</div>
           <ol class="unstyled">
