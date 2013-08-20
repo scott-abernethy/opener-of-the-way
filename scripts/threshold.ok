@@ -126,7 +126,7 @@ function do_mount {
   fi
 
   if [ $(sudo truecrypt -t -l --non-interactive | grep $gate_crypt -c) == 0 ] ; then
-    echo "Mounting"
+    echo "Mounting as " $(whoami)
     #sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt --fs-options="(id -u $gate_user),gid=$(id -g $gate_user)" 2>&1 ; abort_check $? 2
     sudo truecrypt -t --non-interactive --password=$gate_password $gate_mount/$gate_path $gate_crypt 2>&1 ; abort_check $? 2
   fi

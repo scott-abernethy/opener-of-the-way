@@ -1,0 +1,7 @@
+#!/bin/bash
+cd /root
+CURRENT_DIST=current.dist.zip
+LATEST_DIST=$(ls -1tr dists/o*.zip | tail -n1)
+echo Using $LATEST_DIST as $CURRENT_DIST
+rm $CURRENT_DIST
+ln -s $LATEST_DIST $CURRENT_DIST

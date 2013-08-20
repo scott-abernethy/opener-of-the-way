@@ -4,4 +4,4 @@
 DISEMPOWER_SECRET=$(cat /etc/ootw/ootw.conf | grep application.disempower-secret | sed -e 's,^.*secret="\([^"]\+\)",\1,')
 
 echo Preparing for release, disempower *It* using secret $DISEMPOWER_SECRET
-curl -X PUT -H 'Content-Type: application/json' -d '{"auth":"$DISEMPOWER_SECRET"}' http://localhost:9000/disempower
+curl -X PUT -H 'Content-Type: application/json' -d "{\"auth\":\"$DISEMPOWER_SECRET\"}" http://localhost:9000/disempower
