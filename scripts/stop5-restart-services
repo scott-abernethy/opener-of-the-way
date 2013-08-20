@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo Stopping services
+service smbd stop
+service nmbd stop
+service networking stop
+
+sleep 2
+
+echo Starting services
+service networking start
+service smbd start
+service nmbd start
+
+echo Done

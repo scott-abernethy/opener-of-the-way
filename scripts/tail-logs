@@ -1,4 +1,0 @@
-#!/bin/bash
-LOG=/var/cache/jetty/tmp/ootw.log
-DEBUGLOG=/var/cache/jetty/tmp/ootw-debug.log
-multitail -M 1000 -cS docregweb $LOG -cS docregweb $DEBUGLOG

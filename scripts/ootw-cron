@@ -7,17 +7,19 @@ PATH=/root/bin:/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin
 10 23 * * * root touch /tmp/ootw-cron.log 2>&1 >/dev/null
 
 # 12am = Disempower *it*
-0 0 * * * root /root/bin/prepare-for-release 2>&1 >>/tmp/ootw-cron.log
+0 0 * * * root /root/bin/stop1-prepare-for-release 2>&1 >>/tmp/ootw-cron.log
 
 # 1am = Stop *it*
-0 1 * * * root /root/bin/release-to-the-ether 2>&1 >>/tmp/ootw-cron.log
+0 1 * * * root /root/bin/stop2-release-to-the-ether 2>&1 >>/tmp/ootw-cron.log
 
 # 2am+ = Gently terminate outstanding work
-0,10,20 2 * * * root /root/bin/term-outstanding 2>&1 >>/tmp/ootw-cron.log
+0,10,20 2 * * * root /root/bin/stop3-term-outstanding 2>&1 >>/tmp/ootw-cron.log
 
 # 3am+ = Purge gateways
-0,30 3 * * * root /root/bin/purge 2>&1 >>/tmp/ootw-cron.log
+0,30 3 * * * root /root/bin/stop4-purge 2>&1 >>/tmp/ootw-cron.log
 
-# 4am = Start *it*
-0 4 * * * root /root/bin/bring-into-being 2>&1 >>/tmp/ootw-cron.log
+# 4am = Restart services
+0 4 * * * root /root/bin/stop5-restart-services 2>&1 >>/tmp/ootw-cron.log
 
+# 4.30am = Start *it*
+30 4 * * * root /root/bin/start1-bring-into-being 2>&1 >>/tmp/ootw-cron.log

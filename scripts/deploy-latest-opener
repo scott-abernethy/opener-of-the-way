@@ -1,6 +1,0 @@
-#!/bin/bash
-SEARCH_DIR="/home/gaffer"
-LATEST=$SEARCH_DIR/$(ls -1tr $SEARCH_DIR | grep .war$ | tail -n 1)
-TARGET="/var/lib/jetty/webapps/ootw.war"
-echo Deploy $LATEST to $TARGET
-cp $LATEST $TARGET
