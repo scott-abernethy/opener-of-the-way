@@ -19,4 +19,5 @@ dist
 /ignored/
 /bin/
 *.swp
+/tags
 conf/generated.keystore
