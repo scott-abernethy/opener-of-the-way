@@ -2,14 +2,6 @@
 
 <div class="row">
   <div class="col-lg-5">
-    @*
-    <div>
-      <div class="bb-h bb-h-important"><i class="icon-bullhorn icon-large"></i> Notices</div>
-      <div class="bb-t">
-        <div class="bb-i"><span class="label label-inverse">App Upgrade</span><span> Major changes have been made to the app, which in the long term will provide better performance, but in the short term will cause problems. Please bear with it as any issues are found and remedied.</span></div>
-      </div>
-    </div>
-    *@
     <div ng-controller="GatewayCtrl">
       <div class="bb-h"><i class="icon-hdd icon-large"></i> Gateways <div class="pull-right btn-group">
         <button class="btn btn-default btn-xs" title="Add a new gateway" ng-click="add()"><i class="icon-plus"></i></button>
@@ -18,7 +10,7 @@
         <button class="btn btn-default btn-xs" ng-click="retryAsap()" title="Retry and re-scour all your gateways ASAP"><i class="icon-refresh"></i></button>
       </div></div>
       <div class="bb-t">
-        <div class="bb-h2" ng-show="open"><span class="label label-warning">In Use!</span><span ng-show="open && locked"> <span class="label">Waiting to Lock</span></span> Please do not mount truecrypt volume locally or disconnect network.</div>
+        <div class="bb-h2" ng-show="open"><span class="label label-warning">In Use!</span><span ng-show="open && locked"> <span class="label label-default">Waiting to Lock</span></span> Please do not mount truecrypt volume locally or disconnect network.</div>
         <div class="bb-h2" ng-show="!open && locked"><span class="label label-success">Locked</span> The system will not attempt to access locked gateways, so they are safe to mount locally. <button class="pull-right btn btn-xs" ng-click="unlock()">Cancel</button><div class="clearfix"></div></div>
         <ol class="unstyled">
           <li ng-repeat="gateway in gateways" class="bb-i hovery handy" ng-click="gatewaySelect(gateway)">
@@ -43,7 +35,7 @@
         </form></div>
         <ol class="unstyled">
           <li class="bb-i" ng-repeat="babble in babblings">
-            <span><span class="pull-right label">{{babble.who}}</span> {{babble.text}}</span>
+            <span><span class="pull-right label label-default">{{babble.who}}</span> {{babble.text}}</span>
           </li>
           <li class="bb-i" ng-show="!babblings.length"><span class="muted"><i class="icon-minus icon-2x"></i> None</span></li>
         </ol>
