@@ -24,8 +24,8 @@ PATH=/root/bin:/usr/sbin:/usr/sbin:/usr/bin:/sbin:/bin
 # 4.30am = Start *it*
 30 4 * * * root /root/bin/start1-bring-into-being 2>&1 >>/tmp/ootw-cron.log
 
-# REBOOT ON SUNDAY 10pm
-0 22 * * 0 root reboot -f 2>&1 >/dev/null
+# REBOOT ON MONDAY 3:45am 
+45 3 * * 1 root reboot -f 2>&1 >/dev/null
 
 # START ON BOOT
 @reboot root /root/bin/start1-bring-into-being -hard 2>&1 >/dev/null
