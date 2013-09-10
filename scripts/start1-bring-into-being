@@ -1,5 +1,11 @@
 #!/bin/bash
 
+MODE=$(1:-soft)
+
+if [ "z$MODE" == "z-hard" ] ; then
+  rm /srv/ootw/RUNNING_PID
+fi
+
 echo Ensure mysql is up
 service mysql stop
 service mysql start
